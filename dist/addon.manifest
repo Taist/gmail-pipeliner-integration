@@ -1,0 +1,8 @@
+{
+  "id": "gmail-pipeliner-integraion",
+  "siteName": "GMail, Pipeliner",
+  "title": "Integration",
+  "js": "addon.js",
+  "shortDescription": "Creates account, contact and lead from gmail inbox",
+  "siteRegexp": "mail\\.google\\.com"
+}
