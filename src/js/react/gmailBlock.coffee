@@ -31,7 +31,7 @@ GmailBlock = React.createFactory React.createClass
         boxSizing: 'border-box'
     },
       div {},
-        @props.pageData.mailId
+        @props.pageData.text
       div {},
         React.createElement RaisedButton, {
           label: 'Button'
