@@ -4,7 +4,9 @@ require('react/lib/DOMProperty').ID_ATTRIBUTE_NAME = 'data-vr-mc-crm-reactid'
 
 extend = require 'react/lib/Object.assign'
 
-appData = {}
+appData =
+  clients: []
+  participants: []
 
 app =
   api: null
@@ -31,6 +33,22 @@ app =
         .then ->
           updatedData
 
-  actions: {}
+  container: null
+  render: ->
+    React = require 'react'
+    gMailBlock = require './react/gmailBlock'
+    React.render ( gMailBlock data: appData, actions: app.actions ), app.container
+
+  _data: -> appData
+
+  actions:
+    onLoadClients: (clients = []) ->
+      appData.clients = clients
+
+    onChangeMail: (participants = []) ->
+      appData.participants = participants.filter (person) ->
+        !appData.clients.filter((client) -> client.EMAIL is person.email).length
+
+      app.render()
 
 module.exports = app

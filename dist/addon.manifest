@@ -3,6 +3,7 @@
   "siteName": "GMail, Pipeliner",
   "title": "Integration",
   "js": "addon.js",
+  "css": "addon.css",  
   "shortDescription": "Creates account, contact and lead from gmail inbox",
   "siteRegexp": "mail\\.google\\.com"
 }

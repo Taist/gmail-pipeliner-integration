@@ -1,7 +1,5 @@
 app = require './app'
 
-React = require 'react'
-
 addonEntry =
   start: (_taistApi, entryPoint) ->
     window._app = app
@@ -13,23 +11,25 @@ addonEntry =
     DOMObserver = require './helpers/domObserver'
     app.elementObserver = new DOMObserver()
 
+    app.container = document.createElement 'div'
+
     app.pipelinerAPI.getRequest 'Clients'
-    .then (a) ->
-      console.log a
+    .then (clients) ->
+      app.actions.onLoadClients clients
+      .map (client) ->
+        client.name = "#{client.FIRSTNAME} #{client.LASTNAME}"
+        client
     .catch (err) ->
       console.log err
 
     app.elementObserver.waitElement 'table[role="presentation"]>tr>td:first-child', (parent) ->
-      container = document.createElement 'div'
-      parent.insertBefore container, parent.querySelector 'div'
+      parent.insertBefore app.container, parent.querySelector 'div'
 
       mailId = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)?[1]
       if mailId
-        pageData = {
-          text: JSON.stringify app.gMailAPI.getParticipants parent
-        }
+        participants = app.gMailAPI.getParticipants parent
 
-      GmailBlock = require './react/gmailBlock'
-      React.render ( GmailBlock { pageData } ), container
+      app.actions.onChangeMail participants
+
 
 module.exports = addonEntry
