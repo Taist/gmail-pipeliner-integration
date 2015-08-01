@@ -2,6 +2,7 @@ Q = require 'q'
 
 require('react/lib/DOMProperty').ID_ATTRIBUTE_NAME = 'data-vr-gm-crm-reactid'
 
+React = require 'react'
 extend = require 'react/lib/Object.assign'
 
 appData =
@@ -35,9 +36,13 @@ app =
 
   container: null
   render: ->
-    React = require 'react'
     gMailBlock = require './react/gmailBlock'
     React.render ( gMailBlock data: appData, actions: app.actions ), app.container
+
+  messageContainer: null
+  renderMessage: ( message ) ->
+    messageSnackbar = require './react/messageSnackbar'
+    React.render ( messageSnackbar { message } ), app.messageContainer
 
   _data: -> appData
 
@@ -50,7 +55,18 @@ app =
         !appData.clients.filter((client) -> client.EMAIL is person.email).length
       app.render()
 
-    onCreateContact: (selectedContact, selectedClient) ->
-      console.log 'onCreateContact', selectedContact, selectedClient
+    onCreateContact: (selectedContact, selectedClient, data) ->
+      app.pipelinerAPI.createContact {
+        OWNER_ID: selectedClient.ID # mandatory field
+        EMAIL1: selectedContact.email
+        FIRST_NAME: data.firstName
+        SURNAME: data.lastName
+        PHONE1: data.clientPhone
+        SALES_UNIT_ID: selectedClient.DEFAULT_SALES_UNIT_ID # mandatory field
+      }
+      .then (result) ->
+        app.renderMessage 'Contact successfully created'
+      .catch (error) ->
+        app.renderMessage error
 
 module.exports = app

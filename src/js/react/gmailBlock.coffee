@@ -32,7 +32,9 @@ GmailBlock = React.createFactory React.createClass
   }
 
   componentWillReceiveProps: () ->
-    @setState @getInitialState(), =>
+    newState = @getInitialState()
+    newState.selectedClient = @state.selectedClient
+    @setState newState, =>
       if @props.data.participants[0]?.email?
         @onSelectContact null, null, @props.data.participants[0]
 
@@ -56,7 +58,11 @@ GmailBlock = React.createFactory React.createClass
 
   onCreateContact: ->
     if @state.selectedContact? and @state.selectedClient?
-      @props.actions.onCreateContact @state.selectedContact, @state.selectedClient
+      @props.actions.onCreateContact @state.selectedContact, @state.selectedClient, {
+        firstName: @state.firstName
+        lastName: @state.lastName
+        clientPhone: @state.clientPhone
+      }
     else
       @showMessage 'Please select contact person and client'
 
@@ -74,7 +80,6 @@ GmailBlock = React.createFactory React.createClass
         React.createElement Snackbar, {
           ref: 'snackbar'
           message: @state.snackbarMessage
-          action: 'close'
           autoHideDuration: 5000
           onActionTouchTap: => @refs.snackbar?.dismiss()
         }
@@ -117,7 +122,6 @@ GmailBlock = React.createFactory React.createClass
         div { className: 'col span_1_of_2' },
           div { className: 'selectFieldWrapper' },
             React.createElement SelectField, {
-              ref: 'clientSelector'
               menuItems: @props.data.clients
               valueMember: 'ID'
               displayMember: 'name'

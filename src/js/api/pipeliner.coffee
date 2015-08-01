@@ -1,3 +1,4 @@
+Q = require 'q'
 app = null
 
 extend = require 'react/lib/Object.assign'
@@ -22,6 +23,15 @@ pipelinerAPI = extend require('../helpers/apiRequestInterface'),
     password: 'XQjveyjSsprRF8A2'
     spaceID: 'us_Taist'
     serviceURL: 'https://eu-central-1.pipelinersales.com'
+
+  getClients: ->
+    @getRequest 'Clients'
+
+  createContact: (data) ->
+    @postRequest 'Contacts', data
+    .catch (proxyError) ->
+      error = JSON.parse proxyError.response.body
+      Q.reject error.message
 
 module.exports =
   init: (_app, propertyName) ->

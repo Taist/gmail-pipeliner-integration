@@ -25,7 +25,10 @@ addonEntry =
 
     app.container = document.createElement 'div'
 
-    app.pipelinerAPI.getRequest 'Clients'
+    app.messageContainer = document.createElement 'div'
+    app.renderMessage('')
+
+    app.pipelinerAPI.getClients()
 
     .then (clients) ->
       app.actions.onLoadClients clients
@@ -36,6 +39,7 @@ addonEntry =
     .then ->
       app.elementObserver.waitElement 'table[role="presentation"]>tr>td:first-child', (parent) ->
         parent.insertBefore app.container, parent.querySelector 'div'
+        parent.insertBefore app.messageContainer, parent.querySelector 'div'
 
         mailId = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)?[1]
         if mailId

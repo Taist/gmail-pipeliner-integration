@@ -22,8 +22,6 @@ module.exports =
 
     Authorization = @getAuthorizationHeader?()
 
-    console.log url, Authorization
-
     requestOptions = extend {
       type: 'json'
       method: 'get'
