@@ -136,6 +136,9 @@ app = {
         }).length;
       });
       return app.render();
+    },
+    onCreateContact: function(selectedContact, selectedClient) {
+      return console.log('onCreateContact', selectedContact, selectedClient);
     }
   }
 };
@@ -272,7 +275,7 @@ DOMObserver = (function() {
 module.exports = DOMObserver;
 
 },{}],6:[function(require,module,exports){
-var GmailBlock, Paper, RaisedButton, React, SelectField, TextField, ThemeManager, button, div, injectTapEventPlugin, mui, ref;
+var GmailBlock, Paper, RaisedButton, React, SelectField, Snackbar, TextField, ThemeManager, button, div, injectTapEventPlugin, mui, ref;
 
 React = require('react');
 
@@ -284,7 +287,7 @@ ThemeManager = new mui.Styles.ThemeManager();
 
 ThemeManager.setTheme(ThemeManager.types.LIGHT);
 
-Paper = mui.Paper, RaisedButton = mui.RaisedButton, SelectField = mui.SelectField, TextField = mui.TextField;
+Paper = mui.Paper, RaisedButton = mui.RaisedButton, SelectField = mui.SelectField, TextField = mui.TextField, Snackbar = mui.Snackbar;
 
 injectTapEventPlugin = require('react-tap-event-plugin');
 
@@ -306,7 +309,8 @@ GmailBlock = React.createFactory(React.createClass({
       selectedClient: null,
       firstName: '',
       lastName: '',
-      clientPhone: ''
+      clientPhone: '',
+      snackbarMessage: ''
     };
   },
   componentWillReceiveProps: function() {
@@ -353,9 +357,24 @@ GmailBlock = React.createFactory(React.createClass({
     valueObj[fieldName] = event.target.value;
     return this.setState(valueObj);
   },
-  onCreateContact: function() {},
+  showMessage: function(snackbarMessage) {
+    return this.setState({
+      snackbarMessage: snackbarMessage
+    }, (function(_this) {
+      return function() {
+        var ref1;
+        return (ref1 = _this.refs.snackbar) != null ? ref1.show() : void 0;
+      };
+    })(this));
+  },
+  onCreateContact: function() {
+    if ((this.state.selectedContact != null) && (this.state.selectedClient != null)) {
+      return this.props.actions.onCreateContact(this.state.selectedContact, this.state.selectedClient);
+    } else {
+      return this.showMessage('Please select contact person and client');
+    }
+  },
   render: function() {
-    console.log(this.props.data);
     return React.createElement(Paper, {
       zDepth: 1,
       rounded: false,
@@ -365,7 +384,18 @@ GmailBlock = React.createFactory(React.createClass({
         padding: 8,
         boxSizing: 'border-box'
       }
-    }, div({
+    }, div({}, React.createElement(Snackbar, {
+      ref: 'snackbar',
+      message: this.state.snackbarMessage,
+      action: 'close',
+      autoHideDuration: 5000,
+      onActionTouchTap: (function(_this) {
+        return function() {
+          var ref1;
+          return (ref1 = _this.refs.snackbar) != null ? ref1.dismiss() : void 0;
+        };
+      })(this)
+    })), div({
       className: 'section group'
     }, div({
       className: 'col span_1_of_2'

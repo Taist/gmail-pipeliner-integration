@@ -6,7 +6,7 @@ mui = require 'material-ui'
 ThemeManager = new mui.Styles.ThemeManager()
 ThemeManager.setTheme ThemeManager.types.LIGHT
 
-{ Paper, RaisedButton, SelectField, TextField } = mui
+{ Paper, RaisedButton, SelectField, TextField, Snackbar } = mui
 
 injectTapEventPlugin = require 'react-tap-event-plugin'
 injectTapEventPlugin()
@@ -21,15 +21,17 @@ GmailBlock = React.createFactory React.createClass
     muiTheme: ThemeManager.getCurrentTheme()
 
   getInitialState: ->
-    state =
+    state = {
       selectedContact: null
       selectedClient: null
       firstName: ''
       lastName: ''
       clientPhone: ''
 
-  componentWillReceiveProps: () ->
+      snackbarMessage: ''
+  }
 
+  componentWillReceiveProps: () ->
     @setState @getInitialState(), =>
       if @props.data.participants[0]?.email?
         @onSelectContact @props.data.participants[0].email
@@ -47,8 +49,6 @@ GmailBlock = React.createFactory React.createClass
         matches = contact[0].name.match /(\S+)\s?(.*)/
         @setState { firstName: matches[1], lastName: matches[2] }
 
-
-
   onSelectClient: (selectedClient) ->
     @setState { selectedClient }
 
@@ -57,12 +57,17 @@ GmailBlock = React.createFactory React.createClass
     valueObj[fieldName] = event.target.value
     @setState valueObj
 
+  showMessage: (snackbarMessage) ->
+    @setState { snackbarMessage }, =>
+      @refs.snackbar?.show()
+
   onCreateContact: ->
-    # @props.actions.onCreateContact selectedContact, selectedClient
+    if @state.selectedContact? and @state.selectedClient?
+      @props.actions.onCreateContact @state.selectedContact, @state.selectedClient
+    else
+      @showMessage 'Please select contact person and client'
 
   render: ->
-    console.log @props.data
-
     React.createElement Paper, {
       zDepth: 1
       rounded: false
@@ -72,6 +77,14 @@ GmailBlock = React.createFactory React.createClass
         padding: 8
         boxSizing: 'border-box'
     },
+      div {},
+        React.createElement Snackbar, {
+          ref: 'snackbar'
+          message: @state.snackbarMessage
+          action: 'close'
+          autoHideDuration: 5000
+          onActionTouchTap: => @refs.snackbar?.dismiss()
+        }
 
       div { className: 'section group' },
 

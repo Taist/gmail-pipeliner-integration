@@ -50,4 +50,7 @@ app =
         !appData.clients.filter((client) -> client.EMAIL is person.email).length
       app.render()
 
+    onCreateContact: (selectedContact, selectedClient) ->
+      console.log 'onCreateContact', selectedContact, selectedClient
+
 module.exports = app
