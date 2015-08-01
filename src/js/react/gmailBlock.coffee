@@ -34,22 +34,15 @@ GmailBlock = React.createFactory React.createClass
   componentWillReceiveProps: () ->
     @setState @getInitialState(), =>
       if @props.data.participants[0]?.email?
-        @onSelectContact @props.data.participants[0].email
+        @onSelectContact null, null, @props.data.participants[0]
 
-  onSelectContact: (selectedContact) ->
-    # selected contact can be email or event (because of material-ui)
-    if selectedContact?.target?
-      #get email and use it as a selectedContact
-      [ _, selectedContact ] = selectedContact.target.innerText.match /\s\(([^)]+)\)/
-
+  onSelectContact: (event, index, selectedContact) ->
     @setState { selectedContact }, =>
       if selectedContact
-        contact = @props.data.participants.filter (p) ->
-          p.email is selectedContact
-        matches = contact[0].name.match /(\S+)\s?(.*)/
+        matches = selectedContact.name.match /(\S+)\s?(.*)/
         @setState { firstName: matches[1], lastName: matches[2] }
 
-  onSelectClient: (selectedClient) ->
+  onSelectClient: (event, index, selectedClient) ->
     @setState { selectedClient }
 
   onChange: (fieldName, event) ->
@@ -124,6 +117,7 @@ GmailBlock = React.createFactory React.createClass
         div { className: 'col span_1_of_2' },
           div { className: 'selectFieldWrapper' },
             React.createElement SelectField, {
+              ref: 'clientSelector'
               menuItems: @props.data.clients
               valueMember: 'ID'
               displayMember: 'name'

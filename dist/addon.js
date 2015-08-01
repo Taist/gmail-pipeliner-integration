@@ -318,26 +318,19 @@ GmailBlock = React.createFactory(React.createClass({
       return function() {
         var ref1;
         if (((ref1 = _this.props.data.participants[0]) != null ? ref1.email : void 0) != null) {
-          return _this.onSelectContact(_this.props.data.participants[0].email);
+          return _this.onSelectContact(null, null, _this.props.data.participants[0]);
         }
       };
     })(this));
   },
-  onSelectContact: function(selectedContact) {
-    var _, ref1;
-    if ((selectedContact != null ? selectedContact.target : void 0) != null) {
-      ref1 = selectedContact.target.innerText.match(/\s\(([^)]+)\)/), _ = ref1[0], selectedContact = ref1[1];
-    }
+  onSelectContact: function(event, index, selectedContact) {
     return this.setState({
       selectedContact: selectedContact
     }, (function(_this) {
       return function() {
-        var contact, matches;
+        var matches;
         if (selectedContact) {
-          contact = _this.props.data.participants.filter(function(p) {
-            return p.email === selectedContact;
-          });
-          matches = contact[0].name.match(/(\S+)\s?(.*)/);
+          matches = selectedContact.name.match(/(\S+)\s?(.*)/);
           return _this.setState({
             firstName: matches[1],
             lastName: matches[2]
@@ -346,7 +339,7 @@ GmailBlock = React.createFactory(React.createClass({
       };
     })(this));
   },
-  onSelectClient: function(selectedClient) {
+  onSelectClient: function(event, index, selectedClient) {
     return this.setState({
       selectedClient: selectedClient
     });
@@ -441,6 +434,7 @@ GmailBlock = React.createFactory(React.createClass({
     }, div({
       className: 'selectFieldWrapper'
     }, React.createElement(SelectField, {
+      ref: 'clientSelector',
       menuItems: this.props.data.clients,
       valueMember: 'ID',
       displayMember: 'name',
