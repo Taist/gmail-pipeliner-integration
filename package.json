@@ -11,7 +11,7 @@
     "grunt-contrib-concat": "*",
     "grunt-contrib-copy": "*",
     "grunt-contrib-watch": "*",
-    "material-ui": "^0.10.1",
+    "material-ui": "^0.10.2",
     "q": "^1.4.0",
     "react": "^0.13.3"
   }

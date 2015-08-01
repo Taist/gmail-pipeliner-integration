@@ -1,6 +1,6 @@
 Q = require 'q'
 
-require('react/lib/DOMProperty').ID_ATTRIBUTE_NAME = 'data-vr-mc-crm-reactid'
+require('react/lib/DOMProperty').ID_ATTRIBUTE_NAME = 'data-vr-gm-crm-reactid'
 
 extend = require 'react/lib/Object.assign'
 
@@ -48,7 +48,6 @@ app =
     onChangeMail: (participants = []) ->
       appData.participants = participants.filter (person) ->
         !appData.clients.filter((client) -> client.EMAIL is person.email).length
-
       app.render()
 
 module.exports = app

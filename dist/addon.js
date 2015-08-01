@@ -70,12 +70,12 @@ module.exports = {
   }
 };
 
-},{"../helpers/apiRequestInterface":4,"react/lib/Object.assign":170}],3:[function(require,module,exports){
+},{"../helpers/apiRequestInterface":4,"react/lib/Object.assign":176}],3:[function(require,module,exports){
 var Q, app, appData, extend;
 
 Q = require('q');
 
-require('react/lib/DOMProperty').ID_ATTRIBUTE_NAME = 'data-vr-mc-crm-reactid';
+require('react/lib/DOMProperty').ID_ATTRIBUTE_NAME = 'data-vr-gm-crm-reactid';
 
 extend = require('react/lib/Object.assign');
 
@@ -142,7 +142,7 @@ app = {
 
 module.exports = app;
 
-},{"./react/gmailBlock":6,"q":137,"react":314,"react/lib/DOMProperty":152,"react/lib/Object.assign":170}],4:[function(require,module,exports){
+},{"./react/gmailBlock":6,"q":143,"react":320,"react/lib/DOMProperty":158,"react/lib/Object.assign":176}],4:[function(require,module,exports){
 var Q, extend;
 
 Q = require('q');
@@ -195,7 +195,7 @@ module.exports = {
   }
 };
 
-},{"q":137,"react/lib/Object.assign":170}],5:[function(require,module,exports){
+},{"q":143,"react/lib/Object.assign":176}],5:[function(require,module,exports){
 var DOMObserver, defaultConfig;
 
 defaultConfig = {
@@ -272,7 +272,7 @@ DOMObserver = (function() {
 module.exports = DOMObserver;
 
 },{}],6:[function(require,module,exports){
-var GmailBlock, Paper, RaisedButton, React, SelectField, ThemeManager, button, div, injectTapEventPlugin, mui, ref;
+var GmailBlock, Paper, RaisedButton, React, SelectField, TextField, ThemeManager, button, div, injectTapEventPlugin, mui, ref;
 
 React = require('react');
 
@@ -284,7 +284,7 @@ ThemeManager = new mui.Styles.ThemeManager();
 
 ThemeManager.setTheme(ThemeManager.types.LIGHT);
 
-Paper = mui.Paper, RaisedButton = mui.RaisedButton, SelectField = mui.SelectField;
+Paper = mui.Paper, RaisedButton = mui.RaisedButton, SelectField = mui.SelectField, TextField = mui.TextField;
 
 injectTapEventPlugin = require('react-tap-event-plugin');
 
@@ -300,25 +300,60 @@ GmailBlock = React.createFactory(React.createClass({
     };
   },
   getInitialState: function() {
-    var ref1;
-    return {
-      selectedContact: (ref1 = this.props.data.participants[0]) != null ? ref1.email : void 0,
-      selectedClient: null
+    var state;
+    return state = {
+      selectedContact: null,
+      selectedClient: null,
+      firstName: '',
+      lastName: '',
+      clientPhone: ''
     };
   },
+  componentWillReceiveProps: function() {
+    return this.setState(this.getInitialState(), (function(_this) {
+      return function() {
+        var ref1;
+        if (((ref1 = _this.props.data.participants[0]) != null ? ref1.email : void 0) != null) {
+          return _this.onSelectContact(_this.props.data.participants[0].email);
+        }
+      };
+    })(this));
+  },
   onSelectContact: function(selectedContact) {
+    var _, ref1;
+    if ((selectedContact != null ? selectedContact.target : void 0) != null) {
+      ref1 = selectedContact.target.innerText.match(/\s\(([^)]+)\)/), _ = ref1[0], selectedContact = ref1[1];
+    }
     return this.setState({
       selectedContact: selectedContact
-    });
+    }, (function(_this) {
+      return function() {
+        var contact, matches;
+        if (selectedContact) {
+          contact = _this.props.data.participants.filter(function(p) {
+            return p.email === selectedContact;
+          });
+          matches = contact[0].name.match(/(\S+)\s?(.*)/);
+          return _this.setState({
+            firstName: matches[1],
+            lastName: matches[2]
+          });
+        }
+      };
+    })(this));
   },
   onSelectClient: function(selectedClient) {
     return this.setState({
       selectedClient: selectedClient
     });
   },
-  onClick: function() {
-    return console.log('onClick');
+  onChange: function(fieldName, event) {
+    var valueObj;
+    valueObj = {};
+    valueObj[fieldName] = event.target.value;
+    return this.setState(valueObj);
   },
+  onCreateContact: function() {},
   render: function() {
     console.log(this.props.data);
     return React.createElement(Paper, {
@@ -334,7 +369,9 @@ GmailBlock = React.createFactory(React.createClass({
       className: 'section group'
     }, div({
       className: 'col span_1_of_2'
-    }, div({}, React.createElement(SelectField, {
+    }, div({
+      className: 'selectFieldWrapper'
+    }, React.createElement(SelectField, {
       menuItems: this.props.data.participants,
       valueMember: 'email',
       displayMember: 'text',
@@ -342,9 +379,38 @@ GmailBlock = React.createFactory(React.createClass({
       value: this.state.selectedContact,
       onChange: this.onSelectContact,
       fullWidth: true
+    }), React.createElement(TextField, {
+      floatingLabelText: "First Name",
+      value: this.state.firstName,
+      fullWidth: true,
+      onChange: (function(_this) {
+        return function(event, value) {
+          return _this.onChange('firstName', event, value);
+        };
+      })(this)
+    }), React.createElement(TextField, {
+      floatingLabelText: "Last Name",
+      value: this.state.lastName,
+      fullWidth: true,
+      onChange: (function(_this) {
+        return function(event, value) {
+          return _this.onChange('lastName', event, value);
+        };
+      })(this)
+    }), React.createElement(TextField, {
+      floatingLabelText: "Phone",
+      value: this.state.clientPhone,
+      fullWidth: true,
+      onChange: (function(_this) {
+        return function(event, value) {
+          return _this.onChange('clientPhone', event, value);
+        };
+      })(this)
     }))), div({
       className: 'col span_1_of_2'
-    }, div({}, React.createElement(SelectField, {
+    }, div({
+      className: 'selectFieldWrapper'
+    }, React.createElement(SelectField, {
       menuItems: this.props.data.clients,
       valueMember: 'ID',
       displayMember: 'name',
@@ -353,15 +419,15 @@ GmailBlock = React.createFactory(React.createClass({
       onChange: this.onSelectClient,
       fullWidth: true
     })), div({}, React.createElement(RaisedButton, {
-      label: 'Button',
-      onClick: this.onClick
+      label: 'Create Contact',
+      onClick: this.onCreateContact
     })))));
   }
 }));
 
 module.exports = GmailBlock;
 
-},{"material-ui":40,"react":314,"react-tap-event-plugin":141}],7:[function(require,module,exports){
+},{"material-ui":41,"react":320,"react-tap-event-plugin":147}],7:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -516,7 +582,7 @@ var AppBar = React.createClass({
       root: {
         zIndex: 5,
         width: '100%',
-        display: '-webkit-box; display: flex',
+        display: '-webkit-box; display: -webkit-flex; display: flex',
         minHeight: themeVariables.height,
         backgroundColor: themeVariables.color,
         paddingLeft: spacing.desktopGutter,
@@ -676,7 +742,7 @@ var AppBar = React.createClass({
 
 module.exports = AppBar;
 }).call(this,require('_process'))
-},{"./icon-button":39,"./mixins/style-propable":58,"./paper":62,"./styles/typography":81,"./svg-icons/navigation/menu":89,"_process":7,"react":314}],9:[function(require,module,exports){
+},{"./icon-button":40,"./mixins/style-propable":59,"./paper":63,"./styles/typography":82,"./svg-icons/navigation/menu":92,"_process":7,"react":320}],9:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -728,7 +794,7 @@ var AppCanvas = React.createClass({
 });
 
 module.exports = AppCanvas;
-},{"./mixins/style-propable":58,"react":314}],10:[function(require,module,exports){
+},{"./mixins/style-propable":59,"react":320}],10:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -749,9 +815,9 @@ var Avatar = React.createClass({
   },
 
   propTypes: {
-    icon: React.PropTypes.element,
     backgroundColor: React.PropTypes.string,
     color: React.PropTypes.string,
+    icon: React.PropTypes.element,
     size: React.PropTypes.number,
     src: React.PropTypes.string,
     style: React.PropTypes.object
@@ -767,51 +833,58 @@ var Avatar = React.createClass({
 
   render: function render() {
     var _props = this.props;
-    var icon = _props.icon;
     var backgroundColor = _props.backgroundColor;
     var color = _props.color;
+    var icon = _props.icon;
     var size = _props.size;
     var src = _props.src;
     var style = _props.style;
 
-    var other = _objectWithoutProperties(_props, ['icon', 'backgroundColor', 'color', 'size', 'src', 'style']);
+    var other = _objectWithoutProperties(_props, ['backgroundColor', 'color', 'icon', 'size', 'src', 'style']);
 
     var styles = {
       root: {
-        height: src ? size - 2 : size,
-        width: src ? size - 2 : size,
+        height: size,
+        width: size,
         userSelect: 'none',
-        backgroundColor: backgroundColor,
         borderRadius: '50%',
-        border: src ? 'solid 1px' : 'none',
-        borderColor: this.context.muiTheme.palette.borderColor,
-        display: 'inline-block',
+        display: 'inline-block'
+      }
+    };
 
-        //Needed for letter avatars
+    if (src) {
+      var borderColor = this.context.muiTheme.component.avatar.borderColor;
+
+      if (borderColor) {
+        styles.root = this.mergeStyles(styles.root, {
+          height: size - 2,
+          width: size - 2,
+          border: 'solid 1px ' + borderColor
+        });
+      }
+
+      return React.createElement('img', _extends({}, other, { src: src, style: this.mergeAndPrefix(styles.root, style) }));
+    } else {
+      styles.root = this.mergeStyles(styles.root, {
+        backgroundColor: backgroundColor,
         textAlign: 'center',
         lineHeight: size + 'px',
         fontSize: size / 2 + 4,
         color: color
-      },
+      });
 
-      iconStyles: {
+      var styleIcon = {
         margin: 8
-      }
-    };
+      };
 
-    var mergedRootStyles = this.mergeAndPrefix(styles.root, style);
-
-    if (src) {
-      return React.createElement('img', _extends({}, other, { src: src, style: mergedRootStyles }));
-    } else {
       var iconElement = icon ? React.cloneElement(icon, {
         color: color,
-        style: this.mergeStyles(styles.iconStyles, icon.props.style)
+        style: this.mergeStyles(styleIcon, icon.props.style)
       }) : null;
 
       return React.createElement(
         'div',
-        _extends({}, other, { style: mergedRootStyles }),
+        _extends({}, other, { style: this.mergeAndPrefix(styles.root, style) }),
         iconElement,
         this.props.children
       );
@@ -820,7 +893,7 @@ var Avatar = React.createClass({
 });
 
 module.exports = Avatar;
-},{"./mixins/style-propable":58,"./styles/colors":74,"react/addons":142}],11:[function(require,module,exports){
+},{"./mixins/style-propable":59,"./styles/colors":75,"react/addons":148}],11:[function(require,module,exports){
 'use strict';
 
 function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
@@ -920,7 +993,7 @@ var BeforeAfterWrapper = React.createClass({
 });
 
 module.exports = BeforeAfterWrapper;
-},{"./mixins/style-propable":58,"./styles/auto-prefix":73,"react":314}],12:[function(require,module,exports){
+},{"./mixins/style-propable":59,"./styles/auto-prefix":74,"react":320}],12:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -933,9 +1006,15 @@ var CardActions = React.createClass({
   getStyles: function getStyles() {
     return {
       root: {
-        padding: 8
+        padding: 8,
+        position: 'relative'
       }
     };
+  },
+
+  propTypes: {
+    expandable: React.PropTypes.bool,
+    showExpandableButton: React.PropTypes.bool
   },
 
   render: function render() {
@@ -956,7 +1035,58 @@ var CardActions = React.createClass({
 });
 
 module.exports = CardActions;
-},{"react":314}],13:[function(require,module,exports){
+},{"react":320}],13:[function(require,module,exports){
+'use strict';
+
+var React = require('react');
+var OpenIcon = require('../svg-icons/hardware/keyboard-arrow-up');
+var CloseIcon = require('../svg-icons/hardware/keyboard-arrow-down');
+var IconButton = require('../icon-button');
+
+var CardExpandable = React.createClass({
+  displayName: 'CardExpandable',
+
+  getStyles: function getStyles() {
+    return {
+      root: {
+        right: 4,
+        top: 0,
+        bottom: 0,
+        margin: 'auto',
+        position: 'absolute'
+      }
+    };
+  },
+
+  propTypes: {
+    onExpanding: React.PropTypes.func.isRequired,
+    expanded: React.PropTypes.bool
+  },
+
+  _onExpanding: function _onExpanding() {
+    if (this.props.expanded === true) this.props.onExpanding(false);else this.props.onExpanding(true);
+  },
+
+  render: function render() {
+    var styles = this.getStyles();
+
+    var expandable = undefined;
+    if (this.props.expanded === true) expandable = React.createElement(OpenIcon, null);else expandable = React.createElement(CloseIcon, null);
+
+    var expandableBtn = React.createElement(
+      IconButton,
+      {
+        style: styles.root,
+        onClick: this._onExpanding },
+      expandable
+    );
+
+    return expandableBtn;
+  }
+});
+
+module.exports = CardExpandable;
+},{"../icon-button":40,"../svg-icons/hardware/keyboard-arrow-down":84,"../svg-icons/hardware/keyboard-arrow-up":85,"react":320}],14:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -978,7 +1108,9 @@ var CardHeader = React.createClass({
     subtitle: React.PropTypes.string,
     subtitleColor: React.PropTypes.string,
     subtitleStyle: React.PropTypes.object,
-    textStyle: React.PropTypes.object
+    textStyle: React.PropTypes.object,
+    expandable: React.PropTypes.bool,
+    showExpandableButton: React.PropTypes.bool
   },
 
   getDefaultProps: function getDefaultProps() {
@@ -994,7 +1126,8 @@ var CardHeader = React.createClass({
         height: 72,
         padding: 16,
         fontWeight: Styles.Typography.fontWeightMedium,
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        position: 'relative'
       },
       text: {
         display: 'inline-block',
@@ -1046,13 +1179,14 @@ var CardHeader = React.createClass({
           { style: subtitleStyle },
           this.props.subtitle
         )
-      )
+      ),
+      this.props.children
     );
   }
 });
 
 module.exports = CardHeader;
-},{"../avatar":10,"../mixins/style-propable":58,"../styles":75,"react":314}],14:[function(require,module,exports){
+},{"../avatar":10,"../mixins/style-propable":59,"../styles":76,"react":320}],15:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -1072,7 +1206,8 @@ var CardMedia = React.createClass({
     overlayStyle: React.PropTypes.object,
     overlayContainerStyle: React.PropTypes.object,
     overlayContentStyle: React.PropTypes.object,
-    mediaStyle: React.PropTypes.object
+    mediaStyle: React.PropTypes.object,
+    expandable: React.PropTypes.bool
   },
 
   getStyles: function getStyles() {
@@ -1162,7 +1297,7 @@ var CardMedia = React.createClass({
 });
 
 module.exports = CardMedia;
-},{"../mixins/style-propable":58,"../styles":75,"react":314}],15:[function(require,module,exports){
+},{"../mixins/style-propable":59,"../styles":76,"react":320}],16:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -1178,7 +1313,8 @@ var CardText = React.createClass({
 
   propTypes: {
     color: React.PropTypes.string,
-    style: React.PropTypes.object
+    style: React.PropTypes.object,
+    expandable: React.PropTypes.bool
   },
 
   getDefaultProps: function getDefaultProps() {
@@ -1210,7 +1346,7 @@ var CardText = React.createClass({
 });
 
 module.exports = CardText;
-},{"../mixins/style-propable":58,"../styles":75,"react":314}],16:[function(require,module,exports){
+},{"../mixins/style-propable":59,"../styles":76,"react":320}],17:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -1230,7 +1366,9 @@ var CardTitle = React.createClass({
     titleStyle: React.PropTypes.object,
     subtitle: React.PropTypes.string,
     subtitleColor: React.PropTypes.string,
-    subtitleStyle: React.PropTypes.object
+    subtitleStyle: React.PropTypes.object,
+    expandable: React.PropTypes.bool,
+    showExpandableButton: React.PropTypes.bool
   },
 
   getDefaultProps: function getDefaultProps() {
@@ -1243,7 +1381,8 @@ var CardTitle = React.createClass({
   getStyles: function getStyles() {
     return {
       root: {
-        padding: 16
+        padding: 16,
+        position: 'relative'
       },
       title: {
         fontSize: 24,
@@ -1277,13 +1416,14 @@ var CardTitle = React.createClass({
         'span',
         { style: subtitleStyle },
         this.props.subtitle
-      )
+      ),
+      this.props.children
     );
   }
 });
 
 module.exports = CardTitle;
-},{"../mixins/style-propable":58,"../styles":75,"react":314}],17:[function(require,module,exports){
+},{"../mixins/style-propable":59,"../styles":76,"react":320}],18:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -1293,22 +1433,49 @@ function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in ob
 var React = require('react');
 var Paper = require('../paper');
 var StylePropable = require('../mixins/style-propable');
+var CardExpandable = require('./card-expandable');
 
 var Card = React.createClass({
   displayName: 'Card',
 
   mixins: [StylePropable],
 
+  getInitialState: function getInitialState() {
+    return { expanded: this.props.initiallyExpanded ? true : false };
+  },
+
   propTypes: {
-    style: React.PropTypes.object
+    style: React.PropTypes.object,
+    expandable: React.PropTypes.bool,
+    initiallyExpanded: React.PropTypes.bool,
+    onExpandChange: React.PropTypes.func
+  },
+
+  _onExpandable: function _onExpandable(value) {
+    this.setState({ expanded: value });
+    if (this.props.onExpandChange) this.props.onExpandChange(value);
   },
 
   render: function render() {
-    var lastElement = React.Children.count(this.props.children) > 1 ? this.props.children[this.props.children.length - 1] : this.props.children;
+    var _this = this;
+
+    var lastElement = undefined;
+    var newChildren = React.Children.map(this.props.children, function (currentChild) {
+      if (!currentChild) {
+        return null;
+      }
+      if (_this.state.expanded === false && currentChild.props.expandable === true) return;
+      if (currentChild.props.showExpandableButton === true) {
+        lastElement = React.cloneElement(currentChild, {}, currentChild.props.children, React.createElement(CardExpandable, { expanded: _this.state.expanded, onExpanding: _this._onExpandable }));
+      } else {
+        lastElement = currentChild;
+      }
+      return lastElement;
+    }, this);
 
     // If the last element is text or a title we should add
     // 8px padding to the bottom of the card
-    var addBottomPadding = lastElement.type.displayName === 'CardText' || lastElement.type.displayName === 'CardTitle';
+    var addBottomPadding = lastElement && (lastElement.type.displayName === 'CardText' || lastElement.type.displayName === 'CardTitle');
     var _props = this.props;
     var style = _props.style;
 
@@ -1325,14 +1492,14 @@ var Card = React.createClass({
       React.createElement(
         'div',
         { style: { paddingBottom: addBottomPadding ? 8 : 0 } },
-        this.props.children
+        newChildren
       )
     );
   }
 });
 
 module.exports = Card;
-},{"../mixins/style-propable":58,"../paper":62,"react":314}],18:[function(require,module,exports){
+},{"../mixins/style-propable":59,"../paper":63,"./card-expandable":13,"react":320}],19:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -1490,7 +1657,7 @@ var Checkbox = React.createClass({
 });
 
 module.exports = Checkbox;
-},{"./enhanced-switch":34,"./mixins/style-propable":58,"./styles/transitions":80,"./svg-icons/toggle/check-box":91,"./svg-icons/toggle/check-box-outline-blank":90,"react":314}],19:[function(require,module,exports){
+},{"./enhanced-switch":35,"./mixins/style-propable":59,"./styles/transitions":81,"./svg-icons/toggle/check-box":94,"./svg-icons/toggle/check-box-outline-blank":93,"react":320}],20:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -1672,8 +1839,7 @@ var CircularProgress = React.createClass({
 });
 
 module.exports = CircularProgress;
-//webkitTransitionTimingFunction: "linear",
-},{"./mixins/style-propable":58,"./styles/auto-prefix":73,"./styles/transitions":80,"react":314}],20:[function(require,module,exports){
+},{"./mixins/style-propable":59,"./styles/auto-prefix":74,"./styles/transitions":81,"react":320}],21:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -1714,7 +1880,7 @@ var ClearFix = React.createClass({
 });
 
 module.exports = ClearFix;
-},{"./before-after-wrapper":11,"react":314}],21:[function(require,module,exports){
+},{"./before-after-wrapper":11,"react":320}],22:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -1807,7 +1973,7 @@ var CalendarMonth = React.createClass({
 });
 
 module.exports = CalendarMonth;
-},{"../clearfix":20,"../utils/date-time":126,"./day-button":28,"react":314}],22:[function(require,module,exports){
+},{"../clearfix":21,"../utils/date-time":131,"./day-button":29,"react":320}],23:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -1984,7 +2150,7 @@ var CalendarToolbar = React.createClass({
 });
 
 module.exports = CalendarToolbar;
-},{"../icon-button":39,"../svg-icons/navigation-chevron-left-double":83,"../svg-icons/navigation-chevron-right-double":84,"../svg-icons/navigation/chevron-left":87,"../svg-icons/navigation/chevron-right":88,"../toolbar/toolbar":119,"../toolbar/toolbar-group":116,"../transition-groups/slide-in":122,"../utils/date-time":126,"react":314}],23:[function(require,module,exports){
+},{"../icon-button":40,"../svg-icons/navigation-chevron-left-double":86,"../svg-icons/navigation-chevron-right-double":87,"../svg-icons/navigation/chevron-left":90,"../svg-icons/navigation/chevron-right":91,"../toolbar/toolbar":122,"../toolbar/toolbar-group":119,"../transition-groups/slide-in":127,"../utils/date-time":131,"react":320}],24:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -2084,7 +2250,7 @@ var CalendarYear = React.createClass({
 });
 
 module.exports = CalendarYear;
-},{"../mixins/style-propable":58,"../styles/colors":74,"../utils/date-time":126,"./year-button":29,"react":314}],24:[function(require,module,exports){
+},{"../mixins/style-propable":59,"../styles/colors":75,"../utils/date-time":131,"./year-button":30,"react":320}],25:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -2115,7 +2281,7 @@ var Calendar = React.createClass({
     shouldShowMonthDayPickerFirst: React.PropTypes.bool,
     shouldShowYearPickerFirst: React.PropTypes.bool,
     showYearSelector: React.PropTypes.bool,
-    onSelectedDate: React.PropTypes.func
+    onDayTouchTap: React.PropTypes.func
   },
 
   windowListeners: {
@@ -2343,7 +2509,7 @@ var Calendar = React.createClass({
     }
   },
 
-  _setSelectedDate: function _setSelectedDate(date, e) {
+  _setSelectedDate: function _setSelectedDate(date) {
     var adjustedDate = date;
     if (DateTime.isBeforeDate(date, this.props.minDate)) {
       adjustedDate = this.props.minDate;
@@ -2359,11 +2525,11 @@ var Calendar = React.createClass({
         selectedDate: adjustedDate
       });
     }
-    if (this.props.onSelectedDate) this.props.onSelectedDate(e, date);
   },
 
   _handleDayTouchTap: function _handleDayTouchTap(e, date) {
-    this._setSelectedDate(date, e);
+    this._setSelectedDate(date);
+    if (this.props.onDayTouchTap) this.props.onDayTouchTap(e, date);
   },
 
   _handleMonthChange: function _handleMonthChange(months) {
@@ -2447,7 +2613,7 @@ var Calendar = React.createClass({
 });
 
 module.exports = Calendar;
-},{"../clearfix":20,"../mixins/style-propable":58,"../mixins/window-listenable":60,"../styles/transitions":80,"../transition-groups/slide-in":122,"../utils/date-time":126,"../utils/key-code":131,"./calendar-month":21,"./calendar-toolbar":22,"./calendar-year":23,"./date-display":25,"react":314}],25:[function(require,module,exports){
+},{"../clearfix":21,"../mixins/style-propable":59,"../mixins/window-listenable":61,"../styles/transitions":81,"../transition-groups/slide-in":127,"../utils/date-time":131,"../utils/key-code":136,"./calendar-month":22,"./calendar-toolbar":23,"./calendar-year":24,"./date-display":26,"react":320}],26:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -2714,7 +2880,7 @@ var DateDisplay = React.createClass({
 });
 
 module.exports = DateDisplay;
-},{"../mixins/style-propable":58,"../styles/auto-prefix":73,"../styles/transitions":80,"../transition-groups/slide-in":122,"../utils/date-time":126,"react":314}],26:[function(require,module,exports){
+},{"../mixins/style-propable":59,"../styles/auto-prefix":74,"../styles/transitions":81,"../transition-groups/slide-in":127,"../utils/date-time":131,"react":320}],27:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -2821,7 +2987,7 @@ var DatePickerDialog = React.createClass({
         repositionOnUpdate: false }),
       React.createElement(Calendar, {
         ref: 'calendar',
-        onSelectedDate: this._onSelectedDate,
+        onDayTouchTap: this._onDayTouchTap,
         initialDate: this.props.initialDate,
         isActive: this.state.isCalendarActive,
         minDate: this.props.minDate,
@@ -2842,7 +3008,7 @@ var DatePickerDialog = React.createClass({
     this.refs.dialog.dismiss();
   },
 
-  _onSelectedDate: function _onSelectedDate() {
+  _onDayTouchTap: function _onDayTouchTap() {
     if (this.props.autoOk) {
       setTimeout(this._handleOKTouchTap, 300);
     }
@@ -2895,17 +3061,20 @@ var DatePickerDialog = React.createClass({
   },
 
   _handleWindowKeyUp: function _handleWindowKeyUp(e) {
-    switch (e.keyCode) {
-      case KeyCode.ENTER:
-        this._handleOKTouchTap();
-        break;
+    if (this.state.isCalendarActive) {
+      switch (e.keyCode) {
+        case KeyCode.ENTER:
+          this._handleOKTouchTap();
+          break;
+      }
     }
   }
 
 });
 
 module.exports = DatePickerDialog;
-},{"../dialog":30,"../flat-button":36,"../mixins/style-propable":58,"../mixins/window-listenable":60,"../utils/css-event":125,"../utils/key-code":131,"./calendar":24,"react":314}],27:[function(require,module,exports){
+},{"../dialog":31,"../flat-button":37,"../mixins/style-propable":59,"../mixins/window-listenable":61,"../utils/css-event":130,"../utils/key-code":136,"./calendar":25,"react":320}],28:[function(require,module,exports){
+(function (process){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -2957,20 +3126,26 @@ var DatePicker = React.createClass({
 
   getInitialState: function getInitialState() {
     return {
-      date: this.props.defaultDate,
+      date: this._isControlled() ? this._getControlledDate() : this.props.defaultDate,
       dialogDate: new Date()
     };
   },
 
   componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
-    if (this.props.defaultDate !== nextProps.defaultDate) {
-      this.setDate(nextProps.defaultDate);
+    if (this._isControlled()) {
+      var newDate = this._getControlledDate(nextProps);
+      if (!DateTime.isEqualDate(this.state.date, newDate)) {
+        this.setState({
+          date: newDate
+        });
+      }
     }
   },
 
   render: function render() {
     var _props = this.props;
     var autoOk = _props.autoOk;
+    var defaultDate = _props.defaultDate;
     var formatDate = _props.formatDate;
     var maxDate = _props.maxDate;
     var minDate = _props.minDate;
@@ -2983,13 +3158,7 @@ var DatePicker = React.createClass({
     var style = _props.style;
     var textFieldStyle = _props.textFieldStyle;
 
-    var other = _objectWithoutProperties(_props, ['autoOk', 'formatDate', 'maxDate', 'minDate', 'mode', 'onDismiss', 'onFocus', 'onTouchTap', 'onShow', 'showYearSelector', 'style', 'textFieldStyle']);
-
-    var defaultInputValue = undefined;
-
-    if (this.props.defaultDate) {
-      defaultInputValue = this.props.formatDate(this.props.defaultDate);
-    }
+    var other = _objectWithoutProperties(_props, ['autoOk', 'defaultDate', 'formatDate', 'maxDate', 'minDate', 'mode', 'onDismiss', 'onFocus', 'onTouchTap', 'onShow', 'showYearSelector', 'style', 'textFieldStyle']);
 
     return React.createElement(
       'div',
@@ -2997,7 +3166,7 @@ var DatePicker = React.createClass({
       React.createElement(TextField, _extends({}, other, {
         style: textFieldStyle,
         ref: 'input',
-        defaultValue: defaultInputValue,
+        value: this.state.date ? formatDate(this.state.date) : undefined,
         onFocus: this._handleInputFocus,
         onTouchTap: this._handleInputTouchTap })),
       React.createElement(DatePickerDialog, {
@@ -3021,15 +3190,36 @@ var DatePicker = React.createClass({
   },
 
   setDate: function setDate(d) {
+    if (process.env.NODE_ENV !== 'production' && this._isControlled()) {
+      console.error('Cannot call DatePicker.setDate when value or valueLink is defined as a property.');
+    }
     this.setState({
       date: d
     });
-    this.refs.input.setValue(this.props.formatDate(d));
+  },
+
+  /**
+   * Open the date-picker dialog programmatically from a parent.
+   */
+  openDialog: function openDialog() {
+    this.setState({
+      dialogDate: this.getDate()
+    }, this.refs.dialogWindow.show);
+  },
+
+  /**
+   * Alias for `openDialog()` for an api consistent with TextField.
+   */
+  focus: function focus() {
+    this.openDialog();
   },
 
   _handleDialogAccept: function _handleDialogAccept(d) {
-    this.setDate(d);
+    if (!this._isControlled()) {
+      this.setDate(d);
+    }
     if (this.props.onChange) this.props.onChange(null, d);
+    if (this.props.valueLink) this.props.valueLink.requestChange(d);
   },
 
   _handleDialogDismiss: function _handleDialogDismiss() {
@@ -3042,22 +3232,33 @@ var DatePicker = React.createClass({
   },
 
   _handleInputTouchTap: function _handleInputTouchTap(e) {
-    this.setState({
-      dialogDate: this.getDate()
-    });
-
-    this.refs.dialogWindow.show();
+    this.openDialog();
     if (this.props.onTouchTap) this.props.onTouchTap(e);
   },
 
-  _handleWindowKeyUp: function _handleWindowKeyUp() {}
+  _handleWindowKeyUp: function _handleWindowKeyUp() {},
+
+  _isControlled: function _isControlled() {
+    return this.props.hasOwnProperty('value') || this.props.hasOwnProperty('valueLink');
+  },
+
+  _getControlledDate: function _getControlledDate() {
+    var props = arguments[0] === undefined ? this.props : arguments[0];
+
+    if (DateTime.isDateObject(props.value)) {
+      return props.value;
+    } else if (props.valueLink && DateTime.isDateObject(props.valueLink.value)) {
+      return props.valueLink.value;
+    }
+  }
 
 });
 
 module.exports = DatePicker;
 
 //TO DO: open the dialog if input has focus
-},{"../mixins/style-propable":58,"../mixins/window-listenable":60,"../text-field":103,"../utils/date-time":126,"./date-picker-dialog":26,"react":314}],28:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"../mixins/style-propable":59,"../mixins/window-listenable":61,"../text-field":106,"../utils/date-time":131,"./date-picker-dialog":27,"_process":7,"react":320}],29:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -3164,8 +3365,8 @@ var DayButton = React.createClass({
         disabled: this.props.disabled,
         disableFocusRipple: true,
         disableTouchRipple: true,
-        onMouseOver: this._handleMouseOver,
-        onMouseOut: this._handleMouseOut,
+        onMouseEnter: this._handleMouseEnter,
+        onMouseLeave: this._handleMouseLeave,
         onTouchTap: this._handleTouchTap,
         onKeyboardFocus: this._handleKeyboardFocus }),
       React.createElement('div', { style: styles.buttonState }),
@@ -3177,11 +3378,11 @@ var DayButton = React.createClass({
     ) : React.createElement('span', { style: styles.root });
   },
 
-  _handleMouseOver: function _handleMouseOver() {
+  _handleMouseEnter: function _handleMouseEnter() {
     if (!this.props.disabled) this.setState({ hover: true });
   },
 
-  _handleMouseOut: function _handleMouseOut() {
+  _handleMouseLeave: function _handleMouseLeave() {
     if (!this.props.disabled) this.setState({ hover: false });
   },
 
@@ -3196,7 +3397,7 @@ var DayButton = React.createClass({
 });
 
 module.exports = DayButton;
-},{"../enhanced-button":33,"../mixins/style-propable":58,"../styles/transitions":80,"../utils/date-time":126,"react":314}],29:[function(require,module,exports){
+},{"../enhanced-button":34,"../mixins/style-propable":59,"../styles/transitions":81,"../utils/date-time":131,"react":320}],30:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -3298,8 +3499,8 @@ var YearButton = React.createClass({
         style: styles.root,
         disableFocusRipple: true,
         disableTouchRipple: true,
-        onMouseOver: this._handleMouseOver,
-        onMouseOut: this._handleMouseOut,
+        onMouseEnter: this._handleMouseEnter,
+        onMouseLeave: this._handleMouseLeave,
         onTouchTap: this._handleTouchTap }),
       React.createElement('div', { style: styles.buttonState }),
       React.createElement(
@@ -3310,11 +3511,11 @@ var YearButton = React.createClass({
     );
   },
 
-  _handleMouseOver: function _handleMouseOver() {
+  _handleMouseEnter: function _handleMouseEnter() {
     this.setState({ hover: true });
   },
 
-  _handleMouseOut: function _handleMouseOut() {
+  _handleMouseLeave: function _handleMouseLeave() {
     this.setState({ hover: false });
   },
 
@@ -3325,7 +3526,7 @@ var YearButton = React.createClass({
 });
 
 module.exports = YearButton;
-},{"../enhanced-button":33,"../mixins/style-propable":58,"react":314}],30:[function(require,module,exports){
+},{"../enhanced-button":34,"../mixins/style-propable":59,"react":320}],31:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -3580,8 +3781,7 @@ var Dialog = React.createClass({
 
   show: function show() {
     this.refs.dialogOverlay.preventScrolling();
-    this.setState({ open: true });
-    this._onShow();
+    this.setState({ open: true }, this._onShow);
   },
 
   _getAction: function _getAction(actionJSON, key) {
@@ -3698,7 +3898,7 @@ var Dialog = React.createClass({
   },
 
   _handleWindowKeyUp: function _handleWindowKeyUp(e) {
-    if (e.keyCode === KeyCode.ESC) {
+    if (e.keyCode === KeyCode.ESC && !this.props.modal) {
       this.dismiss();
     }
   }
@@ -3706,7 +3906,7 @@ var Dialog = React.createClass({
 });
 
 module.exports = Dialog;
-},{"./flat-button":36,"./mixins/style-propable":58,"./mixins/window-listenable":60,"./overlay":61,"./paper":62,"./styles/transitions":80,"./utils/css-event":125,"./utils/key-code":131,"react":314}],31:[function(require,module,exports){
+},{"./flat-button":37,"./mixins/style-propable":59,"./mixins/window-listenable":61,"./overlay":62,"./paper":63,"./styles/transitions":81,"./utils/css-event":130,"./utils/key-code":136,"react":320}],32:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -3841,14 +4041,13 @@ module.exports = DropDownIcon;
 // if (process.env.NODE_ENV !== 'production') {
 //   console.warn('DropDownIcon has been deprecated. Use IconMenu instead.');
 // }
-},{"./font-icon":38,"./menu/menu":50,"./mixins/click-awayable":55,"./mixins/style-propable":58,"./styles/transitions":80,"react":314}],32:[function(require,module,exports){
+},{"./font-icon":39,"./menu/menu":51,"./mixins/click-awayable":56,"./mixins/style-propable":59,"./styles/transitions":81,"react":320}],33:[function(require,module,exports){
 (function (process){
 'use strict';
 
 var React = require('react');
 var StylePropable = require('./mixins/style-propable');
 var Transitions = require('./styles/transitions');
-var ClickAwayable = require('./mixins/click-awayable');
 var KeyCode = require('./utils/key-code');
 var DropDownArrow = require('./svg-icons/navigation/arrow-drop-down');
 var Paper = require('./paper');
@@ -3858,7 +4057,7 @@ var ClearFix = require('./clearfix');
 var DropDownMenu = React.createClass({
   displayName: 'DropDownMenu',
 
-  mixins: [StylePropable, ClickAwayable],
+  mixins: [StylePropable],
 
   contextTypes: {
     muiTheme: React.PropTypes.object
@@ -3897,10 +4096,6 @@ var DropDownMenu = React.createClass({
     };
   },
 
-  componentClickAway: function componentClickAway() {
-    this.setState({ open: false });
-  },
-
   componentDidMount: function componentDidMount() {
     if (this.props.autoWidth) this._setWidth();
     if (this.props.hasOwnProperty('selectedIndex')) this._setSelectedIndex(this.props);
@@ -3915,15 +4110,9 @@ var DropDownMenu = React.createClass({
     }
   },
 
-  getSpacing: function getSpacing() {
-    return this.context.muiTheme.spacing;
-  },
-
-  getTextColor: function getTextColor() {
-    return this.context.muiTheme.palette.textColor;
-  },
-
   getStyles: function getStyles() {
+    var zIndex = 5; // As AppBar
+    var spacing = this.context.muiTheme.spacing;
     var accentColor = this.context.muiTheme.component.dropDownMenu.accentColor;
     var backgroundColor = this.context.muiTheme.component.menu.backgroundColor;
     var styles = {
@@ -3931,8 +4120,8 @@ var DropDownMenu = React.createClass({
         transition: Transitions.easeOut(),
         position: 'relative',
         display: 'inline-block',
-        height: this.getSpacing().desktopSubheaderHeight,
-        fontSize: this.getSpacing().desktopDropDownMenuFontSize,
+        height: spacing.desktopSubheaderHeight,
+        fontSize: spacing.desktopDropDownMenuFontSize,
         outline: 'none'
       },
       control: {
@@ -3949,27 +4138,30 @@ var DropDownMenu = React.createClass({
       },
       icon: {
         position: 'absolute',
-        top: (this.getSpacing().desktopToolbarHeight - 24) / 2,
-        right: this.getSpacing().desktopGutterLess,
+        top: (spacing.desktopToolbarHeight - 24) / 2,
+        right: spacing.desktopGutterLess,
         fill: this.context.muiTheme.component.dropDownMenu.accentColor
       },
       label: {
         transition: Transitions.easeOut(),
-        lineHeight: this.getSpacing().desktopToolbarHeight + 'px',
+        lineHeight: spacing.desktopToolbarHeight + 'px',
         position: 'absolute',
-        paddingLeft: this.getSpacing().desktopGutter,
+        paddingLeft: spacing.desktopGutter,
         top: 0,
         opacity: 1,
-        color: this.getTextColor()
+        color: this.context.muiTheme.palette.textColor
       },
       underline: {
         borderTop: 'solid 1px ' + accentColor,
-        margin: '-1px ' + this.getSpacing().desktopGutter + 'px'
+        margin: '-1px ' + spacing.desktopGutter + 'px'
+      },
+      menu: {
+        zIndex: zIndex + 1
       },
       menuItem: {
-        paddingRight: this.getSpacing().iconSize + this.getSpacing().desktopGutterLess + this.getSpacing().desktopGutterMini,
-        height: this.getSpacing().desktopDropDownMenuItemHeight,
-        lineHeight: this.getSpacing().desktopDropDownMenuItemHeight + 'px',
+        paddingRight: spacing.iconSize + spacing.desktopGutterLess + spacing.desktopGutterMini,
+        height: spacing.desktopDropDownMenuItemHeight,
+        lineHeight: spacing.desktopDropDownMenuItemHeight + 'px',
         whiteSpace: 'nowrap'
       },
       rootWhenOpen: {
@@ -3977,7 +4169,15 @@ var DropDownMenu = React.createClass({
       },
       labelWhenOpen: {
         opacity: 0,
-        top: this.getSpacing().desktopToolbarHeight / 2
+        top: spacing.desktopToolbarHeight / 2
+      },
+      overlay: {
+        height: '100%',
+        width: '100%',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        zIndex: zIndex
       }
     };
 
@@ -4029,8 +4229,8 @@ var DropDownMenu = React.createClass({
       'div',
       {
         ref: 'root',
-        onMouseOut: this._handleMouseOut,
-        onMouseOver: this._handleMouseOver,
+        onMouseLeave: this._handleMouseLeave,
+        onMouseEnter: this._handleMouseEnter,
         onKeyDown: this._onKeyDown,
         onFocus: this.props.onFocus,
         onBlur: this.props.onBlur,
@@ -4053,11 +4253,13 @@ var DropDownMenu = React.createClass({
         autoWidth: this.props.autoWidth,
         selectedIndex: selectedIndex,
         menuItems: menuItems,
+        style: styles.menu,
         menuItemStyle: this.mergeAndPrefix(styles.menuItem, this.props.menuItemStyle),
         hideable: true,
         visible: this.state.open,
         onRequestClose: this._onMenuRequestClose,
-        onItemTap: this._onMenuItemClick })
+        onItemTap: this._onMenuItemClick }),
+      this.state.open && React.createElement('div', { style: styles.overlay, onTouchTap: this._handleOverlayTouchTap })
     );
   },
 
@@ -4140,11 +4342,11 @@ var DropDownMenu = React.createClass({
     this.setState({ open: false });
   },
 
-  _handleMouseOver: function _handleMouseOver() {
+  _handleMouseEnter: function _handleMouseEnter() {
     this.setState({ isHovered: true });
   },
 
-  _handleMouseOut: function _handleMouseOut() {
+  _handleMouseLeave: function _handleMouseLeave() {
     this.setState({ isHovered: false });
   },
 
@@ -4154,13 +4356,19 @@ var DropDownMenu = React.createClass({
 
   _selectNextItem: function _selectNextItem() {
     this.setState({ selectedIndex: Math.min(this.state.selectedIndex + 1, this.props.menuItems.length - 1) });
+  },
+
+  _handleOverlayTouchTap: function _handleOverlayTouchTap() {
+    this.setState({
+      open: false
+    });
   }
 
 });
 
 module.exports = DropDownMenu;
 }).call(this,require('_process'))
-},{"./clearfix":20,"./menu/menu":50,"./mixins/click-awayable":55,"./mixins/style-propable":58,"./paper":62,"./styles/transitions":80,"./svg-icons/navigation/arrow-drop-down":85,"./utils/key-code":131,"_process":7,"react":314}],33:[function(require,module,exports){
+},{"./clearfix":21,"./menu/menu":51,"./mixins/style-propable":59,"./paper":63,"./styles/transitions":81,"./svg-icons/navigation/arrow-drop-down":88,"./utils/key-code":136,"_process":7,"react":320}],34:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -4168,9 +4376,9 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
 
 var React = require('react');
-var KeyCode = require('./utils/key-code');
-var Colors = require('./styles/colors');
 var StylePropable = require('./mixins/style-propable');
+var Colors = require('./styles/colors');
+var KeyCode = require('./utils/key-code');
 var FocusRipple = require('./ripples/focus-ripple');
 var TouchRipple = require('./ripples/touch-ripple');
 
@@ -4240,7 +4448,8 @@ var EnhancedButton = React.createClass({
   componentDidMount: function componentDidMount() {
     if (!EnhancedButton.hasStyleBeenInjected) {
       var style = document.createElement('style');
-      style.innerHTML = 'button::-moz-focus-inner,' + 'input::-moz-focus-inner {' + ' border: 0;' + ' padding: 0;' + ' }';
+      style.innerHTML = '\n        button::-moz-focus-inner,\n        input::-moz-focus-inner {\n          border: 0;\n          padding: 0;\n        }\n      ';
+
       document.body.appendChild(style);
       EnhancedButton.hasStyleBeenInjected = true;
     }
@@ -4277,8 +4486,8 @@ var EnhancedButton = React.createClass({
       display: 'inline-block',
       font: 'inherit',
       fontFamily: this.context.muiTheme.contentFontFamily,
-      WebkitTapHighlightColor: Colors.transparent,
-      WebkitAppearance: !this.props.linkButton && 'button',
+      tapHighlightColor: Colors.transparent,
+      appearance: this.props.linkButton ? null : 'button',
       cursor: disabled ? 'default' : 'pointer',
       textDecoration: 'none',
       outline: 'none'
@@ -4298,6 +4507,15 @@ var EnhancedButton = React.createClass({
 
     var buttonChildren = [];
 
+    if (!disabled && !disableFocusRipple && !disableKeyboardFocus) {
+      buttonChildren.push(React.createElement(FocusRipple, {
+        key: 'focusRipple',
+        color: focusRippleColor,
+        opacity: focusRippleOpacity,
+        show: this.state.isKeyboardFocused
+      }));
+    }
+
     // Create ripples if we need to
     if (!disabled && !disableTouchRipple) {
       buttonChildren.push(React.createElement(
@@ -4311,15 +4529,6 @@ var EnhancedButton = React.createClass({
       ));
     } else {
       buttonChildren.push(this.props.children);
-    }
-
-    if (!disabled && !disableFocusRipple && !disableKeyboardFocus) {
-      buttonChildren.push(React.createElement(FocusRipple, {
-        key: 'focusRipple',
-        color: focusRippleColor,
-        opacity: focusRippleOpacity,
-        show: this.state.isKeyboardFocused
-      }));
     }
 
     if (disabled && linkButton) {
@@ -4415,7 +4624,7 @@ var EnhancedButton = React.createClass({
 EnhancedButton.hasStyleBeenInjected = false;
 
 module.exports = EnhancedButton;
-},{"./mixins/style-propable":58,"./ripples/focus-ripple":67,"./ripples/touch-ripple":69,"./styles/colors":74,"./utils/key-code":131,"react":314}],34:[function(require,module,exports){
+},{"./mixins/style-propable":59,"./ripples/focus-ripple":68,"./ripples/touch-ripple":70,"./styles/colors":75,"./utils/key-code":136,"react":320}],35:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -4594,14 +4803,14 @@ var EnhancedSwitch = React.createClass({
     var onFocus = _props.onFocus;
     var onMouseUp = _props.onMouseUp;
     var onMouseDown = _props.onMouseDown;
-    var onMouseOut = _props.onMouseOut;
+    var onMouseLeave = _props.onMouseLeave;
     var onTouchStart = _props.onTouchStart;
     var onTouchEnd = _props.onTouchEnd;
     var disableTouchRipple = _props.disableTouchRipple;
     var disableFocusRipple = _props.disableFocusRipple;
     var className = _props.className;
 
-    var other = _objectWithoutProperties(_props, ['type', 'name', 'value', 'label', 'onSwitch', 'defaultSwitched', 'onBlur', 'onFocus', 'onMouseUp', 'onMouseDown', 'onMouseOut', 'onTouchStart', 'onTouchEnd', 'disableTouchRipple', 'disableFocusRipple', 'className']);
+    var other = _objectWithoutProperties(_props, ['type', 'name', 'value', 'label', 'onSwitch', 'defaultSwitched', 'onBlur', 'onFocus', 'onMouseUp', 'onMouseDown', 'onMouseLeave', 'onTouchStart', 'onTouchEnd', 'disableTouchRipple', 'disableFocusRipple', 'className']);
 
     var styles = this.getStyles();
     var wrapStyles = this.mergeAndPrefix(styles.wrap, this.props.iconStyle);
@@ -4638,7 +4847,7 @@ var EnhancedSwitch = React.createClass({
     if (!hideTouchRipple) {
       inputProps.onMouseUp = this._handleMouseUp;
       inputProps.onMouseDown = this._handleMouseDown;
-      inputProps.onMouseOut = this._handleMouseOut;
+      inputProps.onMouseLeave = this._handleMouseLeave;
       inputProps.onTouchStart = this._handleTouchStart;
       inputProps.onTouchEnd = this._handleTouchEnd;
     }
@@ -4779,7 +4988,7 @@ var EnhancedSwitch = React.createClass({
     this.refs.touchRipple.end();
   },
 
-  _handleMouseOut: function _handleMouseOut() {
+  _handleMouseLeave: function _handleMouseLeave() {
     this.refs.touchRipple.end();
   },
 
@@ -4828,7 +5037,7 @@ var EnhancedSwitch = React.createClass({
 
 module.exports = EnhancedSwitch;
 }).call(this,require('_process'))
-},{"./clearfix":20,"./mixins/style-propable":58,"./mixins/window-listenable":60,"./paper":62,"./ripples/focus-ripple":67,"./ripples/touch-ripple":69,"./styles/transitions":80,"./utils/key-code":131,"./utils/unique-id":134,"_process":7,"react":314}],35:[function(require,module,exports){
+},{"./clearfix":21,"./mixins/style-propable":59,"./mixins/window-listenable":61,"./paper":63,"./ripples/focus-ripple":68,"./ripples/touch-ripple":70,"./styles/transitions":81,"./utils/key-code":136,"./utils/unique-id":140,"_process":7,"react":320}],36:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -4988,7 +5197,7 @@ var EnhancedTextarea = React.createClass({
 });
 
 module.exports = EnhancedTextarea;
-},{"./mixins/style-propable":58,"./styles/auto-prefix":73,"react":314}],36:[function(require,module,exports){
+},{"./mixins/style-propable":59,"./styles/auto-prefix":74,"react":320}],37:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -5023,8 +5232,8 @@ var FlatButton = React.createClass({
     label: validateLabel,
     labelStyle: React.PropTypes.object,
     onKeyboardFocus: React.PropTypes.func,
-    onMouseOut: React.PropTypes.func,
-    onMouseOver: React.PropTypes.func,
+    onMouseLeave: React.PropTypes.func,
+    onMouseEnter: React.PropTypes.func,
     onTouchStart: React.PropTypes.func,
     primary: React.PropTypes.bool,
     rippleColor: React.PropTypes.string,
@@ -5052,15 +5261,15 @@ var FlatButton = React.createClass({
     var label = _props.label;
     var labelStyle = _props.labelStyle;
     var onKeyboardFocus = _props.onKeyboardFocus;
-    var onMouseOut = _props.onMouseOut;
-    var onMouseOver = _props.onMouseOver;
+    var onMouseLeave = _props.onMouseLeave;
+    var onMouseEnter = _props.onMouseEnter;
     var onTouchStart = _props.onTouchStart;
     var primary = _props.primary;
     var rippleColor = _props.rippleColor;
     var secondary = _props.secondary;
     var style = _props.style;
 
-    var other = _objectWithoutProperties(_props, ['disabled', 'hoverColor', 'label', 'labelStyle', 'onKeyboardFocus', 'onMouseOut', 'onMouseOver', 'onTouchStart', 'primary', 'rippleColor', 'secondary', 'style']);
+    var other = _objectWithoutProperties(_props, ['disabled', 'hoverColor', 'label', 'labelStyle', 'onKeyboardFocus', 'onMouseLeave', 'onMouseEnter', 'onTouchStart', 'primary', 'rippleColor', 'secondary', 'style']);
 
     var theme = this.context.muiTheme;
     var buttonTheme = theme.component.button;
@@ -5112,8 +5321,8 @@ var FlatButton = React.createClass({
         disabled: disabled,
         focusRippleColor: buttonRippleColor,
         onKeyboardFocus: this._handleKeyboardFocus,
-        onMouseOut: this._handleMouseOut,
-        onMouseOver: this._handleMouseOver,
+        onMouseLeave: this._handleMouseLeave,
+        onMouseEnter: this._handleMouseEnter,
         onTouchStart: this._handleTouchStart,
         style: mergedRootStyles,
         touchRippleColor: buttonRippleColor }),
@@ -5129,15 +5338,15 @@ var FlatButton = React.createClass({
     }
   },
 
-  _handleMouseOver: function _handleMouseOver(e) {
+  _handleMouseEnter: function _handleMouseEnter(e) {
     //Cancel hover styles for touch devices
     if (!this.state.touch) this.setState({ hovered: true });
-    if (this.props.onMouseOver) this.props.onMouseOver(e);
+    if (this.props.onMouseEnter) this.props.onMouseEnter(e);
   },
 
-  _handleMouseOut: function _handleMouseOut(e) {
+  _handleMouseLeave: function _handleMouseLeave(e) {
     this.setState({ hovered: false });
-    if (this.props.onMouseOut) this.props.onMouseOut(e);
+    if (this.props.onMouseLeave) this.props.onMouseLeave(e);
   },
 
   _handleTouchStart: function _handleTouchStart(e) {
@@ -5148,7 +5357,7 @@ var FlatButton = React.createClass({
 });
 
 module.exports = FlatButton;
-},{"./enhanced-button":33,"./mixins/style-propable":58,"./styles/transitions":80,"./styles/typography":81,"./utils/color-manipulator":124,"react":314}],37:[function(require,module,exports){
+},{"./enhanced-button":34,"./mixins/style-propable":59,"./styles/transitions":81,"./styles/typography":82,"./utils/color-manipulator":129,"react":320}],38:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -5189,7 +5398,7 @@ var FloatingActionButton = React.createClass({
     mini: React.PropTypes.bool,
     onMouseDown: React.PropTypes.func,
     onMouseUp: React.PropTypes.func,
-    onMouseOut: React.PropTypes.func,
+    onMouseLeave: React.PropTypes.func,
     onTouchEnd: React.PropTypes.func,
     onTouchStart: React.PropTypes.func,
     secondary: React.PropTypes.bool
@@ -5311,8 +5520,8 @@ var FloatingActionButton = React.createClass({
     var buttonEventHandlers = disabled ? null : {
       onMouseDown: this._handleMouseDown,
       onMouseUp: this._handleMouseUp,
-      onMouseOut: this._handleMouseOut,
-      onMouseOver: this._handleMouseOver,
+      onMouseLeave: this._handleMouseLeave,
+      onMouseEnter: this._handleMouseEnter,
       onTouchStart: this._handleTouchStart,
       onTouchEnd: this._handleTouchEnd,
       onKeyboardFocus: this._handleKeyboardFocus
@@ -5357,16 +5566,16 @@ var FloatingActionButton = React.createClass({
     if (this.props.onMouseUp) this.props.onMouseUp(e);
   },
 
-  _handleMouseOut: function _handleMouseOut(e) {
+  _handleMouseLeave: function _handleMouseLeave(e) {
     if (!this.refs.container.isKeyboardFocused()) this.setState({ zDepth: this.state.initialZDepth, hovered: false });
-    if (this.props.onMouseOut) this.props.onMouseOut(e);
+    if (this.props.onMouseLeave) this.props.onMouseLeave(e);
   },
 
-  _handleMouseOver: function _handleMouseOver(e) {
+  _handleMouseEnter: function _handleMouseEnter(e) {
     if (!this.refs.container.isKeyboardFocused() && !this.state.touch) {
       this.setState({ hovered: true });
     }
-    if (this.props.onMouseOver) this.props.onMouseOver(e);
+    if (this.props.onMouseEnter) this.props.onMouseEnter(e);
   },
 
   _handleTouchStart: function _handleTouchStart(e) {
@@ -5396,7 +5605,7 @@ var FloatingActionButton = React.createClass({
 
 module.exports = FloatingActionButton;
 }).call(this,require('_process'))
-},{"./enhanced-button":33,"./font-icon":38,"./mixins/style-propable":58,"./paper":62,"./styles/transitions":80,"./utils/children":123,"./utils/color-manipulator":124,"_process":7,"react":314}],38:[function(require,module,exports){
+},{"./enhanced-button":34,"./font-icon":39,"./mixins/style-propable":59,"./paper":63,"./styles/transitions":81,"./utils/children":128,"./utils/color-manipulator":129,"_process":7,"react":320}],39:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -5419,8 +5628,8 @@ var FontIcon = React.createClass({
   propTypes: {
     color: React.PropTypes.string,
     hoverColor: React.PropTypes.string,
-    onMouseOut: React.PropTypes.func,
-    onMouseOver: React.PropTypes.func
+    onMouseLeave: React.PropTypes.func,
+    onMouseEnter: React.PropTypes.func
   },
 
   getInitialState: function getInitialState() {
@@ -5433,11 +5642,11 @@ var FontIcon = React.createClass({
     var _props = this.props;
     var color = _props.color;
     var hoverColor = _props.hoverColor;
-    var onMouseOut = _props.onMouseOut;
-    var onMouseOver = _props.onMouseOver;
+    var onMouseLeave = _props.onMouseLeave;
+    var onMouseEnter = _props.onMouseEnter;
     var style = _props.style;
 
-    var other = _objectWithoutProperties(_props, ['color', 'hoverColor', 'onMouseOut', 'onMouseOver', 'style']);
+    var other = _objectWithoutProperties(_props, ['color', 'hoverColor', 'onMouseLeave', 'onMouseEnter', 'style']);
 
     var spacing = this.context.muiTheme.spacing;
     var offColor = color ? color : style && style.color ? style.color : this.context.muiTheme.palette.textColor;
@@ -5454,28 +5663,30 @@ var FontIcon = React.createClass({
     });
 
     return React.createElement('span', _extends({}, other, {
-      onMouseOut: this._handleMouseOut,
-      onMouseOver: this._handleMouseOver,
+      onMouseLeave: this._handleMouseLeave,
+      onMouseEnter: this._handleMouseEnter,
       style: mergedStyles }));
   },
 
-  _handleMouseOut: function _handleMouseOut(e) {
-    this.setState({ hovered: false });
-    if (this.props.onMouseOut) {
-      this.props.onMouseOut(e);
+  _handleMouseLeave: function _handleMouseLeave(e) {
+    // hover is needed only when a hoverColor is defined
+    if (this.props.hoverColor !== undefined) this.setState({ hovered: false });
+    if (this.props.onMouseLeave) {
+      this.props.onMouseLeave(e);
     }
   },
 
-  _handleMouseOver: function _handleMouseOver(e) {
-    this.setState({ hovered: true });
-    if (this.props.onMouseOver) {
-      this.props.onMouseOver(e);
+  _handleMouseEnter: function _handleMouseEnter(e) {
+    // hover is needed only when a hoverColor is defined
+    if (this.props.hoverColor !== undefined) this.setState({ hovered: true });
+    if (this.props.onMouseEnter) {
+      this.props.onMouseEnter(e);
     }
   }
 });
 
 module.exports = FontIcon;
-},{"./mixins/style-propable":58,"./styles/transitions":80,"react":314}],39:[function(require,module,exports){
+},{"./mixins/style-propable":59,"./styles/transitions":81,"react":320}],40:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -5485,6 +5696,7 @@ function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in ob
 var React = require('react');
 var StylePropable = require('./mixins/style-propable');
 var Transitions = require('./styles/transitions');
+var PropTypes = require('./utils/prop-types');
 var EnhancedButton = require('./enhanced-button');
 var FontIcon = require('./font-icon');
 var Tooltip = require('./tooltip');
@@ -5509,7 +5721,7 @@ var IconButton = React.createClass({
     onKeyboardFocus: React.PropTypes.func,
     tooltip: React.PropTypes.string,
     tooltipStyles: React.PropTypes.object,
-    tooltipPosition: React.PropTypes.oneOf(['bottom-center', 'bottom-left', 'bottom-right', 'top-center', 'top-left', 'top-right']),
+    tooltipPosition: PropTypes.cornersAndCenter,
     touch: React.PropTypes.bool
   },
 
@@ -5613,8 +5825,8 @@ var IconButton = React.createClass({
         style: this.mergeStyles(styles.root, this.props.style),
         onBlur: this._handleBlur,
         onFocus: this._handleFocus,
-        onMouseOut: this._handleMouseOut,
-        onMouseOver: this._handleMouseOver,
+        onMouseLeave: this._handleMouseLeave,
+        onMouseEnter: this._handleMouseEnter,
         onKeyboardFocus: this._handleKeyboardFocus }),
       tooltipElement,
       fonticon,
@@ -5648,14 +5860,14 @@ var IconButton = React.createClass({
     if (this.props.onFocus) this.props.onFocus(e);
   },
 
-  _handleMouseOut: function _handleMouseOut(e) {
+  _handleMouseLeave: function _handleMouseLeave(e) {
     if (!this.refs.button.isKeyboardFocused()) this._hideTooltip();
-    if (this.props.onMouseOut) this.props.onMouseOut(e);
+    if (this.props.onMouseLeave) this.props.onMouseLeave(e);
   },
 
-  _handleMouseOver: function _handleMouseOver(e) {
+  _handleMouseEnter: function _handleMouseEnter(e) {
     this._showTooltip();
-    if (this.props.onMouseOver) this.props.onMouseOver(e);
+    if (this.props.onMouseEnter) this.props.onMouseEnter(e);
   },
 
   _handleKeyboardFocus: function _handleKeyboardFocus(e, keyboardFocused) {
@@ -5673,7 +5885,7 @@ var IconButton = React.createClass({
 });
 
 module.exports = IconButton;
-},{"./enhanced-button":33,"./font-icon":38,"./mixins/style-propable":58,"./styles/transitions":80,"./tooltip":120,"./utils/children":123,"react":314}],40:[function(require,module,exports){
+},{"./enhanced-button":34,"./font-icon":39,"./mixins/style-propable":59,"./styles/transitions":81,"./tooltip":123,"./utils/children":128,"./utils/prop-types":139,"react":320}],41:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -5683,6 +5895,7 @@ module.exports = {
   BeforeAfterWrapper: require('./before-after-wrapper'),
   Card: require('./card/card'),
   CardActions: require('./card/card-actions'),
+  CardExpandable: require('./card/card-expandable'),
   CardHeader: require('./card/card-header'),
   CardMedia: require('./card/card-media'),
   CardText: require('./card/card-text'),
@@ -5691,6 +5904,7 @@ module.exports = {
   CircularProgress: require('./circular-progress'),
   ClearFix: require('./clearfix'),
   DatePicker: require('./date-picker/date-picker'),
+  DatePickerDialog: require('./date-picker/date-picker-dialog'),
   Dialog: require('./dialog'),
   DropDownIcon: require('./drop-down-icon'),
   DropDownMenu: require('./drop-down-menu'),
@@ -5741,7 +5955,7 @@ module.exports = {
   Tooltip: require('./tooltip'),
   Utils: require('./utils/')
 };
-},{"./app-bar":8,"./app-canvas":9,"./avatar":10,"./before-after-wrapper":11,"./card/card":17,"./card/card-actions":12,"./card/card-header":13,"./card/card-media":14,"./card/card-text":15,"./card/card-title":16,"./checkbox":18,"./circular-progress":19,"./clearfix":20,"./date-picker/date-picker":27,"./dialog":30,"./drop-down-icon":31,"./drop-down-menu":32,"./enhanced-button":33,"./flat-button":36,"./floating-action-button":37,"./font-icon":38,"./icon-button":39,"./left-nav":42,"./linear-progress":43,"./lists/list":47,"./lists/list-divider":44,"./lists/list-item":45,"./menu/menu":50,"./menu/menu-item":49,"./menus/icon-menu":52,"./mixins/":57,"./overlay":61,"./paper":62,"./radio-button":64,"./radio-button-group":63,"./raised-button":65,"./ripples/":68,"./select-field":70,"./slider":71,"./snackbar":72,"./styles/":75,"./svg-icon":82,"./svg-icons/navigation/chevron-left":87,"./svg-icons/navigation/chevron-right":88,"./svg-icons/navigation/menu":89,"./table/table":99,"./table/table-footer":94,"./table/table-header":96,"./table/table-header-column":95,"./tabs/tab":100,"./tabs/tabs":102,"./text-field":103,"./theme":104,"./time-picker":111,"./toggle":115,"./toolbar/toolbar":119,"./toolbar/toolbar-group":116,"./toolbar/toolbar-separator":117,"./toolbar/toolbar-title":118,"./tooltip":120,"./utils/":130}],41:[function(require,module,exports){
+},{"./app-bar":8,"./app-canvas":9,"./avatar":10,"./before-after-wrapper":11,"./card/card":18,"./card/card-actions":12,"./card/card-expandable":13,"./card/card-header":14,"./card/card-media":15,"./card/card-text":16,"./card/card-title":17,"./checkbox":19,"./circular-progress":20,"./clearfix":21,"./date-picker/date-picker":28,"./date-picker/date-picker-dialog":27,"./dialog":31,"./drop-down-icon":32,"./drop-down-menu":33,"./enhanced-button":34,"./flat-button":37,"./floating-action-button":38,"./font-icon":39,"./icon-button":40,"./left-nav":43,"./linear-progress":44,"./lists/list":48,"./lists/list-divider":45,"./lists/list-item":46,"./menu/menu":51,"./menu/menu-item":50,"./menus/icon-menu":53,"./mixins/":58,"./overlay":62,"./paper":63,"./radio-button":65,"./radio-button-group":64,"./raised-button":66,"./ripples/":69,"./select-field":71,"./slider":72,"./snackbar":73,"./styles/":76,"./svg-icon":83,"./svg-icons/navigation/chevron-left":90,"./svg-icons/navigation/chevron-right":91,"./svg-icons/navigation/menu":92,"./table/table":102,"./table/table-footer":97,"./table/table-header":99,"./table/table-header-column":98,"./tabs/tab":103,"./tabs/tabs":105,"./text-field":106,"./theme":107,"./time-picker":114,"./toggle":118,"./toolbar/toolbar":122,"./toolbar/toolbar-group":119,"./toolbar/toolbar-separator":120,"./toolbar/toolbar-title":121,"./tooltip":123,"./utils/":135}],42:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -5787,7 +6001,7 @@ var InkBar = React.createClass({
 });
 
 module.exports = InkBar;
-},{"./mixins/style-propable":58,"./styles/transitions":80,"react":314}],42:[function(require,module,exports){
+},{"./mixins/style-propable":59,"./styles/transitions":81,"react":320}],43:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -5813,6 +6027,7 @@ var LeftNav = React.createClass({
 
   propTypes: {
     className: React.PropTypes.string,
+    disableSwipeToOpen: React.PropTypes.bool,
     docked: React.PropTypes.bool,
     header: React.PropTypes.element,
     menuItems: React.PropTypes.array.isRequired,
@@ -5830,14 +6045,19 @@ var LeftNav = React.createClass({
 
   getDefaultProps: function getDefaultProps() {
     return {
+      disableSwipeToOpen: false,
       docked: true
     };
   },
 
   getInitialState: function getInitialState() {
+    this._maybeSwiping = false;
+    this._touchStartX = null;
+    this._touchStartY = null;
+    this._swipeStartX = null;
+
     return {
       open: this.props.docked,
-      maybeSwiping: false,
       swiping: null
     };
   },
@@ -5931,7 +6151,7 @@ var LeftNav = React.createClass({
     if (!this.props.docked) {
       overlay = React.createElement(Overlay, {
         ref: 'overlay',
-        show: this.state.open,
+        show: this.state.open || !!this.state.swiping,
         transitionEnabled: !this.state.swiping,
         onTouchTap: this._onOverlayTouchTap
       });
@@ -6021,17 +6241,16 @@ var LeftNav = React.createClass({
   },
 
   _onBodyTouchStart: function _onBodyTouchStart(e) {
-    if (!this.state.open && openNavEventHandler !== this._onBodyTouchStart) {
+    if (!this.state.open && (openNavEventHandler !== this._onBodyTouchStart || this.props.disableSwipeToOpen)) {
       return;
     }
 
     var touchStartX = e.touches[0].pageX;
     var touchStartY = e.touches[0].pageY;
-    this.setState({
-      maybeSwiping: true,
-      touchStartX: touchStartX,
-      touchStartY: touchStartY
-    });
+
+    this._maybeSwiping = true;
+    this._touchStartX = touchStartX;
+    this._touchStartY = touchStartY;
 
     document.body.addEventListener('touchmove', this._onBodyTouchMove);
     document.body.addEventListener('touchend', this._onBodyTouchEnd);
@@ -6045,7 +6264,7 @@ var LeftNav = React.createClass({
   },
 
   _getTranslateX: function _getTranslateX(currentX) {
-    return Math.min(Math.max(this.state.swiping === 'closing' ? this._getTranslateMultiplier() * (currentX - this.state.swipeStartX) : this._getMaxTranslateX() - this._getTranslateMultiplier() * (this.state.swipeStartX - currentX), 0), this._getMaxTranslateX());
+    return Math.min(Math.max(this.state.swiping === 'closing' ? this._getTranslateMultiplier() * (currentX - this._swipeStartX) : this._getMaxTranslateX() - this._getTranslateMultiplier() * (this._swipeStartX - currentX), 0), this._getMaxTranslateX());
   },
 
   _onBodyTouchMove: function _onBodyTouchMove(e) {
@@ -6055,19 +6274,18 @@ var LeftNav = React.createClass({
     if (this.state.swiping) {
       e.preventDefault();
       this._setPosition(this._getTranslateX(currentX));
-    } else if (this.state.maybeSwiping) {
-      var dXAbs = Math.abs(currentX - this.state.touchStartX);
-      var dYAbs = Math.abs(currentY - this.state.touchStartY);
+    } else if (this._maybeSwiping) {
+      var dXAbs = Math.abs(currentX - this._touchStartX);
+      var dYAbs = Math.abs(currentY - this._touchStartY);
       // If the user has moved his thumb ten pixels in either direction,
       // we can safely make an assumption about whether he was intending
       // to swipe or scroll.
       var threshold = 10;
 
       if (dXAbs > threshold && dYAbs <= threshold) {
+        this._swipeStartX = currentX;
         this.setState({
-          swiping: this.state.open ? 'closing' : 'opening',
-          open: true,
-          swipeStartX: currentX
+          swiping: this.state.open ? 'closing' : 'opening'
         });
         this._setPosition(this._getTranslateX(currentX));
       } else if (dXAbs <= threshold && dYAbs > threshold) {
@@ -6081,22 +6299,29 @@ var LeftNav = React.createClass({
       var currentX = e.changedTouches[0].pageX;
       var translateRatio = this._getTranslateX(currentX) / this._getMaxTranslateX();
 
+      this._maybeSwiping = false;
+      var swiping = this.state.swiping;
       this.setState({
-        maybeSwiping: false,
         swiping: null
       });
 
       // We have to open or close after setting swiping to null,
       // because only then CSS transition is enabled.
       if (translateRatio > 0.5) {
-        this.close();
+        if (swiping === 'opening') {
+          this._setPosition(this._getMaxTranslateX());
+        } else {
+          this.close();
+        }
       } else {
-        this._setPosition(0);
+        if (swiping === 'opening') {
+          this.open();
+        } else {
+          this._setPosition(0);
+        }
       }
     } else {
-      this.setState({
-        maybeSwiping: false
-      });
+      this._maybeSwiping = false;
     }
 
     document.body.removeEventListener('touchmove', this._onBodyTouchMove);
@@ -6107,7 +6332,7 @@ var LeftNav = React.createClass({
 });
 
 module.exports = LeftNav;
-},{"./menu/menu":50,"./mixins/style-propable":58,"./mixins/window-listenable":60,"./overlay":61,"./paper":62,"./styles/auto-prefix":73,"./styles/transitions":80,"./utils/key-code":131,"react":314}],43:[function(require,module,exports){
+},{"./menu/menu":51,"./mixins/style-propable":59,"./mixins/window-listenable":61,"./overlay":62,"./paper":63,"./styles/auto-prefix":74,"./styles/transitions":81,"./utils/key-code":136,"react":320}],44:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -6259,7 +6484,7 @@ var LinearProgress = React.createClass({
 });
 
 module.exports = LinearProgress;
-},{"./mixins/style-propable":58,"./styles/transitions":80,"react":314}],44:[function(require,module,exports){
+},{"./mixins/style-propable":59,"./styles/transitions":81,"react":320}],45:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -6303,7 +6528,7 @@ var ListDivider = React.createClass({
 });
 
 module.exports = ListDivider;
-},{"../mixins/style-propable":58,"react/addons":142}],45:[function(require,module,exports){
+},{"../mixins/style-propable":59,"react/addons":148}],46:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -6343,8 +6568,8 @@ var ListItem = React.createClass({
     leftIcon: React.PropTypes.element,
     nestedLevel: React.PropTypes.number,
     onKeyboardFocus: React.PropTypes.func,
-    onMouseOut: React.PropTypes.func,
-    onMouseOver: React.PropTypes.func,
+    onMouseLeave: React.PropTypes.func,
+    onMouseEnter: React.PropTypes.func,
     onNestedListToggle: React.PropTypes.func,
     onTouchStart: React.PropTypes.func,
     open: React.PropTypes.bool,
@@ -6389,8 +6614,8 @@ var ListItem = React.createClass({
     var leftIcon = _props.leftIcon;
     var nestedLevel = _props.nestedLevel;
     var onKeyboardFocus = _props.onKeyboardFocus;
-    var onMouseOut = _props.onMouseOut;
-    var onMouseOver = _props.onMouseOver;
+    var onMouseLeave = _props.onMouseLeave;
+    var onMouseEnter = _props.onMouseEnter;
     var onTouchStart = _props.onTouchStart;
     var rightAvatar = _props.rightAvatar;
     var rightIcon = _props.rightIcon;
@@ -6401,7 +6626,7 @@ var ListItem = React.createClass({
     var secondaryTextLines = _props.secondaryTextLines;
     var style = _props.style;
 
-    var other = _objectWithoutProperties(_props, ['autoGenerateNestedIndicator', 'disabled', 'disableKeyboardFocus', 'innerDivStyle', 'insetChildren', 'leftAvatar', 'leftCheckbox', 'leftIcon', 'nestedLevel', 'onKeyboardFocus', 'onMouseOut', 'onMouseOver', 'onTouchStart', 'rightAvatar', 'rightIcon', 'rightIconButton', 'rightToggle', 'primaryText', 'secondaryText', 'secondaryTextLines', 'style']);
+    var other = _objectWithoutProperties(_props, ['autoGenerateNestedIndicator', 'disabled', 'disableKeyboardFocus', 'innerDivStyle', 'insetChildren', 'leftAvatar', 'leftCheckbox', 'leftIcon', 'nestedLevel', 'onKeyboardFocus', 'onMouseLeave', 'onMouseEnter', 'onTouchStart', 'rightAvatar', 'rightIcon', 'rightIconButton', 'rightToggle', 'primaryText', 'secondaryText', 'secondaryTextLines', 'style']);
 
     var textColor = this.context.muiTheme.palette.textColor;
     var hoverColor = ColorManipulator.fade(textColor, 0.1);
@@ -6541,8 +6766,8 @@ var ListItem = React.createClass({
 
     var rightIconButtonHandlers = {
       onKeyboardFocus: this._handleRightIconButtonKeyboardFocus,
-      onMouseOver: this._handleRightIconButtonMouseOver,
-      onMouseOut: this._handleRightIconButtonMouseOut,
+      onMouseEnter: this._handleRightIconButtonMouseEnter,
+      onMouseLeave: this._handleRightIconButtonMouseLeave,
       onTouchTap: this._handleRightIconButtonTouchTap,
       onMouseDown: this._handleRightIconButtonMouseUp,
       onMouseUp: this._handleRightIconButtonMouseUp
@@ -6609,8 +6834,8 @@ var ListItem = React.createClass({
           disableKeyboardFocus: disableKeyboardFocus || this.state.rightIconButtonKeyboardFocused,
           linkButton: true,
           onKeyboardFocus: this._handleKeyboardFocus,
-          onMouseOut: this._handleMouseOut,
-          onMouseOver: this._handleMouseOver,
+          onMouseLeave: this._handleMouseLeave,
+          onMouseEnter: this._handleMouseEnter,
           onTouchStart: this._handleTouchStart,
           ref: 'enhancedButton',
           style: mergedRootStyles }),
@@ -6659,14 +6884,14 @@ var ListItem = React.createClass({
     if (this.props.onKeyboardFocus) this.props.onKeyboardFocus(e, isKeyboardFocused);
   },
 
-  _handleMouseOver: function _handleMouseOver(e) {
+  _handleMouseEnter: function _handleMouseEnter(e) {
     if (!this.state.touch) this.setState({ hovered: true });
-    if (this.props.onMouseOver) this.props.onMouseOver(e);
+    if (this.props.onMouseEnter) this.props.onMouseEnter(e);
   },
 
-  _handleMouseOut: function _handleMouseOut(e) {
+  _handleMouseLeave: function _handleMouseLeave(e) {
     this.setState({ hovered: false });
-    if (this.props.onMouseOut) this.props.onMouseOut(e);
+    if (this.props.onMouseLeave) this.props.onMouseLeave(e);
   },
 
   _handleRightIconButtonKeyboardFocus: function _handleRightIconButtonKeyboardFocus(e, isKeyboardFocused) {
@@ -6686,16 +6911,16 @@ var ListItem = React.createClass({
     if (iconButton && iconButton.props.onMouseDown) iconButton.props.onMouseDown(e);
   },
 
-  _handleRightIconButtonMouseOut: function _handleRightIconButtonMouseOut(e) {
+  _handleRightIconButtonMouseLeave: function _handleRightIconButtonMouseLeave(e) {
     var iconButton = this.props.rightIconButton;
     this.setState({ rightIconButtonHovered: false });
-    if (iconButton && iconButton.props.onMouseOut) iconButton.props.onMouseOut(e);
+    if (iconButton && iconButton.props.onMouseLeave) iconButton.props.onMouseLeave(e);
   },
 
-  _handleRightIconButtonMouseOver: function _handleRightIconButtonMouseOver(e) {
+  _handleRightIconButtonMouseEnter: function _handleRightIconButtonMouseEnter(e) {
     var iconButton = this.props.rightIconButton;
     this.setState({ rightIconButtonHovered: true });
-    if (iconButton && iconButton.props.onMouseOver) iconButton.props.onMouseOver(e);
+    if (iconButton && iconButton.props.onMouseEnter) iconButton.props.onMouseEnter(e);
   },
 
   _handleRightIconButtonMouseUp: function _handleRightIconButtonMouseUp(e) {
@@ -6727,7 +6952,7 @@ var ListItem = React.createClass({
 });
 
 module.exports = ListItem;
-},{"../enhanced-button":33,"../icon-button":39,"../mixins/style-propable":58,"../styles/colors":74,"../styles/transitions":80,"../styles/typography":81,"../svg-icons/navigation/arrow-drop-down":85,"../svg-icons/navigation/arrow-drop-up":86,"../utils/color-manipulator":124,"./list-nested":46,"react/addons":142}],46:[function(require,module,exports){
+},{"../enhanced-button":34,"../icon-button":40,"../mixins/style-propable":59,"../styles/colors":75,"../styles/transitions":81,"../styles/typography":82,"../svg-icons/navigation/arrow-drop-down":88,"../svg-icons/navigation/arrow-drop-up":89,"../utils/color-manipulator":129,"./list-nested":47,"react/addons":148}],47:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -6773,7 +6998,7 @@ var ListNested = React.createClass({
 });
 
 module.exports = ListNested;
-},{"./list":47,"react":314}],47:[function(require,module,exports){
+},{"./list":48,"react":320}],48:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -6781,6 +7006,7 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
 
 var React = require('react/addons');
+var PropTypes = require('../utils/prop-types');
 var StylePropable = require('../mixins/style-propable');
 var Typography = require('../styles/typography');
 var Paper = require('../paper');
@@ -6798,7 +7024,7 @@ var List = React.createClass({
     insetSubheader: React.PropTypes.bool,
     subheader: React.PropTypes.string,
     subheaderStyle: React.PropTypes.object,
-    zDepth: React.PropTypes.oneOf([0, 1, 2, 3, 4, 5])
+    zDepth: PropTypes.zDepth
   },
 
   getDefaultProps: function getDefaultProps() {
@@ -6854,7 +7080,7 @@ var List = React.createClass({
 });
 
 module.exports = List;
-},{"../mixins/style-propable":58,"../paper":62,"../styles/typography":81,"react/addons":142}],48:[function(require,module,exports){
+},{"../mixins/style-propable":59,"../paper":63,"../styles/typography":82,"../utils/prop-types":139,"react/addons":148}],49:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -6942,8 +7168,8 @@ var LinkMenuItem = React.createClass({
         style: linkStyles }, link, {
         className: this.props.className,
         onClick: onClickHandler,
-        onMouseOver: this._handleMouseOver,
-        onMouseOut: this._handleMouseOut }),
+        onMouseEnter: this._handleMouseEnter,
+        onMouseLeave: this._handleMouseLeave }),
       this.props.text
     );
   },
@@ -6952,19 +7178,19 @@ var LinkMenuItem = React.createClass({
     event.preventDefault();
   },
 
-  _handleMouseOver: function _handleMouseOver(e) {
+  _handleMouseEnter: function _handleMouseEnter(e) {
     this.setState({ hovered: true });
-    if (!this.props.disabled && this.props.onMouseOver) this.props.onMouseOver(e);
+    if (!this.props.disabled && this.props.onMouseEnter) this.props.onMouseEnter(e);
   },
 
-  _handleMouseOut: function _handleMouseOut(e) {
+  _handleMouseLeave: function _handleMouseLeave(e) {
     this.setState({ hovered: false });
-    if (!this.props.disabled && this.props.onMouseOut) this.props.onMouseOut(e);
+    if (!this.props.disabled && this.props.onMouseLeave) this.props.onMouseLeave(e);
   }
 });
 
 module.exports = LinkMenuItem;
-},{"../mixins/style-propable":58,"react":314}],49:[function(require,module,exports){
+},{"../mixins/style-propable":59,"react":320}],50:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -7120,13 +7346,13 @@ var MenuItem = React.createClass({
       var toggle = _props.toggle;
       var onTouchTap = _props.onTouchTap;
       var onToggle = _props.onToggle;
-      var onMouseOver = _props.onMouseOver;
-      var onMouseOut = _props.onMouseOut;
+      var onMouseEnter = _props.onMouseEnter;
+      var onMouseLeave = _props.onMouseLeave;
       var children = _props.children;
       var label = _props.label;
       var style = _props.style;
 
-      var other = _objectWithoutProperties(_props, ['toggle', 'onTouchTap', 'onToggle', 'onMouseOver', 'onMouseOut', 'children', 'label', 'style']);
+      var other = _objectWithoutProperties(_props, ['toggle', 'onTouchTap', 'onToggle', 'onMouseEnter', 'onMouseLeave', 'children', 'label', 'style']);
 
       toggleElement = React.createElement(Toggle, _extends({}, other, { onToggle: this._handleToggle, style: styles.toggle }));
     }
@@ -7137,8 +7363,8 @@ var MenuItem = React.createClass({
         key: this.props.index,
         className: this.props.className,
         onTouchTap: this._handleTouchTap,
-        onMouseOver: this._handleMouseOver,
-        onMouseOut: this._handleMouseOut,
+        onMouseEnter: this._handleMouseEnter,
+        onMouseLeave: this._handleMouseLeave,
         style: this.mergeAndPrefix(styles.root, this.props.selected && styles.rootWhenSelected, this.props.active && !this.props.disabled && styles.rootWhenHovered, this.props.style, this.props.disabled && styles.rootWhenDisabled) },
       icon,
       this.props.children,
@@ -7158,17 +7384,17 @@ var MenuItem = React.createClass({
     if (!this.props.disabled && this.props.onToggle) this.props.onToggle(e, this.props.index, toggled);
   },
 
-  _handleMouseOver: function _handleMouseOver(e) {
-    if (!this.props.disabled && this.props.onMouseOver) this.props.onMouseOver(e, this.props.index);
+  _handleMouseEnter: function _handleMouseEnter(e) {
+    if (!this.props.disabled && this.props.onMouseEnter) this.props.onMouseEnter(e, this.props.index);
   },
 
-  _handleMouseOut: function _handleMouseOut(e) {
-    if (!this.props.disabled && this.props.onMouseOut) this.props.onMouseOut(e, this.props.index);
+  _handleMouseLeave: function _handleMouseLeave(e) {
+    if (!this.props.disabled && this.props.onMouseLeave) this.props.onMouseLeave(e, this.props.index);
   }
 });
 
 module.exports = MenuItem;
-},{"../font-icon":38,"../mixins/style-propable":58,"../toggle":115,"react":314}],50:[function(require,module,exports){
+},{"../font-icon":39,"../mixins/style-propable":59,"../toggle":118,"react":320}],51:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -7553,8 +7779,8 @@ var Menu = React.createClass({
             menuItems: menuItem.items,
             menuItemStyle: this.props.menuItemStyle,
             zDepth: this.props.zDepth,
-            onMouseOver: this._onItemActivated,
-            onMouseOut: this._onItemDeactivated,
+            onMouseEnter: this._onItemActivated,
+            onMouseLeave: this._onItemDeactivated,
             onItemTap: this._onNestedItemTap }));
           this._nestedChildren.push(i);
           break;
@@ -7577,8 +7803,8 @@ var Menu = React.createClass({
               onToggle: this.props.onToggle,
               disabled: isDisabled,
               onTouchTap: this._onItemTap,
-              onMouseOver: this._onItemActivated,
-              onMouseOut: this._onItemDeactivated
+              onMouseEnter: this._onItemActivated,
+              onMouseLeave: this._onItemDeactivated
             }),
             menuItem.text
           );
@@ -7778,7 +8004,7 @@ var Menu = React.createClass({
 });
 
 module.exports = Menu;
-},{"../mixins/click-awayable":55,"../mixins/style-propable":58,"../paper":62,"../styles/transitions":80,"../utils/css-event":125,"../utils/key-code":131,"../utils/key-line":132,"./link-menu-item":48,"./menu-item":49,"./subheader-menu-item":51,"react":314}],51:[function(require,module,exports){
+},{"../mixins/click-awayable":56,"../mixins/style-propable":59,"../paper":63,"../styles/transitions":81,"../utils/css-event":130,"../utils/key-code":136,"../utils/key-line":137,"./link-menu-item":49,"./menu-item":50,"./subheader-menu-item":52,"react":320}],52:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -7851,7 +8077,7 @@ var SubheaderMenuItem = React.createClass({
 });
 
 module.exports = SubheaderMenuItem;
-},{"../mixins/style-propable":58,"../styles/typography":81,"react":314}],52:[function(require,module,exports){
+},{"../mixins/style-propable":59,"../styles/typography":82,"react":320}],53:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -7863,6 +8089,7 @@ var ReactTransitionGroup = React.addons.TransitionGroup;
 var ClickAwayable = require('../mixins/click-awayable');
 var StylePropable = require('../mixins/style-propable');
 var Events = require('../utils/events');
+var PropTypes = require('../utils/prop-types');
 var Menu = require('../menus/menu');
 
 var IconMenu = React.createClass({
@@ -7875,34 +8102,32 @@ var IconMenu = React.createClass({
   },
 
   propTypes: {
+    closeOnItemTouchTap: React.PropTypes.bool,
     iconButtonElement: React.PropTypes.element.isRequired,
-    openDirection: React.PropTypes.oneOf(['bottom-left', 'bottom-right', 'top-left', 'top-right']),
-    onItemKeyboardActivate: React.PropTypes.func,
+    openDirection: PropTypes.corners,
     onItemTouchTap: React.PropTypes.func,
     onKeyboardFocus: React.PropTypes.func,
     onMouseDown: React.PropTypes.func,
-    onMouseOut: React.PropTypes.func,
-    onMouseOver: React.PropTypes.func,
+    onMouseLeave: React.PropTypes.func,
+    onMouseEnter: React.PropTypes.func,
     onMouseUp: React.PropTypes.func,
     onTouchTap: React.PropTypes.func,
     menuStyle: React.PropTypes.object,
-    touchTapCloseDelay: React.PropTypes.number,
-    closeOnItemTouchTap: React.PropTypes.bool
+    touchTapCloseDelay: React.PropTypes.number
   },
 
   getDefaultProps: function getDefaultProps() {
     return {
+      closeOnItemTouchTap: true,
       openDirection: 'bottom-left',
-      onItemKeyboardActivate: function onItemKeyboardActivate() {},
       onItemTouchTap: function onItemTouchTap() {},
       onKeyboardFocus: function onKeyboardFocus() {},
       onMouseDown: function onMouseDown() {},
-      onMouseOut: function onMouseOut() {},
-      onMouseOver: function onMouseOver() {},
+      onMouseLeave: function onMouseLeave() {},
+      onMouseEnter: function onMouseEnter() {},
       onMouseUp: function onMouseUp() {},
       onTouchTap: function onTouchTap() {},
-      touchTapCloseDelay: 200,
-      closeOnItemTouchTap: true
+      touchTapCloseDelay: 200
     };
   },
 
@@ -7926,19 +8151,20 @@ var IconMenu = React.createClass({
     var _this = this;
 
     var _props = this.props;
+    var closeOnItemTouchTap = _props.closeOnItemTouchTap;
     var iconButtonElement = _props.iconButtonElement;
     var openDirection = _props.openDirection;
     var onItemTouchTap = _props.onItemTouchTap;
     var onKeyboardFocus = _props.onKeyboardFocus;
     var onMouseDown = _props.onMouseDown;
-    var onMouseOut = _props.onMouseOut;
-    var onMouseOver = _props.onMouseOver;
+    var onMouseLeave = _props.onMouseLeave;
+    var onMouseEnter = _props.onMouseEnter;
     var onMouseUp = _props.onMouseUp;
     var onTouchTap = _props.onTouchTap;
     var menuStyle = _props.menuStyle;
     var style = _props.style;
 
-    var other = _objectWithoutProperties(_props, ['iconButtonElement', 'openDirection', 'onItemTouchTap', 'onKeyboardFocus', 'onMouseDown', 'onMouseOut', 'onMouseOver', 'onMouseUp', 'onTouchTap', 'menuStyle', 'style']);
+    var other = _objectWithoutProperties(_props, ['closeOnItemTouchTap', 'iconButtonElement', 'openDirection', 'onItemTouchTap', 'onKeyboardFocus', 'onMouseDown', 'onMouseLeave', 'onMouseEnter', 'onMouseUp', 'onTouchTap', 'menuStyle', 'style']);
 
     var open = this.state.open;
     var openDown = openDirection.split('-')[0] === 'bottom';
@@ -7973,8 +8199,9 @@ var IconMenu = React.createClass({
     var menu = open ? React.createElement(
       Menu,
       _extends({}, other, {
+        animated: true,
         initiallyKeyboardFocused: this.state.menuInitiallyKeyboardFocused,
-        onEscKeyDown: this.close,
+        onEscKeyDown: this._handleMenuEscKeyDown,
         onItemTouchTap: this._handleItemTouchTap,
         openDirection: openDirection,
         style: mergedMenuStyles }),
@@ -7985,8 +8212,8 @@ var IconMenu = React.createClass({
       'div',
       {
         onMouseDown: onMouseDown,
-        onMouseOut: onMouseOut,
-        onMouseOver: onMouseOver,
+        onMouseLeave: onMouseLeave,
+        onMouseEnter: onMouseEnter,
         onMouseUp: onMouseUp,
         onTouchTap: onTouchTap,
         style: mergedRootStyles },
@@ -8008,6 +8235,7 @@ var IconMenu = React.createClass({
         if (isKeyboard) {
           var iconButton = _this2.refs[_this2.state.iconButtonRef];
           React.findDOMNode(iconButton).focus();
+          iconButton.setKeyboardFocus();
         }
       });
     }
@@ -8032,19 +8260,20 @@ var IconMenu = React.createClass({
         _this3._timeout = setTimeout(function () {
           _this3.close(isKeyboard);
         }, _this3.props.touchTapCloseDelay);
-
-        if (isKeyboard) {
-          _this3.refs[_this3.state.iconButtonRef].setKeyboardFocus();
-        }
       })();
     }
 
     this.props.onItemTouchTap(e, child);
+  },
+
+  _handleMenuEscKeyDown: function _handleMenuEscKeyDown() {
+    this.close(true);
   }
+
 });
 
 module.exports = IconMenu;
-},{"../menus/menu":53,"../mixins/click-awayable":55,"../mixins/style-propable":58,"../utils/events":128,"react/addons":142}],53:[function(require,module,exports){
+},{"../menus/menu":54,"../mixins/click-awayable":56,"../mixins/style-propable":59,"../utils/events":133,"../utils/prop-types":139,"react/addons":148}],54:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -8058,6 +8287,7 @@ var StylePropable = require('../mixins/style-propable');
 var AutoPrefix = require('../styles/auto-prefix');
 var Transitions = require('../styles/transitions');
 var KeyCode = require('../utils/key-code');
+var PropTypes = require('../utils/prop-types');
 var List = require('../lists/list');
 var Paper = require('../paper');
 
@@ -8071,6 +8301,7 @@ var Menu = React.createClass({
   },
 
   propTypes: {
+    animated: React.PropTypes.bool,
     autoWidth: React.PropTypes.bool,
     desktop: React.PropTypes.bool,
     initiallyKeyboardFocused: React.PropTypes.bool,
@@ -8080,14 +8311,15 @@ var Menu = React.createClass({
     onEscKeyDown: React.PropTypes.func,
     onItemTouchTap: React.PropTypes.func,
     onKeyDown: React.PropTypes.func,
-    openDirection: React.PropTypes.oneOf(['bottom-left', 'bottom-right', 'top-left', 'top-right']),
+    openDirection: PropTypes.corners,
     selectedMenuItemStyle: React.PropTypes.object,
-    width: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.number]),
-    zDepth: React.PropTypes.oneOf([0, 1, 2, 3, 4, 5])
+    width: PropTypes.stringOrNumber,
+    zDepth: PropTypes.zDepth
   },
 
   getDefaultProps: function getDefaultProps() {
     return {
+      animated: false,
       autoWidth: true,
       maxHeight: null,
       onEscKeyDown: function onEscKeyDown() {},
@@ -8099,27 +8331,26 @@ var Menu = React.createClass({
   },
 
   getInitialState: function getInitialState() {
-    var selectedIndex = this._getSelectedIndex();
+    var selectedIndex = this._getSelectedIndex(this.props);
 
     return {
       focusIndex: selectedIndex >= 0 ? selectedIndex : 0,
       isKeyboardFocused: this.props.initiallyKeyboardFocused,
-      keyWidth: this.props.desktop ? 64 : 56,
-      componentEntered: false
+      keyWidth: this.props.desktop ? 64 : 56
     };
   },
 
-  componentDidAppear: function componentDidAppear() {
-    this.setState({
-      componentEntered: true
-    }, this._setScollPosition);
-  },
-
   componentDidEnter: function componentDidEnter() {
-    this.componentDidAppear();
+    this._animateOpen();
   },
 
   componentDidMount: function componentDidMount() {
+    if (this.props.autoWidth) this._setWidth();
+    if (!this.props.animated) this._animateOpen();
+    this._setScollPosition();
+  },
+
+  componentDidUpdate: function componentDidUpdate() {
     if (this.props.autoWidth) this._setWidth();
   },
 
@@ -8133,10 +8364,20 @@ var Menu = React.createClass({
     setTimeout(callback, 250);
   },
 
+  componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
+    var selectedIndex = this._getSelectedIndex(nextProps);
+
+    this.setState({
+      focusIndex: selectedIndex >= 0 ? selectedIndex : 0,
+      keyWidth: nextProps.desktop ? 64 : 56
+    });
+  },
+
   render: function render() {
     var _this = this;
 
     var _props = this.props;
+    var animated = _props.animated;
     var autoWidth = _props.autoWidth;
     var children = _props.children;
     var desktop = _props.desktop;
@@ -8152,9 +8393,8 @@ var Menu = React.createClass({
     var width = _props.width;
     var zDepth = _props.zDepth;
 
-    var other = _objectWithoutProperties(_props, ['autoWidth', 'children', 'desktop', 'initiallyKeyboardFocused', 'listStyle', 'maxHeight', 'multiple', 'openDirection', 'selectedMenuItemStyle', 'style', 'value', 'valueLink', 'width', 'zDepth']);
+    var other = _objectWithoutProperties(_props, ['animated', 'autoWidth', 'children', 'desktop', 'initiallyKeyboardFocused', 'listStyle', 'maxHeight', 'multiple', 'openDirection', 'selectedMenuItemStyle', 'style', 'value', 'valueLink', 'width', 'zDepth']);
 
-    var componentEntered = this.state.componentEntered;
     var openDown = openDirection.split('-')[0] === 'bottom';
     var openLeft = openDirection.split('-')[1] === 'left';
 
@@ -8162,14 +8402,14 @@ var Menu = React.createClass({
       root: {
         //Nested div bacause the List scales x faster than
         //it scales y
-        transition: Transitions.easeOut('250ms', 'transform'),
+        transition: animated ? Transitions.easeOut('250ms', 'transform') : null,
         position: 'absolute',
         zIndex: 10,
         top: openDown ? 0 : null,
         bottom: !openDown ? 0 : null,
         left: !openLeft ? 0 : null,
         right: openLeft ? 0 : null,
-        transform: componentEntered ? 'scaleX(1)' : 'scaleX(0)',
+        transform: 'scaleX(0)',
         transformOrigin: openLeft ? 'right' : 'left'
       },
 
@@ -8181,16 +8421,16 @@ var Menu = React.createClass({
         width: width
       },
 
-      menuItem: {
-        transition: Transitions.easeOut(null, 'opacity'),
-        opacity: componentEntered ? 1 : 0
+      menuItemContainer: {
+        transition: animated ? Transitions.easeOut(null, 'opacity') : null,
+        opacity: 0
       },
 
       paper: {
-        transition: Transitions.easeOut('500ms', ['transform', 'opacity']),
-        transform: componentEntered ? 'scaleY(1)' : 'scaleY(0)',
+        transition: animated ? Transitions.easeOut('500ms', ['transform', 'opacity']) : null,
+        transform: 'scaleY(0)',
         transformOrigin: openDown ? 'top' : 'bottom',
-        opacity: componentEntered ? 1 : 0,
+        opacity: 0,
         maxHeight: maxHeight,
         overflowY: maxHeight ? 'scroll' : null
       },
@@ -8213,28 +8453,32 @@ var Menu = React.createClass({
 
       var childIsADivider = child.type.displayName === 'MenuDivider';
       var childIsDisabled = child.props.disabled;
-      var focusIndex = _this.state.focusIndex;
-      var transitionDelay = 0;
+      var childrenContainerStyles = {};
 
-      //Only cascade the visible menu items
-      if (componentEntered && menuItemIndex >= focusIndex - 1 && menuItemIndex <= focusIndex + cascadeChildrenCount - 1) {
-        cumulativeDelay = openDown ? cumulativeDelay + cumulativeDelayIncrement : cumulativeDelay - cumulativeDelayIncrement;
-        transitionDelay = cumulativeDelay;
+      if (animated) {
+        var focusIndex = _this.state.focusIndex;
+        var transitionDelay = 0;
+
+        //Only cascade the visible menu items
+        if (menuItemIndex >= focusIndex - 1 && menuItemIndex <= focusIndex + cascadeChildrenCount - 1) {
+          cumulativeDelay = openDown ? cumulativeDelay + cumulativeDelayIncrement : cumulativeDelay - cumulativeDelayIncrement;
+          transitionDelay = cumulativeDelay;
+        }
+
+        childrenContainerStyles = _this.mergeAndPrefix(styles.menuItemContainer, {
+          transitionDelay: transitionDelay + 'ms'
+        });
       }
-
-      var childrenContainerStyles = _this.mergeStyles(styles.menuItem, {
-        transitionDelay: transitionDelay + 'ms'
-      });
 
       var clonedChild = childIsADivider ? child : childIsDisabled ? React.cloneElement(child, { desktop: desktop }) : _this._cloneMenuItem(child, menuItemIndex, styles);
 
       if (!childIsADivider && !childIsDisabled) menuItemIndex++;
 
-      return React.createElement(
+      return animated ? React.createElement(
         'div',
         { style: childrenContainerStyles },
         clonedChild
-      );
+      ) : clonedChild;
     }).bind(this));
 
     return React.createElement(
@@ -8265,6 +8509,20 @@ var Menu = React.createClass({
     });
   },
 
+  _animateOpen: function _animateOpen() {
+    var rootStyle = React.findDOMNode(this).style;
+    var scrollContainerStyle = React.findDOMNode(this.refs.scrollContainer).style;
+    var menuContainers = React.findDOMNode(this.refs.list).childNodes;
+
+    AutoPrefix.set(rootStyle, 'transform', 'scaleX(1)');
+    AutoPrefix.set(scrollContainerStyle, 'transform', 'scaleY(1)');
+    scrollContainerStyle.opacity = 1;
+
+    for (var i = 0; i < menuContainers.length; ++i) {
+      menuContainers[i].style.opacity = 1;
+    }
+  },
+
   _cloneMenuItem: function _cloneMenuItem(child, childIndex, styles) {
     var _this2 = this;
 
@@ -8272,7 +8530,7 @@ var Menu = React.createClass({
     var desktop = _props2.desktop;
     var selectedMenuItemStyle = _props2.selectedMenuItemStyle;
 
-    var selected = this._isChildSelected(child);
+    var selected = this._isChildSelected(child, this.props);
     var selectedChildrenStyles = {};
 
     if (selected) {
@@ -8345,10 +8603,10 @@ var Menu = React.createClass({
     return menuItemCount;
   },
 
-  _getSelectedIndex: function _getSelectedIndex() {
+  _getSelectedIndex: function _getSelectedIndex(props) {
     var _this3 = this;
 
-    var children = this.props.children;
+    var children = props.children;
 
     var selectedIndex = -1;
     var menuItemIndex = 0;
@@ -8356,7 +8614,7 @@ var Menu = React.createClass({
     React.Children.forEach(children, (function (child) {
       var childIsADivider = child.type.displayName === 'MenuDivider';
 
-      if (_this3._isChildSelected(child)) selectedIndex = menuItemIndex;
+      if (_this3._isChildSelected(child, props)) selectedIndex = menuItemIndex;
       if (!childIsADivider) menuItemIndex++;
     }).bind(this));
 
@@ -8416,9 +8674,9 @@ var Menu = React.createClass({
     this._setFocusIndex(index, true);
   },
 
-  _isChildSelected: function _isChildSelected(child) {
-    var multiple = this.props.multiple;
-    var menuValue = this.getValueLink(this.props).value;
+  _isChildSelected: function _isChildSelected(child, props) {
+    var multiple = props.multiple;
+    var menuValue = this.getValueLink(props).value;
     var childValue = child.props.value;
 
     return multiple && menuValue.length && menuValue.indexOf(childValue) !== -1 || !multiple && menuValue && menuValue === childValue;
@@ -8469,7 +8727,7 @@ var Menu = React.createClass({
 });
 
 module.exports = Menu;
-},{"../lists/list":47,"../mixins/controllable":56,"../mixins/style-propable":58,"../paper":62,"../styles/auto-prefix":73,"../styles/transitions":80,"../utils/key-code":131,"react/addons":142}],54:[function(require,module,exports){
+},{"../lists/list":48,"../mixins/controllable":57,"../mixins/style-propable":59,"../paper":63,"../styles/auto-prefix":74,"../styles/transitions":81,"../utils/key-code":136,"../utils/prop-types":139,"react/addons":148}],55:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -8520,7 +8778,7 @@ module.exports = {
   }
 
 };
-},{"classnames":135,"react":314}],55:[function(require,module,exports){
+},{"classnames":141,"react":320}],56:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -8539,11 +8797,11 @@ module.exports = {
     this._unbindClickAway();
   },
 
-  _checkClickAway: function _checkClickAway(e) {
+  _checkClickAway: function _checkClickAway(event) {
     var el = React.findDOMNode(this);
 
     // Check if the target is inside the current component
-    if (e.target !== el && !Dom.isDescendant(el, e.target) && document.documentElement.contains(e.target)) {
+    if (event.target !== el && !Dom.isDescendant(el, event.target) && document.documentElement.contains(event.target)) {
       if (this.componentClickAway) this.componentClickAway();
     }
   },
@@ -8562,7 +8820,7 @@ module.exports = {
   }
 
 };
-},{"../utils/dom":127,"../utils/events":128,"react":314}],56:[function(require,module,exports){
+},{"../utils/dom":132,"../utils/events":133,"react":320}],57:[function(require,module,exports){
 'use strict';
 
 var React = require('react/addons');
@@ -8592,7 +8850,7 @@ module.exports = {
   }
 
 };
-},{"react/addons":142}],57:[function(require,module,exports){
+},{"react/addons":148}],58:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -8602,7 +8860,7 @@ module.exports = {
   StylePropable: require('./style-propable'),
   StyleResizable: require('./style-resizable')
 };
-},{"./classable":54,"./click-awayable":55,"./style-propable":58,"./style-resizable":59,"./window-listenable":60}],58:[function(require,module,exports){
+},{"./classable":55,"./click-awayable":56,"./style-propable":59,"./style-resizable":60,"./window-listenable":61}],59:[function(require,module,exports){
 'use strict';
 
 var React = require('react/addons');
@@ -8641,7 +8899,7 @@ module.exports = {
     return AutoPrefix.all(mergedStyles);
   }
 };
-},{"../styles/auto-prefix":73,"../utils/extend":129,"react/addons":142}],59:[function(require,module,exports){
+},{"../styles/auto-prefix":74,"../utils/extend":134,"react/addons":148}],60:[function(require,module,exports){
 'use strict';
 
 var Events = require('../utils/events');
@@ -8690,7 +8948,7 @@ module.exports = {
     Events.off(window, 'resize', this._updateDeviceSize);
   }
 };
-},{"../utils/events":128}],60:[function(require,module,exports){
+},{"../utils/events":133}],61:[function(require,module,exports){
 'use strict';
 
 var Events = require('../utils/events');
@@ -8716,7 +8974,7 @@ module.exports = {
   }
 
 };
-},{"../utils/events":128}],61:[function(require,module,exports){
+},{"../utils/events":133}],62:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -8826,7 +9084,7 @@ var Overlay = React.createClass({
 });
 
 module.exports = Overlay;
-},{"./mixins/style-propable":58,"./styles/colors":74,"./styles/transitions":80,"react":314}],62:[function(require,module,exports){
+},{"./mixins/style-propable":59,"./styles/colors":75,"./styles/transitions":81,"react":320}],63:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -8835,6 +9093,7 @@ function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in ob
 
 var React = require('react');
 var StylePropable = require('./mixins/style-propable');
+var PropTypes = require('./utils/prop-types');
 var Transitions = require('./styles/transitions');
 
 var Paper = React.createClass({
@@ -8850,7 +9109,7 @@ var Paper = React.createClass({
     circle: React.PropTypes.bool,
     rounded: React.PropTypes.bool,
     transitionEnabled: React.PropTypes.bool,
-    zDepth: React.PropTypes.oneOf([0, 1, 2, 3, 4, 5])
+    zDepth: PropTypes.zDepth
   },
 
   getDefaultProps: function getDefaultProps() {
@@ -8905,7 +9164,7 @@ var Paper = React.createClass({
 });
 
 module.exports = Paper;
-},{"./mixins/style-propable":58,"./styles/transitions":80,"react":314}],63:[function(require,module,exports){
+},{"./mixins/style-propable":59,"./styles/transitions":81,"./utils/prop-types":139,"react":320}],64:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -9022,7 +9281,7 @@ var RadioButtonGroup = React.createClass({
 
 module.exports = RadioButtonGroup;
 }).call(this,require('_process'))
-},{"./radio-button":64,"_process":7,"react":314}],64:[function(require,module,exports){
+},{"./radio-button":65,"_process":7,"react":320}],65:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -9161,7 +9420,7 @@ var RadioButton = React.createClass({
 });
 
 module.exports = RadioButton;
-},{"./enhanced-switch":34,"./mixins/style-propable":58,"./styles/transitions":80,"./svg-icons/toggle/radio-button-checked":92,"./svg-icons/toggle/radio-button-unchecked":93,"react":314}],65:[function(require,module,exports){
+},{"./enhanced-switch":35,"./mixins/style-propable":59,"./styles/transitions":81,"./svg-icons/toggle/radio-button-checked":95,"./svg-icons/toggle/radio-button-unchecked":96,"react":320}],66:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -9197,7 +9456,7 @@ var RaisedButton = React.createClass({
     label: validateLabel,
     onMouseDown: React.PropTypes.func,
     onMouseUp: React.PropTypes.func,
-    onMouseOut: React.PropTypes.func,
+    onMouseLeave: React.PropTypes.func,
     onTouchEnd: React.PropTypes.func,
     onTouchStart: React.PropTypes.func,
     primary: React.PropTypes.bool,
@@ -9252,6 +9511,7 @@ var RaisedButton = React.createClass({
     var amount = this.props.primary || this.props.secondary ? 0.4 : 0.08;
     var styles = {
       root: {
+        backgroundColor: 'none',
         display: 'inline-block',
         minWidth: this.props.fullWidth ? '100%' : this.getThemeButton().minWidth,
         height: this.getThemeButton().height,
@@ -9322,8 +9582,8 @@ var RaisedButton = React.createClass({
     var buttonEventHandlers = disabled ? null : {
       onMouseDown: this._handleMouseDown,
       onMouseUp: this._handleMouseUp,
-      onMouseOut: this._handleMouseOut,
-      onMouseOver: this._handleMouseOver,
+      onMouseLeave: this._handleMouseLeave,
+      onMouseEnter: this._handleMouseEnter,
       onTouchStart: this._handleTouchStart,
       onTouchEnd: this._handleTouchEnd,
       onKeyboardFocus: this._handleKeyboardFocus
@@ -9367,16 +9627,16 @@ var RaisedButton = React.createClass({
     if (this.props.onMouseUp) this.props.onMouseUp(e);
   },
 
-  _handleMouseOut: function _handleMouseOut(e) {
+  _handleMouseLeave: function _handleMouseLeave(e) {
     if (!this.refs.container.isKeyboardFocused()) this.setState({ zDepth: this.state.initialZDepth, hovered: false });
-    if (this.props.onMouseOut) this.props.onMouseOut(e);
+    if (this.props.onMouseLeave) this.props.onMouseLeave(e);
   },
 
-  _handleMouseOver: function _handleMouseOver(e) {
+  _handleMouseEnter: function _handleMouseEnter(e) {
     if (!this.refs.container.isKeyboardFocused() && !this.state.touch) {
       this.setState({ hovered: true });
     }
-    if (this.props.onMouseOver) this.props.onMouseOver(e);
+    if (this.props.onMouseEnter) this.props.onMouseEnter(e);
   },
 
   _handleTouchStart: function _handleTouchStart(e) {
@@ -9405,7 +9665,7 @@ var RaisedButton = React.createClass({
 });
 
 module.exports = RaisedButton;
-},{"./enhanced-button":33,"./mixins/style-propable":58,"./paper":62,"./styles/transitions":80,"./styles/typography":81,"./utils/color-manipulator":124,"react":314}],66:[function(require,module,exports){
+},{"./enhanced-button":34,"./mixins/style-propable":59,"./paper":63,"./styles/transitions":81,"./styles/typography":82,"./utils/color-manipulator":129,"react":320}],67:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -9463,27 +9723,29 @@ var CircleRipple = React.createClass({
 });
 
 module.exports = CircleRipple;
-},{"../mixins/style-propable":58,"../styles/colors":74,"../styles/transitions":80,"react":314}],67:[function(require,module,exports){
+},{"../mixins/style-propable":59,"../styles/colors":75,"../styles/transitions":81,"react":320}],68:[function(require,module,exports){
 'use strict';
 
-var React = require('react');
+var React = require('react/addons');
+var PureRenderMixin = React.addons.PureRenderMixin;
 var StylePropable = require('../mixins/style-propable');
-var Transitions = require('../styles/transitions');
-var Colors = require('../styles/colors');
 var AutoPrefix = require('../styles/auto-prefix');
+var Colors = require('../styles/colors');
+var Transitions = require('../styles/transitions');
+var ScaleInTransitionGroup = require('../transition-groups/scale-in');
 
 var pulsateDuration = 750;
 
 var FocusRipple = React.createClass({
   displayName: 'FocusRipple',
 
-  mixins: [StylePropable],
+  mixins: [PureRenderMixin, StylePropable],
 
   propTypes: {
     color: React.PropTypes.string,
+    innerStyle: React.PropTypes.object,
     opacity: React.PropTypes.number,
-    show: React.PropTypes.bool,
-    innerStyle: React.PropTypes.object
+    show: React.PropTypes.bool
   },
 
   getDefaultProps: function getDefaultProps() {
@@ -9493,46 +9755,66 @@ var FocusRipple = React.createClass({
   },
 
   componentDidMount: function componentDidMount() {
-    this._setRippleSize();
-    this._pulsate();
+    if (this.props.show) {
+      this._setRippleSize();
+      this._pulsate();
+    }
+  },
+
+  componentDidUpdate: function componentDidUpdate() {
+    if (this.props.show) {
+      this._setRippleSize();
+      this._pulsate();
+    } else {
+      if (this._timeout) clearTimeout(this._timeout);
+    }
   },
 
   render: function render() {
-    var outerStyles = this.mergeAndPrefix({
+    var _props = this.props;
+    var color = _props.color;
+    var innerStyle = _props.innerStyle;
+    var opacity = _props.opacity;
+    var show = _props.show;
+    var style = _props.style;
+
+    var mergedRootStyles = this.mergeStyles({
       height: '100%',
       width: '100%',
       position: 'absolute',
       top: 0,
-      left: 0,
-      transition: Transitions.easeOut(null, ['transform', 'opacity']),
-      transform: this.props.show ? 'scale(1)' : 'scale(0)',
-      opacity: this.props.show ? 1 : 0,
-      overflow: 'hidden'
-    }, this.props.style);
+      left: 0
+    }, style);
 
     var innerStyles = this.mergeAndPrefix({
       position: 'absolute',
       height: '100%',
       width: '100%',
       borderRadius: '50%',
-      opacity: this.props.opacity ? this.props.opacity : 0.16,
-      backgroundColor: this.props.color,
+      opacity: opacity ? opacity : 0.16,
+      backgroundColor: color,
       transition: Transitions.easeOut(pulsateDuration + 'ms', 'transform', null, Transitions.easeInOutFunction)
-    }, this.props.innerStyle);
+    }, innerStyle);
+
+    var ripple = show ? React.createElement('div', { ref: 'innerCircle', style: innerStyles }) : null;
 
     return React.createElement(
-      'div',
-      { style: outerStyles },
-      React.createElement('div', { ref: 'innerCircle', style: innerStyles })
+      ScaleInTransitionGroup,
+      {
+        maxScale: 0.85,
+        style: mergedRootStyles },
+      ripple
     );
   },
 
   _pulsate: function _pulsate() {
     if (!this.isMounted()) return;
 
-    var startScale = 'scale(0.75)';
-    var endScale = 'scale(0.85)';
     var innerCircle = React.findDOMNode(this.refs.innerCircle);
+    if (!innerCircle) return;
+
+    var startScale = 'scale(1)';
+    var endScale = 'scale(0.85)';
     var currentScale = innerCircle.style[AutoPrefix.single('transform')];
     var nextScale = undefined;
 
@@ -9540,7 +9822,7 @@ var FocusRipple = React.createClass({
     nextScale = currentScale === startScale ? endScale : startScale;
 
     innerCircle.style[AutoPrefix.single('transform')] = nextScale;
-    setTimeout(this._pulsate, pulsateDuration);
+    this._timeout = setTimeout(this._pulsate, pulsateDuration);
   },
 
   _setRippleSize: function _setRippleSize() {
@@ -9556,7 +9838,7 @@ var FocusRipple = React.createClass({
 });
 
 module.exports = FocusRipple;
-},{"../mixins/style-propable":58,"../styles/auto-prefix":73,"../styles/colors":74,"../styles/transitions":80,"react":314}],68:[function(require,module,exports){
+},{"../mixins/style-propable":59,"../styles/auto-prefix":74,"../styles/colors":75,"../styles/transitions":81,"../transition-groups/scale-in":125,"react/addons":148}],69:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -9564,7 +9846,7 @@ module.exports = {
   FocusRipple: require('./focus-ripple'),
   TouchRipple: require('./touch-ripple')
 };
-},{"./circle-ripple":66,"./focus-ripple":67,"./touch-ripple":69}],69:[function(require,module,exports){
+},{"./circle-ripple":67,"./focus-ripple":68,"./touch-ripple":70}],70:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -9608,7 +9890,7 @@ var TouchRipple = React.createClass({
       {
         onMouseUp: this._handleMouseUp,
         onMouseDown: this._handleMouseDown,
-        onMouseOut: this._handleMouseOut,
+        onMouseLeave: this._handleMouseLeave,
         onTouchStart: this._handleTouchStart,
         onTouchEnd: this._handleTouchEnd },
       React.createElement(
@@ -9703,7 +9985,7 @@ var TouchRipple = React.createClass({
     this.end();
   },
 
-  _handleMouseOut: function _handleMouseOut() {
+  _handleMouseLeave: function _handleMouseLeave() {
     this.end();
   },
 
@@ -9764,7 +10046,7 @@ var TouchRipple = React.createClass({
 });
 
 module.exports = TouchRipple;
-},{"../mixins/style-propable":58,"../utils/dom":127,"./circle-ripple":66,"react":314}],70:[function(require,module,exports){
+},{"../mixins/style-propable":59,"../utils/dom":132,"./circle-ripple":67,"react":320}],71:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -9858,7 +10140,7 @@ var SelectField = React.createClass({
       e.target.value = payload[this.props.valueMember] || payload;
     }
     if (this.props.onChange) {
-      this.props.onChange(e);
+      this.props.onChange(e, index, payload);
     }
   },
 
@@ -9907,7 +10189,7 @@ var SelectField = React.createClass({
 });
 
 module.exports = SelectField;
-},{"./drop-down-menu":32,"./mixins/style-propable":58,"./text-field":103,"react":314}],71:[function(require,module,exports){
+},{"./drop-down-menu":33,"./mixins/style-propable":59,"./text-field":106,"react":320}],72:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -9994,7 +10276,9 @@ var Slider = React.createClass({
 
   getInitialState: function getInitialState() {
     var value = this.props.value;
-    if (value === null) value = this.props.defaultValue;
+    if (value === undefined) {
+      value = this.props.defaultValue;
+    }
     var percent = (value - this.props.min) / (this.props.max - this.props.min);
     if (isNaN(percent)) percent = 0;
 
@@ -10009,7 +10293,7 @@ var Slider = React.createClass({
   },
 
   componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
-    if (nextProps.value !== null) {
+    if (nextProps.value !== undefined) {
       this.setValue(nextProps.value);
     }
   },
@@ -10179,8 +10463,8 @@ var Slider = React.createClass({
           onFocus: this._onFocus,
           onBlur: this._onBlur,
           onMouseDown: this._onMouseDown,
-          onMouseOver: this._onMouseOver,
-          onMouseOut: this._onMouseOut,
+          onMouseEnter: this._onMouseEnter,
+          onMouseLeave: this._onMouseLeave,
           onMouseUp: this._onMouseUp },
         React.createElement(
           'div',
@@ -10302,11 +10586,11 @@ var Slider = React.createClass({
     this._pos = e.clientX;
   },
 
-  _onMouseOver: function _onMouseOver() {
+  _onMouseEnter: function _onMouseEnter() {
     this.setState({ hovered: true });
   },
 
-  _onMouseOut: function _onMouseOut() {
+  _onMouseLeave: function _onMouseLeave() {
     this.setState({ hovered: false });
   },
 
@@ -10368,8 +10652,12 @@ var Slider = React.createClass({
 });
 
 module.exports = Slider;
-},{"./mixins/style-propable":58,"./ripples/focus-ripple":67,"./styles/transitions":80,"react":314,"react-draggable2":136}],72:[function(require,module,exports){
+},{"./mixins/style-propable":59,"./ripples/focus-ripple":68,"./styles/transitions":81,"react":320,"react-draggable2":142}],73:[function(require,module,exports){
 'use strict';
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
 
 var React = require('react');
 var CssEvent = require('./utils/css-event');
@@ -10452,10 +10740,11 @@ var Snackbar = React.createClass({
         bottom: this.getSpacing().desktopGutter,
         marginLeft: this.getSpacing().desktopGutter,
 
-        left: -10000,
+        left: 0,
         opacity: 0,
+        visibility: 'hidden',
         transform: 'translate3d(0, 20px, 0)',
-        transition: Transitions.easeOut('0ms', 'left', '400ms') + ',' + Transitions.easeOut('400ms', 'opacity') + ',' + Transitions.easeOut('400ms', 'transform')
+        transition: Transitions.easeOut('0ms', 'left', '400ms') + ',' + Transitions.easeOut('400ms', 'opacity') + ',' + Transitions.easeOut('400ms', 'transform') + ',' + Transitions.easeOut('400ms', 'visibility')
       },
       action: {
         color: this.getTheme().actionColor,
@@ -10466,10 +10755,10 @@ var Snackbar = React.createClass({
         backgroundColor: 'transparent'
       },
       rootWhenOpen: {
-        left: '0px',
         opacity: 1,
+        visibility: 'visible',
         transform: 'translate3d(0, 0, 0)',
-        transition: Transitions.easeOut('0ms', 'left', '0ms') + ',' + Transitions.easeOut('400ms', 'opacity', '0ms') + ',' + Transitions.easeOut('400ms', 'transform', '0ms')
+        transition: Transitions.easeOut('0ms', 'left', '0ms') + ',' + Transitions.easeOut('400ms', 'opacity', '0ms') + ',' + Transitions.easeOut('400ms', 'transform', '0ms') + ',' + Transitions.easeOut('400ms', 'visibility', '0ms')
       }
     };
 
@@ -10477,27 +10766,35 @@ var Snackbar = React.createClass({
   },
 
   render: function render() {
+    var _props = this.props;
+    var action = _props.action;
+    var message = _props.message;
+    var onActionTouchTap = _props.onActionTouchTap;
+    var style = _props.style;
+
+    var others = _objectWithoutProperties(_props, ['action', 'message', 'onActionTouchTap', 'style']);
+
     var styles = this.getStyles();
 
-    var action = undefined;
-    if (this.props.action) {
-      action = React.createElement(FlatButton, {
+    var actionButton = undefined;
+    if (action) {
+      actionButton = React.createElement(FlatButton, {
         style: styles.action,
-        label: this.props.action,
-        onTouchTap: this.props.onActionTouchTap });
+        label: action,
+        onTouchTap: onActionTouchTap });
     }
 
-    var rootStyles = this.state.open ? this.mergeStyles(styles.root, styles.rootWhenOpen, this.props.style) : this.mergeStyles(styles.root, this.props.style);
+    var rootStyles = this.state.open ? this.mergeStyles(styles.root, styles.rootWhenOpen, style) : this.mergeStyles(styles.root, style);
 
     return React.createElement(
       'span',
-      { style: rootStyles },
+      _extends({}, others, { style: rootStyles }),
       React.createElement(
         'span',
         null,
-        this.props.message
+        message
       ),
-      action
+      actionButton
     );
   },
 
@@ -10530,7 +10827,7 @@ var Snackbar = React.createClass({
 });
 
 module.exports = Snackbar;
-},{"./flat-button":36,"./mixins/click-awayable":55,"./mixins/style-propable":58,"./styles/transitions":80,"./utils/css-event":125,"react":314}],73:[function(require,module,exports){
+},{"./flat-button":37,"./mixins/click-awayable":56,"./mixins/style-propable":59,"./styles/transitions":81,"./utils/css-event":130,"react":320}],74:[function(require,module,exports){
 'use strict';
 
 var isBrowser = typeof window !== 'undefined';
@@ -10551,7 +10848,14 @@ module.exports = {
   },
 
   single: function single(key) {
-    return isBrowser ? Modernizr.prefixed(key) : key;
+    if (isBrowser) {
+      // Windows 7 Firefox has an issue with the implementation of Modernizr.prefixed
+      // and is capturing 'false' as the CSS property name instead of the non-prefixed version.
+      var prefKey = Modernizr.prefixed(key);
+      return prefKey === false ? key : prefKey;
+    } else {
+      return key;
+    }
   },
 
   singleHyphened: function singleHyphened(key) {
@@ -10563,7 +10867,7 @@ module.exports = {
   }
 
 };
-},{"../utils/modernizr.custom":133}],74:[function(require,module,exports){
+},{"../utils/modernizr.custom":138}],75:[function(require,module,exports){
 // To include this file in your project:
 // let mui = require('mui');
 // let Colors = mui.Styles.Colors;
@@ -10859,7 +11163,7 @@ module.exports = {
   lightWhite: 'rgba(255, 255, 255, 0.54)'
 
 };
-},{}],75:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -10870,7 +11174,7 @@ module.exports = {
   Transitions: require('./transitions'),
   Typography: require('./typography')
 };
-},{"./auto-prefix":73,"./colors":74,"./spacing":76,"./theme-manager":77,"./transitions":80,"./typography":81}],76:[function(require,module,exports){
+},{"./auto-prefix":74,"./colors":75,"./spacing":77,"./theme-manager":78,"./transitions":81,"./typography":82}],77:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -10887,7 +11191,7 @@ module.exports = {
   desktopSubheaderHeight: 48,
   desktopToolbarHeight: 56
 };
-},{}],77:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 'use strict';
 
 var Extend = require('../utils/extend');
@@ -10936,7 +11240,7 @@ var ThemeManager = function ThemeManager() {
 };
 
 module.exports = ThemeManager;
-},{"../utils/extend":129,"./themes/dark-theme":78,"./themes/light-theme":79}],78:[function(require,module,exports){
+},{"../utils/extend":134,"./themes/dark-theme":79,"./themes/light-theme":80}],79:[function(require,module,exports){
 'use strict';
 
 var Colors = require('../colors');
@@ -10955,6 +11259,9 @@ var DarkTheme = {
   getComponentThemes: function getComponentThemes(palette) {
     var cardColor = Colors.grey800;
     return {
+      avatar: {
+        borderColor: 'rgba(0, 0, 0, 0.5)'
+      },
       floatingActionButton: {
         disabledColor: ColorManipulator.fade(palette.textColor, 0.12)
       },
@@ -10997,7 +11304,7 @@ var DarkTheme = {
 };
 
 module.exports = DarkTheme;
-},{"../../utils/color-manipulator":124,"../colors":74}],79:[function(require,module,exports){
+},{"../../utils/color-manipulator":129,"../colors":75}],80:[function(require,module,exports){
 'use strict';
 
 var Colors = require('../colors');
@@ -11034,6 +11341,9 @@ var LightTheme = {
         color: palette.primary1Color,
         textColor: Colors.darkWhite,
         height: spacing.desktopKeylineIncrement
+      },
+      avatar: {
+        borderColor: 'rgba(0, 0, 0, 0.08)'
       },
       button: {
         height: 36,
@@ -11214,7 +11524,7 @@ var LightTheme = {
 };
 
 module.exports = LightTheme;
-},{"../../utils/color-manipulator":124,"../colors":74,"../spacing":76}],80:[function(require,module,exports){
+},{"../../utils/color-manipulator":129,"../colors":75,"../spacing":77}],81:[function(require,module,exports){
 'use strict';
 
 var AutoPrefix = require('./auto-prefix');
@@ -11250,7 +11560,7 @@ module.exports = {
     return AutoPrefix.singleHyphened(property) + ' ' + duration + ' ' + easeFunction + ' ' + delay;
   }
 };
-},{"./auto-prefix":73}],81:[function(require,module,exports){
+},{"./auto-prefix":74}],82:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
@@ -11278,14 +11588,14 @@ var Typography = function Typography() {
 };
 
 module.exports = new Typography();
-},{"./colors":74}],82:[function(require,module,exports){
+},{"./colors":75}],83:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
 
-var React = require('react/addons');
+var React = require('react');
 var StylePropable = require('./mixins/style-propable');
 var Transitions = require('./styles/transitions');
 
@@ -11301,8 +11611,8 @@ var SvgIcon = React.createClass({
   propTypes: {
     color: React.PropTypes.string,
     hoverColor: React.PropTypes.string,
-    onMouseOut: React.PropTypes.func,
-    onMouseOver: React.PropTypes.func,
+    onMouseEnter: React.PropTypes.func,
+    onMouseLeave: React.PropTypes.func,
     viewBox: React.PropTypes.string
   },
 
@@ -11314,18 +11624,23 @@ var SvgIcon = React.createClass({
 
   getDefaultProps: function getDefaultProps() {
     return {
+      onMouseEnter: function onMouseEnter() {},
+      onMouseLeave: function onMouseLeave() {},
       viewBox: '0 0 24 24'
     };
   },
 
   render: function render() {
     var _props = this.props;
+    var children = _props.children;
     var color = _props.color;
     var hoverColor = _props.hoverColor;
-    var viewBox = _props.viewBox;
+    var onMouseEnter = _props.onMouseEnter;
+    var onMouseLeave = _props.onMouseLeave;
     var style = _props.style;
+    var viewBox = _props.viewBox;
 
-    var other = _objectWithoutProperties(_props, ['color', 'hoverColor', 'viewBox', 'style']);
+    var other = _objectWithoutProperties(_props, ['children', 'color', 'hoverColor', 'onMouseEnter', 'onMouseLeave', 'style', 'viewBox']);
 
     var offColor = color ? color : style && style.fill ? style.fill : this.context.muiTheme.palette.textColor;
     var onColor = hoverColor ? hoverColor : offColor;
@@ -11341,34 +11656,79 @@ var SvgIcon = React.createClass({
       fill: this.state.hovered ? onColor : offColor
     });
 
+    var events = hoverColor ? {
+      onMouseEnter: this._handleMouseEnter,
+      onMouseLeave: this._handleMouseLeave
+    } : {};
+
     return React.createElement(
       'svg',
-      _extends({}, other, {
-        onMouseOut: this._handleMouseOut,
-        onMouseOver: this._handleMouseOver,
+      _extends({}, other, events, {
         style: mergedStyles,
         viewBox: viewBox }),
-      this.props.children
+      children
     );
   },
 
-  _handleMouseOut: function _handleMouseOut(e) {
+  _handleMouseLeave: function _handleMouseLeave(e) {
     this.setState({ hovered: false });
-    if (this.props.onMouseOut) {
-      this.props.onMouseOut(e);
-    }
+    this.props.onMouseLeave(e);
   },
 
-  _handleMouseOver: function _handleMouseOver(e) {
+  _handleMouseEnter: function _handleMouseEnter(e) {
     this.setState({ hovered: true });
-    if (this.props.onMouseOver) {
-      this.props.onMouseOver(e);
-    }
+    this.props.onMouseEnter(e);
   }
 });
 
 module.exports = SvgIcon;
-},{"./mixins/style-propable":58,"./styles/transitions":80,"react/addons":142}],83:[function(require,module,exports){
+},{"./mixins/style-propable":59,"./styles/transitions":81,"react":320}],84:[function(require,module,exports){
+'use strict';
+
+var React = require('react/addons');
+var PureRenderMixin = React.addons.PureRenderMixin;
+var SvgIcon = require('../../svg-icon');
+
+var HardwareKeyboardArrowDown = React.createClass({
+  displayName: 'HardwareKeyboardArrowDown',
+
+  mixins: [PureRenderMixin],
+
+  render: function render() {
+    return React.createElement(
+      SvgIcon,
+      this.props,
+      React.createElement('path', { d: 'M7.41 7.84L12 12.42l4.59-4.58L18 9.25l-6 6-6-6z' })
+    );
+  }
+
+});
+
+module.exports = HardwareKeyboardArrowDown;
+},{"../../svg-icon":83,"react/addons":148}],85:[function(require,module,exports){
+'use strict';
+
+var React = require('react/addons');
+var PureRenderMixin = React.addons.PureRenderMixin;
+var SvgIcon = require('../../svg-icon');
+
+var HardwareKeyboardArrowUp = React.createClass({
+  displayName: 'HardwareKeyboardArrowUp',
+
+  mixins: [PureRenderMixin],
+
+  render: function render() {
+    return React.createElement(
+      SvgIcon,
+      this.props,
+      React.createElement('path', { d: 'M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z' })
+    );
+  }
+
+});
+
+module.exports = HardwareKeyboardArrowUp;
+},{"../../svg-icon":83,"react/addons":148}],86:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -11389,7 +11749,7 @@ var NavigationChevronLeftDouble = React.createClass({
 });
 
 module.exports = NavigationChevronLeftDouble;
-},{"../svg-icon":82,"react":314}],84:[function(require,module,exports){
+},{"../svg-icon":83,"react":320}],87:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -11410,14 +11770,17 @@ var NavigationChevronRightDouble = React.createClass({
 });
 
 module.exports = NavigationChevronRightDouble;
-},{"../svg-icon":82,"react":314}],85:[function(require,module,exports){
+},{"../svg-icon":83,"react":320}],88:[function(require,module,exports){
 'use strict';
 
-var React = require('react');
+var React = require('react/addons');
+var PureRenderMixin = React.addons.PureRenderMixin;
 var SvgIcon = require('../../svg-icon');
 
 var NavigationArrowDropDown = React.createClass({
   displayName: 'NavigationArrowDropDown',
+
+  mixins: [PureRenderMixin],
 
   render: function render() {
     return React.createElement(
@@ -11430,14 +11793,17 @@ var NavigationArrowDropDown = React.createClass({
 });
 
 module.exports = NavigationArrowDropDown;
-},{"../../svg-icon":82,"react":314}],86:[function(require,module,exports){
+},{"../../svg-icon":83,"react/addons":148}],89:[function(require,module,exports){
 'use strict';
 
-var React = require('react');
+var React = require('react/addons');
+var PureRenderMixin = React.addons.PureRenderMixin;
 var SvgIcon = require('../../svg-icon');
 
 var NavigationArrowDropUp = React.createClass({
   displayName: 'NavigationArrowDropUp',
+
+  mixins: [PureRenderMixin],
 
   render: function render() {
     return React.createElement(
@@ -11450,14 +11816,17 @@ var NavigationArrowDropUp = React.createClass({
 });
 
 module.exports = NavigationArrowDropUp;
-},{"../../svg-icon":82,"react":314}],87:[function(require,module,exports){
+},{"../../svg-icon":83,"react/addons":148}],90:[function(require,module,exports){
 'use strict';
 
-var React = require('react');
+var React = require('react/addons');
+var PureRenderMixin = React.addons.PureRenderMixin;
 var SvgIcon = require('../../svg-icon');
 
 var NavigationChevronLeft = React.createClass({
   displayName: 'NavigationChevronLeft',
+
+  mixins: [PureRenderMixin],
 
   render: function render() {
     return React.createElement(
@@ -11470,14 +11839,17 @@ var NavigationChevronLeft = React.createClass({
 });
 
 module.exports = NavigationChevronLeft;
-},{"../../svg-icon":82,"react":314}],88:[function(require,module,exports){
+},{"../../svg-icon":83,"react/addons":148}],91:[function(require,module,exports){
 'use strict';
 
-var React = require('react');
+var React = require('react/addons');
+var PureRenderMixin = React.addons.PureRenderMixin;
 var SvgIcon = require('../../svg-icon');
 
 var NavigationChevronRight = React.createClass({
   displayName: 'NavigationChevronRight',
+
+  mixins: [PureRenderMixin],
 
   render: function render() {
     return React.createElement(
@@ -11490,14 +11862,17 @@ var NavigationChevronRight = React.createClass({
 });
 
 module.exports = NavigationChevronRight;
-},{"../../svg-icon":82,"react":314}],89:[function(require,module,exports){
+},{"../../svg-icon":83,"react/addons":148}],92:[function(require,module,exports){
 'use strict';
 
-var React = require('react');
+var React = require('react/addons');
+var PureRenderMixin = React.addons.PureRenderMixin;
 var SvgIcon = require('../../svg-icon');
 
 var NavigationMenu = React.createClass({
   displayName: 'NavigationMenu',
+
+  mixins: [PureRenderMixin],
 
   render: function render() {
     return React.createElement(
@@ -11510,14 +11885,17 @@ var NavigationMenu = React.createClass({
 });
 
 module.exports = NavigationMenu;
-},{"../../svg-icon":82,"react":314}],90:[function(require,module,exports){
+},{"../../svg-icon":83,"react/addons":148}],93:[function(require,module,exports){
 'use strict';
 
-var React = require('react');
+var React = require('react/addons');
+var PureRenderMixin = React.addons.PureRenderMixin;
 var SvgIcon = require('../../svg-icon');
 
 var ToggleCheckBoxOutlineBlank = React.createClass({
   displayName: 'ToggleCheckBoxOutlineBlank',
+
+  mixins: [PureRenderMixin],
 
   render: function render() {
     return React.createElement(
@@ -11530,14 +11908,17 @@ var ToggleCheckBoxOutlineBlank = React.createClass({
 });
 
 module.exports = ToggleCheckBoxOutlineBlank;
-},{"../../svg-icon":82,"react":314}],91:[function(require,module,exports){
+},{"../../svg-icon":83,"react/addons":148}],94:[function(require,module,exports){
 'use strict';
 
-var React = require('react');
+var React = require('react/addons');
+var PureRenderMixin = React.addons.PureRenderMixin;
 var SvgIcon = require('../../svg-icon');
 
 var ToggleCheckBox = React.createClass({
   displayName: 'ToggleCheckBox',
+
+  mixins: [PureRenderMixin],
 
   render: function render() {
     return React.createElement(
@@ -11550,14 +11931,17 @@ var ToggleCheckBox = React.createClass({
 });
 
 module.exports = ToggleCheckBox;
-},{"../../svg-icon":82,"react":314}],92:[function(require,module,exports){
+},{"../../svg-icon":83,"react/addons":148}],95:[function(require,module,exports){
 'use strict';
 
-var React = require('react');
+var React = require('react/addons');
+var PureRenderMixin = React.addons.PureRenderMixin;
 var SvgIcon = require('../../svg-icon');
 
 var ToggleRadioButtonChecked = React.createClass({
   displayName: 'ToggleRadioButtonChecked',
+
+  mixins: [PureRenderMixin],
 
   render: function render() {
     return React.createElement(
@@ -11570,14 +11954,17 @@ var ToggleRadioButtonChecked = React.createClass({
 });
 
 module.exports = ToggleRadioButtonChecked;
-},{"../../svg-icon":82,"react":314}],93:[function(require,module,exports){
+},{"../../svg-icon":83,"react/addons":148}],96:[function(require,module,exports){
 'use strict';
 
-var React = require('react');
+var React = require('react/addons');
+var PureRenderMixin = React.addons.PureRenderMixin;
 var SvgIcon = require('../../svg-icon');
 
 var ToggleRadioButtonUnchecked = React.createClass({
   displayName: 'ToggleRadioButtonUnchecked',
+
+  mixins: [PureRenderMixin],
 
   render: function render() {
     return React.createElement(
@@ -11590,7 +11977,7 @@ var ToggleRadioButtonUnchecked = React.createClass({
 });
 
 module.exports = ToggleRadioButtonUnchecked;
-},{"../../svg-icon":82,"react":314}],94:[function(require,module,exports){
+},{"../../svg-icon":83,"react/addons":148}],97:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -11681,7 +12068,7 @@ var TableFooter = React.createClass({
 });
 
 module.exports = TableFooter;
-},{"../mixins/style-propable":58,"react":314}],95:[function(require,module,exports){
+},{"../mixins/style-propable":59,"react":320}],98:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -11743,8 +12130,8 @@ var TableHeaderColumn = React.createClass({
     var className = 'mui-table-header-column';
     var styles = this.getStyles();
     var handlers = {
-      onMouseOver: this._onMouseOver,
-      onMouseOut: this._onMouseOut,
+      onMouseEnter: this._onMouseEnter,
+      onMouseLeave: this._onMouseLeave,
       onClick: this._onClick
     };
     var tooltip = undefined;
@@ -11768,11 +12155,11 @@ var TableHeaderColumn = React.createClass({
     );
   },
 
-  _onMouseOver: function _onMouseOver() {
+  _onMouseEnter: function _onMouseEnter() {
     if (this.props.tooltip !== undefined) this.setState({ hovered: true });
   },
 
-  _onMouseOut: function _onMouseOut() {
+  _onMouseLeave: function _onMouseLeave() {
     if (this.props.tooltip !== undefined) this.setState({ hovered: false });
   },
 
@@ -11783,7 +12170,7 @@ var TableHeaderColumn = React.createClass({
 });
 
 module.exports = TableHeaderColumn;
-},{"../mixins/style-propable":58,"../tooltip":120,"react":314}],96:[function(require,module,exports){
+},{"../mixins/style-propable":59,"../tooltip":123,"react":320}],99:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -11928,7 +12315,7 @@ var TableHeader = React.createClass({
 });
 
 module.exports = TableHeader;
-},{"../checkbox":18,"../mixins/style-propable":58,"./table-header-column":95,"react":314}],97:[function(require,module,exports){
+},{"../checkbox":19,"../mixins/style-propable":59,"./table-header-column":98,"react":320}],100:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -11994,8 +12381,8 @@ var TableRowColumn = React.createClass({
     var styles = this.getStyles();
     var handlers = {
       onClick: this._onClick,
-      onMouseOver: this._onMouseOver,
-      onMouseOut: this._onMouseOut
+      onMouseEnter: this._onMouseEnter,
+      onMouseLeave: this._onMouseLeave
     };
 
     return React.createElement(
@@ -12013,14 +12400,14 @@ var TableRowColumn = React.createClass({
     if (this.props.onClick) this.props.onClick(e, this.props.columnNumber);
   },
 
-  _onMouseOver: function _onMouseOver(e) {
+  _onMouseEnter: function _onMouseEnter(e) {
     if (this.props.hoverable) {
       this.setState({ hovered: true });
       if (this.props.onHover) this.props.onHover(e, this.props.columnNumber);
     }
   },
 
-  _onMouseOut: function _onMouseOut(e) {
+  _onMouseLeave: function _onMouseLeave(e) {
     if (this.props.hoverable) {
       this.setState({ hovered: false });
       if (this.props.onHoverExit) this.props.onHoverExit(e, this.props.columnNumber);
@@ -12030,7 +12417,7 @@ var TableRowColumn = React.createClass({
 });
 
 module.exports = TableRowColumn;
-},{"../mixins/style-propable":58,"react":314}],98:[function(require,module,exports){
+},{"../mixins/style-propable":59,"react":320}],101:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -12217,7 +12604,7 @@ var TableRow = React.createClass({
 });
 
 module.exports = TableRow;
-},{"../checkbox":18,"../mixins/style-propable":58,"./table-row-column":97,"react":314}],99:[function(require,module,exports){
+},{"../checkbox":19,"../mixins/style-propable":59,"./table-row-column":100,"react":320}],102:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -12618,7 +13005,7 @@ var Table = React.createClass({
 });
 
 module.exports = Table;
-},{"../mixins/click-awayable":55,"../mixins/style-propable":58,"./table-footer":94,"./table-header":96,"./table-row":98,"react":314}],100:[function(require,module,exports){
+},{"../mixins/click-awayable":56,"../mixins/style-propable":59,"./table-footer":97,"./table-header":99,"./table-row":101,"react":320}],103:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -12673,7 +13060,7 @@ var Tab = React.createClass({
 });
 
 module.exports = Tab;
-},{"../mixins/style-propable":58,"../styles/colors.js":74,"react":314}],101:[function(require,module,exports){
+},{"../mixins/style-propable":59,"../styles/colors.js":75,"react":320}],104:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -12704,7 +13091,7 @@ var TabTemplate = React.createClass({
 });
 
 module.exports = TabTemplate;
-},{"react":314}],102:[function(require,module,exports){
+},{"react":320}],105:[function(require,module,exports){
 'use strict';
 
 var React = require('react/addons');
@@ -12860,7 +13247,7 @@ var Tabs = React.createClass({
 });
 
 module.exports = Tabs;
-},{"../ink-bar":41,"../mixins/style-propable":58,"../utils/events":128,"./tabTemplate":101,"react/addons":142}],103:[function(require,module,exports){
+},{"../ink-bar":42,"../mixins/style-propable":59,"../utils/events":133,"./tabTemplate":104,"react/addons":148}],106:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -12993,7 +13380,8 @@ var TextField = React.createClass({
         bottom: 12
       },
       input: {
-        WebkitTapHighlightColor: 'rgba(0,0,0,0)',
+        tapHighlightColor: 'rgba(0,0,0,0)',
+        padding: 0,
         position: 'relative',
         width: '100%',
         height: '100%',
@@ -13245,7 +13633,7 @@ var TextField = React.createClass({
 
 module.exports = TextField;
 }).call(this,require('_process'))
-},{"./enhanced-textarea":35,"./mixins/style-propable":58,"./styles/transitions":80,"./utils/color-manipulator":124,"./utils/unique-id":134,"_process":7,"react":314}],104:[function(require,module,exports){
+},{"./enhanced-textarea":36,"./mixins/style-propable":59,"./styles/transitions":81,"./utils/color-manipulator":129,"./utils/unique-id":140,"_process":7,"react":320}],107:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -13313,7 +13701,7 @@ function theme(customTheme) {
 
 module.exports = Theme;
 module.exports.theme = theme;
-},{"./styles/theme-manager":77,"react":314}],105:[function(require,module,exports){
+},{"./styles/theme-manager":78,"react":320}],108:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -13421,7 +13809,7 @@ var ClockButton = React.createClass({
 });
 
 module.exports = ClockButton;
-},{"../enhanced-button":33,"../mixins/style-propable":58,"../styles/transitions":80,"react":314}],106:[function(require,module,exports){
+},{"../enhanced-button":34,"../mixins/style-propable":59,"../styles/transitions":81,"react":320}],109:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -13616,7 +14004,7 @@ var ClockHours = React.createClass({
 });
 
 module.exports = ClockHours;
-},{"../mixins/style-propable":58,"./clock-number":108,"./clock-pointer":109,"react":314}],107:[function(require,module,exports){
+},{"../mixins/style-propable":59,"./clock-number":111,"./clock-pointer":112,"react":320}],110:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -13785,7 +14173,7 @@ var ClockMinutes = React.createClass({
 });
 
 module.exports = ClockMinutes;
-},{"../mixins/style-propable":58,"./clock-number":108,"./clock-pointer":109,"react":314}],108:[function(require,module,exports){
+},{"../mixins/style-propable":59,"./clock-number":111,"./clock-pointer":112,"react":320}],111:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
@@ -13884,7 +14272,7 @@ var ClockNumber = React.createClass({
 });
 
 module.exports = ClockNumber;
-},{"../mixins/style-propable":58,"react":314}],109:[function(require,module,exports){
+},{"../mixins/style-propable":59,"react":320}],112:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -13997,7 +14385,7 @@ var ClockPointer = React.createClass({
 });
 
 module.exports = ClockPointer;
-},{"../mixins/style-propable":58,"react":314}],110:[function(require,module,exports){
+},{"../mixins/style-propable":59,"react":320}],113:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -14169,11 +14557,11 @@ var Clock = React.createClass({
 });
 
 module.exports = Clock;
-},{"../mixins/style-propable":58,"./clock-button":105,"./clock-hours":106,"./clock-minutes":107,"./time-display":112,"react":314}],111:[function(require,module,exports){
+},{"../mixins/style-propable":59,"./clock-button":108,"./clock-hours":109,"./clock-minutes":110,"./time-display":115,"react":320}],114:[function(require,module,exports){
 'use strict';
 
 module.exports = require('./time-picker');
-},{"./time-picker":114}],112:[function(require,module,exports){
+},{"./time-picker":117}],115:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -14325,7 +14713,7 @@ var TimeDisplay = React.createClass({
 });
 
 module.exports = TimeDisplay;
-},{"../mixins/style-propable":58,"react":314}],113:[function(require,module,exports){
+},{"../mixins/style-propable":59,"react":320}],116:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -14457,7 +14845,7 @@ var TimePickerDialog = React.createClass({
 });
 
 module.exports = TimePickerDialog;
-},{"../dialog":30,"../flat-button":36,"../mixins/style-propable":58,"../mixins/window-listenable":60,"../utils/key-code":131,"./clock":110,"react":314}],114:[function(require,module,exports){
+},{"../dialog":31,"../flat-button":37,"../mixins/style-propable":59,"../mixins/window-listenable":61,"../utils/key-code":136,"./clock":113,"react":320}],117:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -14596,7 +14984,7 @@ var TimePicker = React.createClass({
 });
 
 module.exports = TimePicker;
-},{"../mixins/style-propable":58,"../mixins/window-listenable":60,"../text-field":103,"./time-picker-dialog":113,"react":314}],115:[function(require,module,exports){
+},{"../mixins/style-propable":59,"../mixins/window-listenable":61,"../text-field":106,"./time-picker-dialog":116,"react":320}],118:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -14763,7 +15151,7 @@ var Toggle = React.createClass({
 });
 
 module.exports = Toggle;
-},{"./enhanced-switch":34,"./mixins/style-propable":58,"./paper":62,"./styles/transitions":80,"react":314}],116:[function(require,module,exports){
+},{"./enhanced-switch":35,"./mixins/style-propable":59,"./paper":63,"./styles/transitions":81,"react":320}],119:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -14871,8 +15259,8 @@ var ToolbarGroup = React.createClass({
           return React.cloneElement(currentChild, {
             style: _this.mergeStyles({ float: 'left' }, currentChild.props.style),
             iconStyle: styles.icon.root,
-            onMouseOver: _this._handleMouseOverDropDownMenu,
-            onMouseOut: _this._handleMouseOutDropDownMenu
+            onMouseEnter: _this._handleMouseEnterDropDownMenu,
+            onMouseLeave: _this._handleMouseLeaveDropDownMenu
           });
         case 'RaisedButton':case 'FlatButton':
           return React.cloneElement(currentChild, {
@@ -14881,8 +15269,8 @@ var ToolbarGroup = React.createClass({
         case 'FontIcon':
           return React.cloneElement(currentChild, {
             style: _this.mergeStyles(styles.icon.root, currentChild.props.style),
-            onMouseOver: _this._handleMouseOverFontIcon,
-            onMouseOut: _this._handleMouseOutFontIcon
+            onMouseEnter: _this._handleMouseEnterFontIcon,
+            onMouseLeave: _this._handleMouseLeaveFontIcon
           });
         case 'ToolbarSeparator':case 'ToolbarTitle':
           return React.cloneElement(currentChild, {
@@ -14900,29 +15288,29 @@ var ToolbarGroup = React.createClass({
     );
   },
 
-  _handleMouseOverDropDownMenu: function _handleMouseOverDropDownMenu(e) {
+  _handleMouseEnterDropDownMenu: function _handleMouseEnterDropDownMenu(e) {
     e.target.style.zIndex = this.getStyles().icon.hover.zIndex;
     e.target.style.color = this.getStyles().icon.hover.color;
   },
 
-  _handleMouseOutDropDownMenu: function _handleMouseOutDropDownMenu(e) {
+  _handleMouseLeaveDropDownMenu: function _handleMouseLeaveDropDownMenu(e) {
     e.target.style.zIndex = 'auto';
     e.target.style.color = this.getStyles().icon.root.color;
   },
 
-  _handleMouseOverFontIcon: function _handleMouseOverFontIcon(e) {
+  _handleMouseEnterFontIcon: function _handleMouseEnterFontIcon(e) {
     e.target.style.zIndex = this.getStyles().icon.hover.zIndex;
     e.target.style.color = this.getStyles().icon.hover.color;
   },
 
-  _handleMouseOutFontIcon: function _handleMouseOutFontIcon(e) {
+  _handleMouseLeaveFontIcon: function _handleMouseLeaveFontIcon(e) {
     e.target.style.zIndex = 'auto';
     e.target.style.color = this.getStyles().icon.root.color;
   }
 });
 
 module.exports = ToolbarGroup;
-},{"../mixins/style-propable":58,"../styles/colors":74,"react":314}],117:[function(require,module,exports){
+},{"../mixins/style-propable":59,"../styles/colors":75,"react":320}],120:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -14962,7 +15350,7 @@ var ToolbarSeparator = React.createClass({
 });
 
 module.exports = ToolbarSeparator;
-},{"../mixins/style-propable":58,"react":314}],118:[function(require,module,exports){
+},{"../mixins/style-propable":59,"react":320}],121:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -15014,7 +15402,7 @@ var ToolbarTitle = React.createClass({
 });
 
 module.exports = ToolbarTitle;
-},{"../mixins/style-propable":58,"react":314}],119:[function(require,module,exports){
+},{"../mixins/style-propable":59,"react":320}],122:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -15060,7 +15448,7 @@ var Toolbar = React.createClass({
 });
 
 module.exports = Toolbar;
-},{"../mixins/style-propable":58,"react":314}],120:[function(require,module,exports){
+},{"../mixins/style-propable":59,"react":320}],123:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -15208,7 +15596,162 @@ var Tooltip = React.createClass({
 });
 
 module.exports = Tooltip;
-},{"./mixins/style-propable":58,"./styles/colors":74,"./styles/transitions":80,"react":314}],121:[function(require,module,exports){
+},{"./mixins/style-propable":59,"./styles/colors":75,"./styles/transitions":81,"react":320}],124:[function(require,module,exports){
+'use strict';
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
+
+var React = require('react/addons');
+var StylePropable = require('../mixins/style-propable');
+var AutoPrefix = require('../styles/auto-prefix');
+var Transitions = require('../styles/transitions');
+
+var ScaleInChild = React.createClass({
+  displayName: 'ScaleInChild',
+
+  mixins: [StylePropable],
+
+  propTypes: {
+    enterDelay: React.PropTypes.number,
+    maxScale: React.PropTypes.number,
+    minScale: React.PropTypes.number
+  },
+
+  getDefaultProps: function getDefaultProps() {
+    return {
+      enterDelay: 0,
+      maxScale: 1,
+      minScale: 0
+    };
+  },
+
+  componentWillEnter: function componentWillEnter(callback) {
+    var style = React.findDOMNode(this).style;
+
+    style.opacity = '0';
+    AutoPrefix.set(style, 'transform', 'scale(0)');
+
+    setTimeout(callback, this.props.enterDelay);
+  },
+
+  componentDidEnter: function componentDidEnter() {
+    var style = React.findDOMNode(this).style;
+
+    style.opacity = '1';
+    AutoPrefix.set(style, 'transform', 'scale(' + this.props.maxScale + ')');
+  },
+
+  componentWillLeave: function componentWillLeave(callback) {
+    var style = React.findDOMNode(this).style;
+
+    style.opacity = '0';
+    AutoPrefix.set(style, 'transform', 'scale(' + this.props.minScale + ')');
+
+    setTimeout(callback, 450);
+  },
+
+  render: function render() {
+    var _props = this.props;
+    var children = _props.children;
+    var enterDelay = _props.enterDelay;
+    var style = _props.style;
+
+    var other = _objectWithoutProperties(_props, ['children', 'enterDelay', 'style']);
+
+    var mergedRootStyles = this.mergeAndPrefix({
+      position: 'absolute',
+      height: '100%',
+      width: '100%',
+      top: 0,
+      left: 0,
+      transition: Transitions.easeOut(null, ['transform', 'opacity'])
+    }, style);
+
+    return React.createElement(
+      'div',
+      _extends({}, other, { style: mergedRootStyles }),
+      children
+    );
+  }
+
+});
+
+module.exports = ScaleInChild;
+},{"../mixins/style-propable":59,"../styles/auto-prefix":74,"../styles/transitions":81,"react/addons":148}],125:[function(require,module,exports){
+'use strict';
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
+
+var React = require('react/addons');
+var ReactTransitionGroup = React.addons.TransitionGroup;
+var StylePropable = require('../mixins/style-propable');
+var ScaleInChild = require('./scale-in-child');
+
+var ScaleIn = React.createClass({
+  displayName: 'ScaleIn',
+
+  mixins: [StylePropable],
+
+  propTypes: {
+    childStyle: React.PropTypes.object,
+    enterDelay: React.PropTypes.number,
+    maxScale: React.PropTypes.number,
+    minScale: React.PropTypes.number
+  },
+
+  getDefaultProps: function getDefaultProps() {
+    return {
+      enterDelay: 0
+    };
+  },
+
+  render: function render() {
+    var _props = this.props;
+    var children = _props.children;
+    var childStyle = _props.childStyle;
+    var enterDelay = _props.enterDelay;
+    var maxScale = _props.maxScale;
+    var minScale = _props.minScale;
+    var style = _props.style;
+
+    var other = _objectWithoutProperties(_props, ['children', 'childStyle', 'enterDelay', 'maxScale', 'minScale', 'style']);
+
+    var mergedRootStyles = this.mergeAndPrefix({
+      position: 'relative',
+      overflow: 'hidden',
+      height: '100%'
+    }, style);
+
+    var newChildren = React.Children.map(children, function (child) {
+      return React.createElement(
+        ScaleInChild,
+        {
+          key: child.key,
+          enterDelay: enterDelay,
+          maxScale: maxScale,
+          minScale: minScale,
+          style: childStyle },
+        child
+      );
+    });
+
+    return React.createElement(
+      ReactTransitionGroup,
+      _extends({}, other, {
+        style: mergedRootStyles,
+        component: 'div' }),
+      newChildren
+    );
+  }
+
+});
+
+module.exports = ScaleIn;
+},{"../mixins/style-propable":59,"./scale-in-child":124,"react/addons":148}],126:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -15226,9 +15769,16 @@ var SlideInChild = React.createClass({
   mixins: [StylePropable],
 
   propTypes: {
+    enterDelay: React.PropTypes.number,
     //This callback is needed bacause the direction could change
     //when leaving the dom
     getLeaveDirection: React.PropTypes.func.isRequired
+  },
+
+  getDefaultProps: function getDefaultProps() {
+    return {
+      enterDelay: 0
+    };
   },
 
   componentWillEnter: function componentWillEnter(callback) {
@@ -15239,7 +15789,7 @@ var SlideInChild = React.createClass({
     style.opacity = '0';
     AutoPrefix.set(style, 'transform', 'translate3d(' + x + ',' + y + ',0)');
 
-    setTimeout(callback, 0);
+    setTimeout(callback, this.props.enterDelay);
   },
 
   componentDidEnter: function componentDidEnter() {
@@ -15262,31 +15812,33 @@ var SlideInChild = React.createClass({
 
   render: function render() {
     var _props = this.props;
-    var styles = _props.styles;
+    var children = _props.children;
+    var enterDelay = _props.enterDelay;
+    var getLeaveDirection = _props.getLeaveDirection;
+    var style = _props.style;
 
-    var other = _objectWithoutProperties(_props, ['styles']);
+    var other = _objectWithoutProperties(_props, ['children', 'enterDelay', 'getLeaveDirection', 'style']);
 
-    styles = this.mergeAndPrefix({
+    var mergedRootStyles = this.mergeAndPrefix({
       position: 'absolute',
       height: '100%',
       width: '100%',
       top: 0,
       left: 0,
-      transition: Transitions.easeOut()
-    }, this.props.style);
+      transition: Transitions.easeOut(null, ['transform', 'opacity'])
+    }, style);
 
     return React.createElement(
       'div',
-      _extends({}, other, {
-        style: styles }),
-      this.props.children
+      _extends({}, other, { style: mergedRootStyles }),
+      children
     );
   }
 
 });
 
 module.exports = SlideInChild;
-},{"../mixins/style-propable":58,"../styles/auto-prefix":73,"../styles/transitions":80,"react/addons":142}],122:[function(require,module,exports){
+},{"../mixins/style-propable":59,"../styles/auto-prefix":74,"../styles/transitions":81,"react/addons":148}],127:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -15304,49 +15856,56 @@ var SlideIn = React.createClass({
   mixins: [StylePropable],
 
   propTypes: {
+    enterDelay: React.PropTypes.number,
+    childStyle: React.PropTypes.object,
     direction: React.PropTypes.oneOf(['left', 'right', 'up', 'down'])
   },
 
   getDefaultProps: function getDefaultProps() {
     return {
+      enterDelay: 0,
       direction: 'left'
     };
   },
 
   render: function render() {
+    var _this = this;
+
     var _props = this.props;
+    var enterDelay = _props.enterDelay;
+    var children = _props.children;
+    var childStyle = _props.childStyle;
     var direction = _props.direction;
+    var style = _props.style;
 
-    var other = _objectWithoutProperties(_props, ['direction']);
+    var other = _objectWithoutProperties(_props, ['enterDelay', 'children', 'childStyle', 'direction', 'style']);
 
-    var styles = this.mergeAndPrefix({
+    var mergedRootStyles = this.mergeAndPrefix({
       position: 'relative',
       overflow: 'hidden',
       height: '100%'
-    }, this.props.style);
+    }, style);
 
-    return React.createElement(
-      ReactTransitionGroup,
-      _extends({}, other, {
-        style: styles,
-        component: 'div' }),
-      this._getSlideInChildren()
-    );
-  },
-
-  _getSlideInChildren: function _getSlideInChildren() {
-    var _this = this;
-
-    return React.Children.map(this.props.children, function (child) {
+    var newChildren = React.Children.map(children, function (child) {
       return React.createElement(
         SlideInChild,
         {
           key: child.key,
-          direction: _this.props.direction,
-          getLeaveDirection: _this._getLeaveDirection },
+          direction: direction,
+          enterDelay: enterDelay,
+          getLeaveDirection: _this._getLeaveDirection,
+          style: childStyle },
         child
       );
     }, this);
+
+    return React.createElement(
+      ReactTransitionGroup,
+      _extends({}, other, {
+        style: mergedRootStyles,
+        component: 'div' }),
+      newChildren
+    );
   },
 
   _getLeaveDirection: function _getLeaveDirection() {
@@ -15356,7 +15915,7 @@ var SlideIn = React.createClass({
 });
 
 module.exports = SlideIn;
-},{"../mixins/style-propable":58,"./slide-in-child":121,"react/addons":142}],123:[function(require,module,exports){
+},{"../mixins/style-propable":59,"./slide-in-child":126,"react/addons":148}],128:[function(require,module,exports){
 'use strict';
 
 var React = require('react');
@@ -15376,7 +15935,7 @@ module.exports = {
   }
 
 };
-},{"react":314}],124:[function(require,module,exports){
+},{"react":320}],129:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -15551,7 +16110,7 @@ module.exports = {
     }
   }
 };
-},{}],125:[function(require,module,exports){
+},{}],130:[function(require,module,exports){
 'use strict';
 
 var Events = require('./events');
@@ -15604,7 +16163,7 @@ module.exports = {
     });
   }
 };
-},{"./events":128}],126:[function(require,module,exports){
+},{"./events":133}],131:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -15788,6 +16347,10 @@ module.exports = {
     return !this.isBeforeDate(dateToCheck, startDate) && !this.isAfterDate(dateToCheck, endDate);
   },
 
+  isDateObject: function isDateObject(d) {
+    return d instanceof Date;
+  },
+
   monthDiff: function monthDiff(d1, d2) {
     var m = undefined;
     m = (d1.getFullYear() - d2.getFullYear()) * 12;
@@ -15801,7 +16364,7 @@ module.exports = {
   }
 
 };
-},{}],127:[function(require,module,exports){
+},{}],132:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -15875,7 +16438,7 @@ module.exports = {
   }
 
 };
-},{}],128:[function(require,module,exports){
+},{}],133:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -15892,22 +16455,22 @@ module.exports = {
     }
   },
 
-  // IE8+ Support
   on: function on(el, type, callback) {
     if (el.addEventListener) {
       el.addEventListener(type, callback);
     } else {
+      // IE8+ Support
       el.attachEvent('on' + type, function () {
         callback.call(el);
       });
     }
   },
 
-  // IE8+ Support
   off: function off(el, type, callback) {
     if (el.removeEventListener) {
       el.removeEventListener(type, callback);
     } else {
+      // IE8+ Support
       el.detachEvent('on' + type, callback);
     }
   },
@@ -15916,7 +16479,7 @@ module.exports = {
     return ['keydown', 'keypress', 'keyup'].indexOf(e.type) !== -1;
   }
 };
-},{}],129:[function(require,module,exports){
+},{}],134:[function(require,module,exports){
 'use strict';
 
 function isObject(obj) {
@@ -15966,7 +16529,7 @@ var extend = function extend(base, override) {
 };
 
 module.exports = extend;
-},{}],130:[function(require,module,exports){
+},{}],135:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -15979,7 +16542,7 @@ module.exports = {
   Extend: require('./extend'),
   UniqueId: require('./unique-id')
 };
-},{"./color-manipulator":124,"./css-event":125,"./dom":127,"./events":128,"./extend":129,"./key-code":131,"./key-line":132,"./unique-id":134}],131:[function(require,module,exports){
+},{"./color-manipulator":129,"./css-event":130,"./dom":132,"./events":133,"./extend":134,"./key-code":136,"./key-line":137,"./unique-id":140}],136:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -15992,7 +16555,7 @@ module.exports = {
   TAB: 9,
   UP: 38
 };
-},{}],132:[function(require,module,exports){
+},{}],137:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -16008,7 +16571,7 @@ module.exports = {
     return Math.ceil(dim / this.Desktop.INCREMENT) * this.Desktop.INCREMENT;
   }
 };
-},{}],133:[function(require,module,exports){
+},{}],138:[function(require,module,exports){
 /* Modernizr 2.8.3 (Custom Build) | MIT & BSD
  * Build: http://modernizr.com/download/#-borderradius-boxshadow-opacity-csstransforms-csstransforms3d-csstransitions-prefixed-teststyles-testprop-testallprops-prefixes-domprefixes
  */
@@ -16267,7 +16830,23 @@ module.exports = (function (window, document, undefined) {
 
     return Modernizr;
 })(window, window.document);
-},{}],134:[function(require,module,exports){
+},{}],139:[function(require,module,exports){
+'use strict';
+
+var React = require('react');
+
+module.exports = {
+
+  corners: React.PropTypes.oneOf(['bottom-left', 'bottom-right', 'top-left', 'top-right']),
+
+  cornersAndCenter: React.PropTypes.oneOf(['bottom-center', 'bottom-left', 'bottom-right', 'top-center', 'top-left', 'top-right']),
+
+  stringOrNumber: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.number]),
+
+  zDepth: React.PropTypes.oneOf([0, 1, 2, 3, 4, 5])
+
+};
+},{"react":320}],140:[function(require,module,exports){
 "use strict";
 
 var index = 0;
@@ -16277,7 +16856,7 @@ module.exports = {
     return "mui-id-" + index++;
   }
 };
-},{}],135:[function(require,module,exports){
+},{}],141:[function(require,module,exports){
 /*!
   Copyright (c) 2015 Jed Watson.
   Licensed under the MIT License (MIT), see
@@ -16322,7 +16901,7 @@ if (typeof define !== 'undefined' && define.amd) {
 	});
 }
 
-},{}],136:[function(require,module,exports){
+},{}],142:[function(require,module,exports){
 'use strict';
 
 var React = require('react/addons');
@@ -16993,7 +17572,7 @@ module.exports = React.createClass({
 
 });
 
-},{"react/addons":142}],137:[function(require,module,exports){
+},{"react/addons":148}],143:[function(require,module,exports){
 (function (process){
 // vim:ts=4:sts=4:sw=4:
 /*!
@@ -19045,7 +19624,7 @@ return Q;
 });
 
 }).call(this,require('_process'))
-},{"_process":7}],138:[function(require,module,exports){
+},{"_process":7}],144:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
  * All rights reserved.
@@ -19356,7 +19935,7 @@ var ResponderEventPlugin = {
 
 module.exports = ResponderEventPlugin;
 
-},{"react/lib/EventConstants":157,"react/lib/EventPluginUtils":161,"react/lib/EventPropagators":162,"react/lib/SyntheticEvent":250,"react/lib/accumulateInto":260,"react/lib/keyOf":299}],139:[function(require,module,exports){
+},{"react/lib/EventConstants":163,"react/lib/EventPluginUtils":167,"react/lib/EventPropagators":168,"react/lib/SyntheticEvent":256,"react/lib/accumulateInto":266,"react/lib/keyOf":305}],145:[function(require,module,exports){
 /**
  * Copyright 2013-2014 Facebook, Inc.
  *
@@ -19524,7 +20103,7 @@ var TapEventPlugin = {
 
 module.exports = TapEventPlugin;
 
-},{"./TouchEventUtils":140,"react/lib/EventConstants":157,"react/lib/EventPluginUtils":161,"react/lib/EventPropagators":162,"react/lib/SyntheticUIEvent":256,"react/lib/ViewportMetrics":259,"react/lib/keyOf":299}],140:[function(require,module,exports){
+},{"./TouchEventUtils":146,"react/lib/EventConstants":163,"react/lib/EventPluginUtils":167,"react/lib/EventPropagators":168,"react/lib/SyntheticUIEvent":262,"react/lib/ViewportMetrics":265,"react/lib/keyOf":305}],146:[function(require,module,exports){
 /**
  * Copyright 2013-2014 Facebook, Inc.
  *
@@ -19568,7 +20147,7 @@ var TouchEventUtils = {
 
 module.exports = TouchEventUtils;
 
-},{}],141:[function(require,module,exports){
+},{}],147:[function(require,module,exports){
 module.exports = function injectTapEventPlugin () {
   var React = require("react");
   React.initializeTouchEvents(true);
@@ -19579,10 +20158,10 @@ module.exports = function injectTapEventPlugin () {
   });
 };
 
-},{"./ResponderEventPlugin.js":138,"./TapEventPlugin.js":139,"react":314,"react/lib/EventPluginHub":159}],142:[function(require,module,exports){
+},{"./ResponderEventPlugin.js":144,"./TapEventPlugin.js":145,"react":320,"react/lib/EventPluginHub":165}],148:[function(require,module,exports){
 module.exports = require('./lib/ReactWithAddons');
 
-},{"./lib/ReactWithAddons":242}],143:[function(require,module,exports){
+},{"./lib/ReactWithAddons":248}],149:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -19609,7 +20188,7 @@ var AutoFocusMixin = {
 
 module.exports = AutoFocusMixin;
 
-},{"./focusNode":276}],144:[function(require,module,exports){
+},{"./focusNode":282}],150:[function(require,module,exports){
 /**
  * Copyright 2013-2015 Facebook, Inc.
  * All rights reserved.
@@ -20104,7 +20683,7 @@ var BeforeInputEventPlugin = {
 
 module.exports = BeforeInputEventPlugin;
 
-},{"./EventConstants":157,"./EventPropagators":162,"./ExecutionEnvironment":163,"./FallbackCompositionState":164,"./SyntheticCompositionEvent":248,"./SyntheticInputEvent":252,"./keyOf":299}],145:[function(require,module,exports){
+},{"./EventConstants":163,"./EventPropagators":168,"./ExecutionEnvironment":169,"./FallbackCompositionState":170,"./SyntheticCompositionEvent":254,"./SyntheticInputEvent":258,"./keyOf":305}],151:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -20216,7 +20795,7 @@ var CSSCore = {
 module.exports = CSSCore;
 
 }).call(this,require('_process'))
-},{"./invariant":292,"_process":7}],146:[function(require,module,exports){
+},{"./invariant":298,"_process":7}],152:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -20341,7 +20920,7 @@ var CSSProperty = {
 
 module.exports = CSSProperty;
 
-},{}],147:[function(require,module,exports){
+},{}],153:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -20523,7 +21102,7 @@ var CSSPropertyOperations = {
 module.exports = CSSPropertyOperations;
 
 }).call(this,require('_process'))
-},{"./CSSProperty":146,"./ExecutionEnvironment":163,"./camelizeStyleName":263,"./dangerousStyleValue":270,"./hyphenateStyleName":290,"./memoizeStringOnly":301,"./warning":313,"_process":7}],148:[function(require,module,exports){
+},{"./CSSProperty":152,"./ExecutionEnvironment":169,"./camelizeStyleName":269,"./dangerousStyleValue":276,"./hyphenateStyleName":296,"./memoizeStringOnly":307,"./warning":319,"_process":7}],154:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -20623,7 +21202,7 @@ PooledClass.addPoolingTo(CallbackQueue);
 module.exports = CallbackQueue;
 
 }).call(this,require('_process'))
-},{"./Object.assign":170,"./PooledClass":171,"./invariant":292,"_process":7}],149:[function(require,module,exports){
+},{"./Object.assign":176,"./PooledClass":177,"./invariant":298,"_process":7}],155:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -21005,7 +21584,7 @@ var ChangeEventPlugin = {
 
 module.exports = ChangeEventPlugin;
 
-},{"./EventConstants":157,"./EventPluginHub":159,"./EventPropagators":162,"./ExecutionEnvironment":163,"./ReactUpdates":241,"./SyntheticEvent":250,"./isEventSupported":293,"./isTextInputElement":295,"./keyOf":299}],150:[function(require,module,exports){
+},{"./EventConstants":163,"./EventPluginHub":165,"./EventPropagators":168,"./ExecutionEnvironment":169,"./ReactUpdates":247,"./SyntheticEvent":256,"./isEventSupported":299,"./isTextInputElement":301,"./keyOf":305}],156:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -21030,7 +21609,7 @@ var ClientReactRootIndex = {
 
 module.exports = ClientReactRootIndex;
 
-},{}],151:[function(require,module,exports){
+},{}],157:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -21168,7 +21747,7 @@ var DOMChildrenOperations = {
 module.exports = DOMChildrenOperations;
 
 }).call(this,require('_process'))
-},{"./Danger":154,"./ReactMultiChildUpdateTypes":220,"./invariant":292,"./setTextContent":307,"_process":7}],152:[function(require,module,exports){
+},{"./Danger":160,"./ReactMultiChildUpdateTypes":226,"./invariant":298,"./setTextContent":313,"_process":7}],158:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -21467,7 +22046,7 @@ var DOMProperty = {
 module.exports = DOMProperty;
 
 }).call(this,require('_process'))
-},{"./invariant":292,"_process":7}],153:[function(require,module,exports){
+},{"./invariant":298,"_process":7}],159:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -21659,7 +22238,7 @@ var DOMPropertyOperations = {
 module.exports = DOMPropertyOperations;
 
 }).call(this,require('_process'))
-},{"./DOMProperty":152,"./quoteAttributeValueForBrowser":305,"./warning":313,"_process":7}],154:[function(require,module,exports){
+},{"./DOMProperty":158,"./quoteAttributeValueForBrowser":311,"./warning":319,"_process":7}],160:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -21846,7 +22425,7 @@ var Danger = {
 module.exports = Danger;
 
 }).call(this,require('_process'))
-},{"./ExecutionEnvironment":163,"./createNodesFromMarkup":268,"./emptyFunction":271,"./getMarkupWrap":284,"./invariant":292,"_process":7}],155:[function(require,module,exports){
+},{"./ExecutionEnvironment":169,"./createNodesFromMarkup":274,"./emptyFunction":277,"./getMarkupWrap":290,"./invariant":298,"_process":7}],161:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -21885,7 +22464,7 @@ var DefaultEventPluginOrder = [
 
 module.exports = DefaultEventPluginOrder;
 
-},{"./keyOf":299}],156:[function(require,module,exports){
+},{"./keyOf":305}],162:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -22025,7 +22604,7 @@ var EnterLeaveEventPlugin = {
 
 module.exports = EnterLeaveEventPlugin;
 
-},{"./EventConstants":157,"./EventPropagators":162,"./ReactMount":218,"./SyntheticMouseEvent":254,"./keyOf":299}],157:[function(require,module,exports){
+},{"./EventConstants":163,"./EventPropagators":168,"./ReactMount":224,"./SyntheticMouseEvent":260,"./keyOf":305}],163:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -22097,7 +22676,7 @@ var EventConstants = {
 
 module.exports = EventConstants;
 
-},{"./keyMirror":298}],158:[function(require,module,exports){
+},{"./keyMirror":304}],164:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -22187,7 +22766,7 @@ var EventListener = {
 module.exports = EventListener;
 
 }).call(this,require('_process'))
-},{"./emptyFunction":271,"_process":7}],159:[function(require,module,exports){
+},{"./emptyFunction":277,"_process":7}],165:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -22465,7 +23044,7 @@ var EventPluginHub = {
 module.exports = EventPluginHub;
 
 }).call(this,require('_process'))
-},{"./EventPluginRegistry":160,"./EventPluginUtils":161,"./accumulateInto":260,"./forEachAccumulated":277,"./invariant":292,"_process":7}],160:[function(require,module,exports){
+},{"./EventPluginRegistry":166,"./EventPluginUtils":167,"./accumulateInto":266,"./forEachAccumulated":283,"./invariant":298,"_process":7}],166:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -22745,7 +23324,7 @@ var EventPluginRegistry = {
 module.exports = EventPluginRegistry;
 
 }).call(this,require('_process'))
-},{"./invariant":292,"_process":7}],161:[function(require,module,exports){
+},{"./invariant":298,"_process":7}],167:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -22966,7 +23545,7 @@ var EventPluginUtils = {
 module.exports = EventPluginUtils;
 
 }).call(this,require('_process'))
-},{"./EventConstants":157,"./invariant":292,"_process":7}],162:[function(require,module,exports){
+},{"./EventConstants":163,"./invariant":298,"_process":7}],168:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -23108,7 +23687,7 @@ var EventPropagators = {
 module.exports = EventPropagators;
 
 }).call(this,require('_process'))
-},{"./EventConstants":157,"./EventPluginHub":159,"./accumulateInto":260,"./forEachAccumulated":277,"_process":7}],163:[function(require,module,exports){
+},{"./EventConstants":163,"./EventPluginHub":165,"./accumulateInto":266,"./forEachAccumulated":283,"_process":7}],169:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -23152,7 +23731,7 @@ var ExecutionEnvironment = {
 
 module.exports = ExecutionEnvironment;
 
-},{}],164:[function(require,module,exports){
+},{}],170:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -23243,7 +23822,7 @@ PooledClass.addPoolingTo(FallbackCompositionState);
 
 module.exports = FallbackCompositionState;
 
-},{"./Object.assign":170,"./PooledClass":171,"./getTextContentAccessor":287}],165:[function(require,module,exports){
+},{"./Object.assign":176,"./PooledClass":177,"./getTextContentAccessor":293}],171:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -23454,7 +24033,7 @@ var HTMLDOMPropertyConfig = {
 
 module.exports = HTMLDOMPropertyConfig;
 
-},{"./DOMProperty":152,"./ExecutionEnvironment":163}],166:[function(require,module,exports){
+},{"./DOMProperty":158,"./ExecutionEnvironment":169}],172:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -23495,7 +24074,7 @@ var LinkedStateMixin = {
 
 module.exports = LinkedStateMixin;
 
-},{"./ReactLink":216,"./ReactStateSetters":235}],167:[function(require,module,exports){
+},{"./ReactLink":222,"./ReactStateSetters":241}],173:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -23651,7 +24230,7 @@ var LinkedValueUtils = {
 module.exports = LinkedValueUtils;
 
 }).call(this,require('_process'))
-},{"./ReactPropTypes":227,"./invariant":292,"_process":7}],168:[function(require,module,exports){
+},{"./ReactPropTypes":233,"./invariant":298,"_process":7}],174:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -23708,7 +24287,7 @@ var LocalEventTrapMixin = {
 module.exports = LocalEventTrapMixin;
 
 }).call(this,require('_process'))
-},{"./ReactBrowserEventEmitter":174,"./accumulateInto":260,"./forEachAccumulated":277,"./invariant":292,"_process":7}],169:[function(require,module,exports){
+},{"./ReactBrowserEventEmitter":180,"./accumulateInto":266,"./forEachAccumulated":283,"./invariant":298,"_process":7}],175:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -23766,7 +24345,7 @@ var MobileSafariClickEventPlugin = {
 
 module.exports = MobileSafariClickEventPlugin;
 
-},{"./EventConstants":157,"./emptyFunction":271}],170:[function(require,module,exports){
+},{"./EventConstants":163,"./emptyFunction":277}],176:[function(require,module,exports){
 /**
  * Copyright 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -23815,7 +24394,7 @@ function assign(target, sources) {
 
 module.exports = assign;
 
-},{}],171:[function(require,module,exports){
+},{}],177:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -23931,7 +24510,7 @@ var PooledClass = {
 module.exports = PooledClass;
 
 }).call(this,require('_process'))
-},{"./invariant":292,"_process":7}],172:[function(require,module,exports){
+},{"./invariant":298,"_process":7}],178:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -24083,7 +24662,7 @@ React.version = '0.13.3';
 module.exports = React;
 
 }).call(this,require('_process'))
-},{"./EventPluginUtils":161,"./ExecutionEnvironment":163,"./Object.assign":170,"./ReactChildren":178,"./ReactClass":179,"./ReactComponent":180,"./ReactContext":185,"./ReactCurrentOwner":186,"./ReactDOM":187,"./ReactDOMTextComponent":198,"./ReactDefaultInjection":201,"./ReactElement":204,"./ReactElementValidator":205,"./ReactInstanceHandles":213,"./ReactMount":218,"./ReactPerf":223,"./ReactPropTypes":227,"./ReactReconciler":230,"./ReactServerRendering":233,"./findDOMNode":274,"./onlyChild":302,"_process":7}],173:[function(require,module,exports){
+},{"./EventPluginUtils":167,"./ExecutionEnvironment":169,"./Object.assign":176,"./ReactChildren":184,"./ReactClass":185,"./ReactComponent":186,"./ReactContext":191,"./ReactCurrentOwner":192,"./ReactDOM":193,"./ReactDOMTextComponent":204,"./ReactDefaultInjection":207,"./ReactElement":210,"./ReactElementValidator":211,"./ReactInstanceHandles":219,"./ReactMount":224,"./ReactPerf":229,"./ReactPropTypes":233,"./ReactReconciler":236,"./ReactServerRendering":239,"./findDOMNode":280,"./onlyChild":308,"_process":7}],179:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -24114,7 +24693,7 @@ var ReactBrowserComponentMixin = {
 
 module.exports = ReactBrowserComponentMixin;
 
-},{"./findDOMNode":274}],174:[function(require,module,exports){
+},{"./findDOMNode":280}],180:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -24467,7 +25046,7 @@ var ReactBrowserEventEmitter = assign({}, ReactEventEmitterMixin, {
 
 module.exports = ReactBrowserEventEmitter;
 
-},{"./EventConstants":157,"./EventPluginHub":159,"./EventPluginRegistry":160,"./Object.assign":170,"./ReactEventEmitterMixin":208,"./ViewportMetrics":259,"./isEventSupported":293}],175:[function(require,module,exports){
+},{"./EventConstants":163,"./EventPluginHub":165,"./EventPluginRegistry":166,"./Object.assign":176,"./ReactEventEmitterMixin":214,"./ViewportMetrics":265,"./isEventSupported":299}],181:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -24537,7 +25116,7 @@ var ReactCSSTransitionGroup = React.createClass({
 
 module.exports = ReactCSSTransitionGroup;
 
-},{"./Object.assign":170,"./React":172,"./ReactCSSTransitionGroupChild":176,"./ReactTransitionGroup":239}],176:[function(require,module,exports){
+},{"./Object.assign":176,"./React":178,"./ReactCSSTransitionGroupChild":182,"./ReactTransitionGroup":245}],182:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -24685,7 +25264,7 @@ var ReactCSSTransitionGroupChild = React.createClass({
 module.exports = ReactCSSTransitionGroupChild;
 
 }).call(this,require('_process'))
-},{"./CSSCore":145,"./React":172,"./ReactTransitionEvents":238,"./onlyChild":302,"./warning":313,"_process":7}],177:[function(require,module,exports){
+},{"./CSSCore":151,"./React":178,"./ReactTransitionEvents":244,"./onlyChild":308,"./warning":319,"_process":7}],183:[function(require,module,exports){
 /**
  * Copyright 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -24812,7 +25391,7 @@ var ReactChildReconciler = {
 
 module.exports = ReactChildReconciler;
 
-},{"./ReactReconciler":230,"./flattenChildren":275,"./instantiateReactComponent":291,"./shouldUpdateReactComponent":309}],178:[function(require,module,exports){
+},{"./ReactReconciler":236,"./flattenChildren":281,"./instantiateReactComponent":297,"./shouldUpdateReactComponent":315}],184:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -24965,7 +25544,7 @@ var ReactChildren = {
 module.exports = ReactChildren;
 
 }).call(this,require('_process'))
-},{"./PooledClass":171,"./ReactFragment":210,"./traverseAllChildren":311,"./warning":313,"_process":7}],179:[function(require,module,exports){
+},{"./PooledClass":177,"./ReactFragment":216,"./traverseAllChildren":317,"./warning":319,"_process":7}],185:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -25911,7 +26490,7 @@ var ReactClass = {
 module.exports = ReactClass;
 
 }).call(this,require('_process'))
-},{"./Object.assign":170,"./ReactComponent":180,"./ReactCurrentOwner":186,"./ReactElement":204,"./ReactErrorUtils":207,"./ReactInstanceMap":214,"./ReactLifeCycle":215,"./ReactPropTypeLocationNames":225,"./ReactPropTypeLocations":226,"./ReactUpdateQueue":240,"./invariant":292,"./keyMirror":298,"./keyOf":299,"./warning":313,"_process":7}],180:[function(require,module,exports){
+},{"./Object.assign":176,"./ReactComponent":186,"./ReactCurrentOwner":192,"./ReactElement":210,"./ReactErrorUtils":213,"./ReactInstanceMap":220,"./ReactLifeCycle":221,"./ReactPropTypeLocationNames":231,"./ReactPropTypeLocations":232,"./ReactUpdateQueue":246,"./invariant":298,"./keyMirror":304,"./keyOf":305,"./warning":319,"_process":7}],186:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -26065,7 +26644,7 @@ if ("production" !== process.env.NODE_ENV) {
 module.exports = ReactComponent;
 
 }).call(this,require('_process'))
-},{"./ReactUpdateQueue":240,"./invariant":292,"./warning":313,"_process":7}],181:[function(require,module,exports){
+},{"./ReactUpdateQueue":246,"./invariant":298,"./warning":319,"_process":7}],187:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -26112,7 +26691,7 @@ var ReactComponentBrowserEnvironment = {
 
 module.exports = ReactComponentBrowserEnvironment;
 
-},{"./ReactDOMIDOperations":191,"./ReactMount":218}],182:[function(require,module,exports){
+},{"./ReactDOMIDOperations":197,"./ReactMount":224}],188:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -26173,7 +26752,7 @@ var ReactComponentEnvironment = {
 module.exports = ReactComponentEnvironment;
 
 }).call(this,require('_process'))
-},{"./invariant":292,"_process":7}],183:[function(require,module,exports){
+},{"./invariant":298,"_process":7}],189:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -26222,7 +26801,7 @@ var ReactComponentWithPureRenderMixin = {
 
 module.exports = ReactComponentWithPureRenderMixin;
 
-},{"./shallowEqual":308}],184:[function(require,module,exports){
+},{"./shallowEqual":314}],190:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -27135,7 +27714,7 @@ var ReactCompositeComponent = {
 module.exports = ReactCompositeComponent;
 
 }).call(this,require('_process'))
-},{"./Object.assign":170,"./ReactComponentEnvironment":182,"./ReactContext":185,"./ReactCurrentOwner":186,"./ReactElement":204,"./ReactElementValidator":205,"./ReactInstanceMap":214,"./ReactLifeCycle":215,"./ReactNativeComponent":221,"./ReactPerf":223,"./ReactPropTypeLocationNames":225,"./ReactPropTypeLocations":226,"./ReactReconciler":230,"./ReactUpdates":241,"./emptyObject":272,"./invariant":292,"./shouldUpdateReactComponent":309,"./warning":313,"_process":7}],185:[function(require,module,exports){
+},{"./Object.assign":176,"./ReactComponentEnvironment":188,"./ReactContext":191,"./ReactCurrentOwner":192,"./ReactElement":210,"./ReactElementValidator":211,"./ReactInstanceMap":220,"./ReactLifeCycle":221,"./ReactNativeComponent":227,"./ReactPerf":229,"./ReactPropTypeLocationNames":231,"./ReactPropTypeLocations":232,"./ReactReconciler":236,"./ReactUpdates":247,"./emptyObject":278,"./invariant":298,"./shouldUpdateReactComponent":315,"./warning":319,"_process":7}],191:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -27213,7 +27792,7 @@ var ReactContext = {
 module.exports = ReactContext;
 
 }).call(this,require('_process'))
-},{"./Object.assign":170,"./emptyObject":272,"./warning":313,"_process":7}],186:[function(require,module,exports){
+},{"./Object.assign":176,"./emptyObject":278,"./warning":319,"_process":7}],192:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -27247,7 +27826,7 @@ var ReactCurrentOwner = {
 
 module.exports = ReactCurrentOwner;
 
-},{}],187:[function(require,module,exports){
+},{}],193:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -27426,7 +28005,7 @@ var ReactDOM = mapObject({
 module.exports = ReactDOM;
 
 }).call(this,require('_process'))
-},{"./ReactElement":204,"./ReactElementValidator":205,"./mapObject":300,"_process":7}],188:[function(require,module,exports){
+},{"./ReactElement":210,"./ReactElementValidator":211,"./mapObject":306,"_process":7}],194:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -27490,7 +28069,7 @@ var ReactDOMButton = ReactClass.createClass({
 
 module.exports = ReactDOMButton;
 
-},{"./AutoFocusMixin":143,"./ReactBrowserComponentMixin":173,"./ReactClass":179,"./ReactElement":204,"./keyMirror":298}],189:[function(require,module,exports){
+},{"./AutoFocusMixin":149,"./ReactBrowserComponentMixin":179,"./ReactClass":185,"./ReactElement":210,"./keyMirror":304}],195:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -28000,7 +28579,7 @@ ReactDOMComponent.injection = {
 module.exports = ReactDOMComponent;
 
 }).call(this,require('_process'))
-},{"./CSSPropertyOperations":147,"./DOMProperty":152,"./DOMPropertyOperations":153,"./Object.assign":170,"./ReactBrowserEventEmitter":174,"./ReactComponentBrowserEnvironment":181,"./ReactMount":218,"./ReactMultiChild":219,"./ReactPerf":223,"./escapeTextContentForBrowser":273,"./invariant":292,"./isEventSupported":293,"./keyOf":299,"./warning":313,"_process":7}],190:[function(require,module,exports){
+},{"./CSSPropertyOperations":153,"./DOMProperty":158,"./DOMPropertyOperations":159,"./Object.assign":176,"./ReactBrowserEventEmitter":180,"./ReactComponentBrowserEnvironment":187,"./ReactMount":224,"./ReactMultiChild":225,"./ReactPerf":229,"./escapeTextContentForBrowser":279,"./invariant":298,"./isEventSupported":299,"./keyOf":305,"./warning":319,"_process":7}],196:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -28049,7 +28628,7 @@ var ReactDOMForm = ReactClass.createClass({
 
 module.exports = ReactDOMForm;
 
-},{"./EventConstants":157,"./LocalEventTrapMixin":168,"./ReactBrowserComponentMixin":173,"./ReactClass":179,"./ReactElement":204}],191:[function(require,module,exports){
+},{"./EventConstants":163,"./LocalEventTrapMixin":174,"./ReactBrowserComponentMixin":179,"./ReactClass":185,"./ReactElement":210}],197:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -28217,7 +28796,7 @@ ReactPerf.measureMethods(ReactDOMIDOperations, 'ReactDOMIDOperations', {
 module.exports = ReactDOMIDOperations;
 
 }).call(this,require('_process'))
-},{"./CSSPropertyOperations":147,"./DOMChildrenOperations":151,"./DOMPropertyOperations":153,"./ReactMount":218,"./ReactPerf":223,"./invariant":292,"./setInnerHTML":306,"_process":7}],192:[function(require,module,exports){
+},{"./CSSPropertyOperations":153,"./DOMChildrenOperations":157,"./DOMPropertyOperations":159,"./ReactMount":224,"./ReactPerf":229,"./invariant":298,"./setInnerHTML":312,"_process":7}],198:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -28262,7 +28841,7 @@ var ReactDOMIframe = ReactClass.createClass({
 
 module.exports = ReactDOMIframe;
 
-},{"./EventConstants":157,"./LocalEventTrapMixin":168,"./ReactBrowserComponentMixin":173,"./ReactClass":179,"./ReactElement":204}],193:[function(require,module,exports){
+},{"./EventConstants":163,"./LocalEventTrapMixin":174,"./ReactBrowserComponentMixin":179,"./ReactClass":185,"./ReactElement":210}],199:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -28308,7 +28887,7 @@ var ReactDOMImg = ReactClass.createClass({
 
 module.exports = ReactDOMImg;
 
-},{"./EventConstants":157,"./LocalEventTrapMixin":168,"./ReactBrowserComponentMixin":173,"./ReactClass":179,"./ReactElement":204}],194:[function(require,module,exports){
+},{"./EventConstants":163,"./LocalEventTrapMixin":174,"./ReactBrowserComponentMixin":179,"./ReactClass":185,"./ReactElement":210}],200:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -28485,7 +29064,7 @@ var ReactDOMInput = ReactClass.createClass({
 module.exports = ReactDOMInput;
 
 }).call(this,require('_process'))
-},{"./AutoFocusMixin":143,"./DOMPropertyOperations":153,"./LinkedValueUtils":167,"./Object.assign":170,"./ReactBrowserComponentMixin":173,"./ReactClass":179,"./ReactElement":204,"./ReactMount":218,"./ReactUpdates":241,"./invariant":292,"_process":7}],195:[function(require,module,exports){
+},{"./AutoFocusMixin":149,"./DOMPropertyOperations":159,"./LinkedValueUtils":173,"./Object.assign":176,"./ReactBrowserComponentMixin":179,"./ReactClass":185,"./ReactElement":210,"./ReactMount":224,"./ReactUpdates":247,"./invariant":298,"_process":7}],201:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -28537,7 +29116,7 @@ var ReactDOMOption = ReactClass.createClass({
 module.exports = ReactDOMOption;
 
 }).call(this,require('_process'))
-},{"./ReactBrowserComponentMixin":173,"./ReactClass":179,"./ReactElement":204,"./warning":313,"_process":7}],196:[function(require,module,exports){
+},{"./ReactBrowserComponentMixin":179,"./ReactClass":185,"./ReactElement":210,"./warning":319,"_process":7}],202:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -28715,7 +29294,7 @@ var ReactDOMSelect = ReactClass.createClass({
 
 module.exports = ReactDOMSelect;
 
-},{"./AutoFocusMixin":143,"./LinkedValueUtils":167,"./Object.assign":170,"./ReactBrowserComponentMixin":173,"./ReactClass":179,"./ReactElement":204,"./ReactUpdates":241}],197:[function(require,module,exports){
+},{"./AutoFocusMixin":149,"./LinkedValueUtils":173,"./Object.assign":176,"./ReactBrowserComponentMixin":179,"./ReactClass":185,"./ReactElement":210,"./ReactUpdates":247}],203:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -28928,7 +29507,7 @@ var ReactDOMSelection = {
 
 module.exports = ReactDOMSelection;
 
-},{"./ExecutionEnvironment":163,"./getNodeForCharacterOffset":285,"./getTextContentAccessor":287}],198:[function(require,module,exports){
+},{"./ExecutionEnvironment":169,"./getNodeForCharacterOffset":291,"./getTextContentAccessor":293}],204:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -29045,7 +29624,7 @@ assign(ReactDOMTextComponent.prototype, {
 
 module.exports = ReactDOMTextComponent;
 
-},{"./DOMPropertyOperations":153,"./Object.assign":170,"./ReactComponentBrowserEnvironment":181,"./ReactDOMComponent":189,"./escapeTextContentForBrowser":273}],199:[function(require,module,exports){
+},{"./DOMPropertyOperations":159,"./Object.assign":176,"./ReactComponentBrowserEnvironment":187,"./ReactDOMComponent":195,"./escapeTextContentForBrowser":279}],205:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -29185,7 +29764,7 @@ var ReactDOMTextarea = ReactClass.createClass({
 module.exports = ReactDOMTextarea;
 
 }).call(this,require('_process'))
-},{"./AutoFocusMixin":143,"./DOMPropertyOperations":153,"./LinkedValueUtils":167,"./Object.assign":170,"./ReactBrowserComponentMixin":173,"./ReactClass":179,"./ReactElement":204,"./ReactUpdates":241,"./invariant":292,"./warning":313,"_process":7}],200:[function(require,module,exports){
+},{"./AutoFocusMixin":149,"./DOMPropertyOperations":159,"./LinkedValueUtils":173,"./Object.assign":176,"./ReactBrowserComponentMixin":179,"./ReactClass":185,"./ReactElement":210,"./ReactUpdates":247,"./invariant":298,"./warning":319,"_process":7}],206:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -29258,7 +29837,7 @@ var ReactDefaultBatchingStrategy = {
 
 module.exports = ReactDefaultBatchingStrategy;
 
-},{"./Object.assign":170,"./ReactUpdates":241,"./Transaction":258,"./emptyFunction":271}],201:[function(require,module,exports){
+},{"./Object.assign":176,"./ReactUpdates":247,"./Transaction":264,"./emptyFunction":277}],207:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -29417,7 +29996,7 @@ module.exports = {
 };
 
 }).call(this,require('_process'))
-},{"./BeforeInputEventPlugin":144,"./ChangeEventPlugin":149,"./ClientReactRootIndex":150,"./DefaultEventPluginOrder":155,"./EnterLeaveEventPlugin":156,"./ExecutionEnvironment":163,"./HTMLDOMPropertyConfig":165,"./MobileSafariClickEventPlugin":169,"./ReactBrowserComponentMixin":173,"./ReactClass":179,"./ReactComponentBrowserEnvironment":181,"./ReactDOMButton":188,"./ReactDOMComponent":189,"./ReactDOMForm":190,"./ReactDOMIDOperations":191,"./ReactDOMIframe":192,"./ReactDOMImg":193,"./ReactDOMInput":194,"./ReactDOMOption":195,"./ReactDOMSelect":196,"./ReactDOMTextComponent":198,"./ReactDOMTextarea":199,"./ReactDefaultBatchingStrategy":200,"./ReactDefaultPerf":202,"./ReactElement":204,"./ReactEventListener":209,"./ReactInjection":211,"./ReactInstanceHandles":213,"./ReactMount":218,"./ReactReconcileTransaction":229,"./SVGDOMPropertyConfig":243,"./SelectEventPlugin":244,"./ServerReactRootIndex":245,"./SimpleEventPlugin":246,"./createFullPageComponent":267,"_process":7}],202:[function(require,module,exports){
+},{"./BeforeInputEventPlugin":150,"./ChangeEventPlugin":155,"./ClientReactRootIndex":156,"./DefaultEventPluginOrder":161,"./EnterLeaveEventPlugin":162,"./ExecutionEnvironment":169,"./HTMLDOMPropertyConfig":171,"./MobileSafariClickEventPlugin":175,"./ReactBrowserComponentMixin":179,"./ReactClass":185,"./ReactComponentBrowserEnvironment":187,"./ReactDOMButton":194,"./ReactDOMComponent":195,"./ReactDOMForm":196,"./ReactDOMIDOperations":197,"./ReactDOMIframe":198,"./ReactDOMImg":199,"./ReactDOMInput":200,"./ReactDOMOption":201,"./ReactDOMSelect":202,"./ReactDOMTextComponent":204,"./ReactDOMTextarea":205,"./ReactDefaultBatchingStrategy":206,"./ReactDefaultPerf":208,"./ReactElement":210,"./ReactEventListener":215,"./ReactInjection":217,"./ReactInstanceHandles":219,"./ReactMount":224,"./ReactReconcileTransaction":235,"./SVGDOMPropertyConfig":249,"./SelectEventPlugin":250,"./ServerReactRootIndex":251,"./SimpleEventPlugin":252,"./createFullPageComponent":273,"_process":7}],208:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -29683,7 +30262,7 @@ var ReactDefaultPerf = {
 
 module.exports = ReactDefaultPerf;
 
-},{"./DOMProperty":152,"./ReactDefaultPerfAnalysis":203,"./ReactMount":218,"./ReactPerf":223,"./performanceNow":304}],203:[function(require,module,exports){
+},{"./DOMProperty":158,"./ReactDefaultPerfAnalysis":209,"./ReactMount":224,"./ReactPerf":229,"./performanceNow":310}],209:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -29889,7 +30468,7 @@ var ReactDefaultPerfAnalysis = {
 
 module.exports = ReactDefaultPerfAnalysis;
 
-},{"./Object.assign":170}],204:[function(require,module,exports){
+},{"./Object.assign":176}],210:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -30197,7 +30776,7 @@ ReactElement.isValidElement = function(object) {
 module.exports = ReactElement;
 
 }).call(this,require('_process'))
-},{"./Object.assign":170,"./ReactContext":185,"./ReactCurrentOwner":186,"./warning":313,"_process":7}],205:[function(require,module,exports){
+},{"./Object.assign":176,"./ReactContext":191,"./ReactCurrentOwner":192,"./warning":319,"_process":7}],211:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -30662,7 +31241,7 @@ var ReactElementValidator = {
 module.exports = ReactElementValidator;
 
 }).call(this,require('_process'))
-},{"./ReactCurrentOwner":186,"./ReactElement":204,"./ReactFragment":210,"./ReactNativeComponent":221,"./ReactPropTypeLocationNames":225,"./ReactPropTypeLocations":226,"./getIteratorFn":283,"./invariant":292,"./warning":313,"_process":7}],206:[function(require,module,exports){
+},{"./ReactCurrentOwner":192,"./ReactElement":210,"./ReactFragment":216,"./ReactNativeComponent":227,"./ReactPropTypeLocationNames":231,"./ReactPropTypeLocations":232,"./getIteratorFn":289,"./invariant":298,"./warning":319,"_process":7}],212:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -30757,7 +31336,7 @@ var ReactEmptyComponent = {
 module.exports = ReactEmptyComponent;
 
 }).call(this,require('_process'))
-},{"./ReactElement":204,"./ReactInstanceMap":214,"./invariant":292,"_process":7}],207:[function(require,module,exports){
+},{"./ReactElement":210,"./ReactInstanceMap":220,"./invariant":298,"_process":7}],213:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -30789,7 +31368,7 @@ var ReactErrorUtils = {
 
 module.exports = ReactErrorUtils;
 
-},{}],208:[function(require,module,exports){
+},{}],214:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -30839,7 +31418,7 @@ var ReactEventEmitterMixin = {
 
 module.exports = ReactEventEmitterMixin;
 
-},{"./EventPluginHub":159}],209:[function(require,module,exports){
+},{"./EventPluginHub":165}],215:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -31022,7 +31601,7 @@ var ReactEventListener = {
 
 module.exports = ReactEventListener;
 
-},{"./EventListener":158,"./ExecutionEnvironment":163,"./Object.assign":170,"./PooledClass":171,"./ReactInstanceHandles":213,"./ReactMount":218,"./ReactUpdates":241,"./getEventTarget":282,"./getUnboundedScrollPosition":288}],210:[function(require,module,exports){
+},{"./EventListener":164,"./ExecutionEnvironment":169,"./Object.assign":176,"./PooledClass":177,"./ReactInstanceHandles":219,"./ReactMount":224,"./ReactUpdates":247,"./getEventTarget":288,"./getUnboundedScrollPosition":294}],216:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2015, Facebook, Inc.
@@ -31207,7 +31786,7 @@ var ReactFragment = {
 module.exports = ReactFragment;
 
 }).call(this,require('_process'))
-},{"./ReactElement":204,"./warning":313,"_process":7}],211:[function(require,module,exports){
+},{"./ReactElement":210,"./warning":319,"_process":7}],217:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -31249,7 +31828,7 @@ var ReactInjection = {
 
 module.exports = ReactInjection;
 
-},{"./DOMProperty":152,"./EventPluginHub":159,"./ReactBrowserEventEmitter":174,"./ReactClass":179,"./ReactComponentEnvironment":182,"./ReactDOMComponent":189,"./ReactEmptyComponent":206,"./ReactNativeComponent":221,"./ReactPerf":223,"./ReactRootIndex":232,"./ReactUpdates":241}],212:[function(require,module,exports){
+},{"./DOMProperty":158,"./EventPluginHub":165,"./ReactBrowserEventEmitter":180,"./ReactClass":185,"./ReactComponentEnvironment":188,"./ReactDOMComponent":195,"./ReactEmptyComponent":212,"./ReactNativeComponent":227,"./ReactPerf":229,"./ReactRootIndex":238,"./ReactUpdates":247}],218:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -31384,7 +31963,7 @@ var ReactInputSelection = {
 
 module.exports = ReactInputSelection;
 
-},{"./ReactDOMSelection":197,"./containsNode":265,"./focusNode":276,"./getActiveElement":278}],213:[function(require,module,exports){
+},{"./ReactDOMSelection":203,"./containsNode":271,"./focusNode":282,"./getActiveElement":284}],219:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -31720,7 +32299,7 @@ var ReactInstanceHandles = {
 module.exports = ReactInstanceHandles;
 
 }).call(this,require('_process'))
-},{"./ReactRootIndex":232,"./invariant":292,"_process":7}],214:[function(require,module,exports){
+},{"./ReactRootIndex":238,"./invariant":298,"_process":7}],220:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -31769,7 +32348,7 @@ var ReactInstanceMap = {
 
 module.exports = ReactInstanceMap;
 
-},{}],215:[function(require,module,exports){
+},{}],221:[function(require,module,exports){
 /**
  * Copyright 2015, Facebook, Inc.
  * All rights reserved.
@@ -31806,7 +32385,7 @@ var ReactLifeCycle = {
 
 module.exports = ReactLifeCycle;
 
-},{}],216:[function(require,module,exports){
+},{}],222:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -31879,7 +32458,7 @@ ReactLink.PropTypes = {
 
 module.exports = ReactLink;
 
-},{"./React":172}],217:[function(require,module,exports){
+},{"./React":178}],223:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -31927,7 +32506,7 @@ var ReactMarkupChecksum = {
 
 module.exports = ReactMarkupChecksum;
 
-},{"./adler32":261}],218:[function(require,module,exports){
+},{"./adler32":267}],224:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -32818,7 +33397,7 @@ ReactPerf.measureMethods(ReactMount, 'ReactMount', {
 module.exports = ReactMount;
 
 }).call(this,require('_process'))
-},{"./DOMProperty":152,"./ReactBrowserEventEmitter":174,"./ReactCurrentOwner":186,"./ReactElement":204,"./ReactElementValidator":205,"./ReactEmptyComponent":206,"./ReactInstanceHandles":213,"./ReactInstanceMap":214,"./ReactMarkupChecksum":217,"./ReactPerf":223,"./ReactReconciler":230,"./ReactUpdateQueue":240,"./ReactUpdates":241,"./containsNode":265,"./emptyObject":272,"./getReactRootElementInContainer":286,"./instantiateReactComponent":291,"./invariant":292,"./setInnerHTML":306,"./shouldUpdateReactComponent":309,"./warning":313,"_process":7}],219:[function(require,module,exports){
+},{"./DOMProperty":158,"./ReactBrowserEventEmitter":180,"./ReactCurrentOwner":192,"./ReactElement":210,"./ReactElementValidator":211,"./ReactEmptyComponent":212,"./ReactInstanceHandles":219,"./ReactInstanceMap":220,"./ReactMarkupChecksum":223,"./ReactPerf":229,"./ReactReconciler":236,"./ReactUpdateQueue":246,"./ReactUpdates":247,"./containsNode":271,"./emptyObject":278,"./getReactRootElementInContainer":292,"./instantiateReactComponent":297,"./invariant":298,"./setInnerHTML":312,"./shouldUpdateReactComponent":315,"./warning":319,"_process":7}],225:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -33248,7 +33827,7 @@ var ReactMultiChild = {
 
 module.exports = ReactMultiChild;
 
-},{"./ReactChildReconciler":177,"./ReactComponentEnvironment":182,"./ReactMultiChildUpdateTypes":220,"./ReactReconciler":230}],220:[function(require,module,exports){
+},{"./ReactChildReconciler":183,"./ReactComponentEnvironment":188,"./ReactMultiChildUpdateTypes":226,"./ReactReconciler":236}],226:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -33281,7 +33860,7 @@ var ReactMultiChildUpdateTypes = keyMirror({
 
 module.exports = ReactMultiChildUpdateTypes;
 
-},{"./keyMirror":298}],221:[function(require,module,exports){
+},{"./keyMirror":304}],227:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -33388,7 +33967,7 @@ var ReactNativeComponent = {
 module.exports = ReactNativeComponent;
 
 }).call(this,require('_process'))
-},{"./Object.assign":170,"./invariant":292,"_process":7}],222:[function(require,module,exports){
+},{"./Object.assign":176,"./invariant":298,"_process":7}],228:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -33500,7 +34079,7 @@ var ReactOwner = {
 module.exports = ReactOwner;
 
 }).call(this,require('_process'))
-},{"./invariant":292,"_process":7}],223:[function(require,module,exports){
+},{"./invariant":298,"_process":7}],229:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -33604,7 +34183,7 @@ function _noMeasure(objName, fnName, func) {
 module.exports = ReactPerf;
 
 }).call(this,require('_process'))
-},{"_process":7}],224:[function(require,module,exports){
+},{"_process":7}],230:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -33714,7 +34293,7 @@ var ReactPropTransferer = {
 
 module.exports = ReactPropTransferer;
 
-},{"./Object.assign":170,"./emptyFunction":271,"./joinClasses":297}],225:[function(require,module,exports){
+},{"./Object.assign":176,"./emptyFunction":277,"./joinClasses":303}],231:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -33742,7 +34321,7 @@ if ("production" !== process.env.NODE_ENV) {
 module.exports = ReactPropTypeLocationNames;
 
 }).call(this,require('_process'))
-},{"_process":7}],226:[function(require,module,exports){
+},{"_process":7}],232:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -33766,7 +34345,7 @@ var ReactPropTypeLocations = keyMirror({
 
 module.exports = ReactPropTypeLocations;
 
-},{"./keyMirror":298}],227:[function(require,module,exports){
+},{"./keyMirror":304}],233:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -34115,7 +34694,7 @@ function getPreciseType(propValue) {
 
 module.exports = ReactPropTypes;
 
-},{"./ReactElement":204,"./ReactFragment":210,"./ReactPropTypeLocationNames":225,"./emptyFunction":271}],228:[function(require,module,exports){
+},{"./ReactElement":210,"./ReactFragment":216,"./ReactPropTypeLocationNames":231,"./emptyFunction":277}],234:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -34171,7 +34750,7 @@ PooledClass.addPoolingTo(ReactPutListenerQueue);
 
 module.exports = ReactPutListenerQueue;
 
-},{"./Object.assign":170,"./PooledClass":171,"./ReactBrowserEventEmitter":174}],229:[function(require,module,exports){
+},{"./Object.assign":176,"./PooledClass":177,"./ReactBrowserEventEmitter":180}],235:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -34347,7 +34926,7 @@ PooledClass.addPoolingTo(ReactReconcileTransaction);
 
 module.exports = ReactReconcileTransaction;
 
-},{"./CallbackQueue":148,"./Object.assign":170,"./PooledClass":171,"./ReactBrowserEventEmitter":174,"./ReactInputSelection":212,"./ReactPutListenerQueue":228,"./Transaction":258}],230:[function(require,module,exports){
+},{"./CallbackQueue":154,"./Object.assign":176,"./PooledClass":177,"./ReactBrowserEventEmitter":180,"./ReactInputSelection":218,"./ReactPutListenerQueue":234,"./Transaction":264}],236:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -34471,7 +35050,7 @@ var ReactReconciler = {
 module.exports = ReactReconciler;
 
 }).call(this,require('_process'))
-},{"./ReactElementValidator":205,"./ReactRef":231,"_process":7}],231:[function(require,module,exports){
+},{"./ReactElementValidator":211,"./ReactRef":237,"_process":7}],237:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -34542,7 +35121,7 @@ ReactRef.detachRefs = function(instance, element) {
 
 module.exports = ReactRef;
 
-},{"./ReactOwner":222}],232:[function(require,module,exports){
+},{"./ReactOwner":228}],238:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -34573,7 +35152,7 @@ var ReactRootIndex = {
 
 module.exports = ReactRootIndex;
 
-},{}],233:[function(require,module,exports){
+},{}],239:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -34655,7 +35234,7 @@ module.exports = {
 };
 
 }).call(this,require('_process'))
-},{"./ReactElement":204,"./ReactInstanceHandles":213,"./ReactMarkupChecksum":217,"./ReactServerRenderingTransaction":234,"./emptyObject":272,"./instantiateReactComponent":291,"./invariant":292,"_process":7}],234:[function(require,module,exports){
+},{"./ReactElement":210,"./ReactInstanceHandles":219,"./ReactMarkupChecksum":223,"./ReactServerRenderingTransaction":240,"./emptyObject":278,"./instantiateReactComponent":297,"./invariant":298,"_process":7}],240:[function(require,module,exports){
 /**
  * Copyright 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -34768,7 +35347,7 @@ PooledClass.addPoolingTo(ReactServerRenderingTransaction);
 
 module.exports = ReactServerRenderingTransaction;
 
-},{"./CallbackQueue":148,"./Object.assign":170,"./PooledClass":171,"./ReactPutListenerQueue":228,"./Transaction":258,"./emptyFunction":271}],235:[function(require,module,exports){
+},{"./CallbackQueue":154,"./Object.assign":176,"./PooledClass":177,"./ReactPutListenerQueue":234,"./Transaction":264,"./emptyFunction":277}],241:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -34874,7 +35453,7 @@ ReactStateSetters.Mixin = {
 
 module.exports = ReactStateSetters;
 
-},{}],236:[function(require,module,exports){
+},{}],242:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -35388,7 +35967,7 @@ for (eventType in topLevelTypes) {
 
 module.exports = ReactTestUtils;
 
-},{"./EventConstants":157,"./EventPluginHub":159,"./EventPropagators":162,"./Object.assign":170,"./React":172,"./ReactBrowserEventEmitter":174,"./ReactCompositeComponent":184,"./ReactElement":204,"./ReactEmptyComponent":206,"./ReactInstanceHandles":213,"./ReactInstanceMap":214,"./ReactMount":218,"./ReactUpdates":241,"./SyntheticEvent":250,"./emptyObject":272}],237:[function(require,module,exports){
+},{"./EventConstants":163,"./EventPluginHub":165,"./EventPropagators":168,"./Object.assign":176,"./React":178,"./ReactBrowserEventEmitter":180,"./ReactCompositeComponent":190,"./ReactElement":210,"./ReactEmptyComponent":212,"./ReactInstanceHandles":219,"./ReactInstanceMap":220,"./ReactMount":224,"./ReactUpdates":247,"./SyntheticEvent":256,"./emptyObject":278}],243:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -35493,7 +36072,7 @@ var ReactTransitionChildMapping = {
 
 module.exports = ReactTransitionChildMapping;
 
-},{"./ReactChildren":178,"./ReactFragment":210}],238:[function(require,module,exports){
+},{"./ReactChildren":184,"./ReactFragment":216}],244:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -35604,7 +36183,7 @@ var ReactTransitionEvents = {
 
 module.exports = ReactTransitionEvents;
 
-},{"./ExecutionEnvironment":163}],239:[function(require,module,exports){
+},{"./ExecutionEnvironment":169}],245:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -35834,7 +36413,7 @@ var ReactTransitionGroup = React.createClass({
 
 module.exports = ReactTransitionGroup;
 
-},{"./Object.assign":170,"./React":172,"./ReactTransitionChildMapping":237,"./cloneWithProps":264,"./emptyFunction":271}],240:[function(require,module,exports){
+},{"./Object.assign":176,"./React":178,"./ReactTransitionChildMapping":243,"./cloneWithProps":270,"./emptyFunction":277}],246:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2015, Facebook, Inc.
@@ -36133,7 +36712,7 @@ var ReactUpdateQueue = {
 module.exports = ReactUpdateQueue;
 
 }).call(this,require('_process'))
-},{"./Object.assign":170,"./ReactCurrentOwner":186,"./ReactElement":204,"./ReactInstanceMap":214,"./ReactLifeCycle":215,"./ReactUpdates":241,"./invariant":292,"./warning":313,"_process":7}],241:[function(require,module,exports){
+},{"./Object.assign":176,"./ReactCurrentOwner":192,"./ReactElement":210,"./ReactInstanceMap":220,"./ReactLifeCycle":221,"./ReactUpdates":247,"./invariant":298,"./warning":319,"_process":7}],247:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -36415,7 +36994,7 @@ var ReactUpdates = {
 module.exports = ReactUpdates;
 
 }).call(this,require('_process'))
-},{"./CallbackQueue":148,"./Object.assign":170,"./PooledClass":171,"./ReactCurrentOwner":186,"./ReactPerf":223,"./ReactReconciler":230,"./Transaction":258,"./invariant":292,"./warning":313,"_process":7}],242:[function(require,module,exports){
+},{"./CallbackQueue":154,"./Object.assign":176,"./PooledClass":177,"./ReactCurrentOwner":192,"./ReactPerf":229,"./ReactReconciler":236,"./Transaction":264,"./invariant":298,"./warning":319,"_process":7}],248:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -36471,7 +37050,7 @@ if ("production" !== process.env.NODE_ENV) {
 module.exports = React;
 
 }).call(this,require('_process'))
-},{"./LinkedStateMixin":166,"./React":172,"./ReactCSSTransitionGroup":175,"./ReactComponentWithPureRenderMixin":183,"./ReactDefaultPerf":202,"./ReactFragment":210,"./ReactTestUtils":236,"./ReactTransitionGroup":239,"./ReactUpdates":241,"./cloneWithProps":264,"./cx":269,"./update":312,"_process":7}],243:[function(require,module,exports){
+},{"./LinkedStateMixin":172,"./React":178,"./ReactCSSTransitionGroup":181,"./ReactComponentWithPureRenderMixin":189,"./ReactDefaultPerf":208,"./ReactFragment":216,"./ReactTestUtils":242,"./ReactTransitionGroup":245,"./ReactUpdates":247,"./cloneWithProps":270,"./cx":275,"./update":318,"_process":7}],249:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -36565,7 +37144,7 @@ var SVGDOMPropertyConfig = {
 
 module.exports = SVGDOMPropertyConfig;
 
-},{"./DOMProperty":152}],244:[function(require,module,exports){
+},{"./DOMProperty":158}],250:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -36760,7 +37339,7 @@ var SelectEventPlugin = {
 
 module.exports = SelectEventPlugin;
 
-},{"./EventConstants":157,"./EventPropagators":162,"./ReactInputSelection":212,"./SyntheticEvent":250,"./getActiveElement":278,"./isTextInputElement":295,"./keyOf":299,"./shallowEqual":308}],245:[function(require,module,exports){
+},{"./EventConstants":163,"./EventPropagators":168,"./ReactInputSelection":218,"./SyntheticEvent":256,"./getActiveElement":284,"./isTextInputElement":301,"./keyOf":305,"./shallowEqual":314}],251:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -36791,7 +37370,7 @@ var ServerReactRootIndex = {
 
 module.exports = ServerReactRootIndex;
 
-},{}],246:[function(require,module,exports){
+},{}],252:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -37219,7 +37798,7 @@ var SimpleEventPlugin = {
 module.exports = SimpleEventPlugin;
 
 }).call(this,require('_process'))
-},{"./EventConstants":157,"./EventPluginUtils":161,"./EventPropagators":162,"./SyntheticClipboardEvent":247,"./SyntheticDragEvent":249,"./SyntheticEvent":250,"./SyntheticFocusEvent":251,"./SyntheticKeyboardEvent":253,"./SyntheticMouseEvent":254,"./SyntheticTouchEvent":255,"./SyntheticUIEvent":256,"./SyntheticWheelEvent":257,"./getEventCharCode":279,"./invariant":292,"./keyOf":299,"./warning":313,"_process":7}],247:[function(require,module,exports){
+},{"./EventConstants":163,"./EventPluginUtils":167,"./EventPropagators":168,"./SyntheticClipboardEvent":253,"./SyntheticDragEvent":255,"./SyntheticEvent":256,"./SyntheticFocusEvent":257,"./SyntheticKeyboardEvent":259,"./SyntheticMouseEvent":260,"./SyntheticTouchEvent":261,"./SyntheticUIEvent":262,"./SyntheticWheelEvent":263,"./getEventCharCode":285,"./invariant":298,"./keyOf":305,"./warning":319,"_process":7}],253:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -37264,7 +37843,7 @@ SyntheticEvent.augmentClass(SyntheticClipboardEvent, ClipboardEventInterface);
 
 module.exports = SyntheticClipboardEvent;
 
-},{"./SyntheticEvent":250}],248:[function(require,module,exports){
+},{"./SyntheticEvent":256}],254:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -37309,7 +37888,7 @@ SyntheticEvent.augmentClass(
 
 module.exports = SyntheticCompositionEvent;
 
-},{"./SyntheticEvent":250}],249:[function(require,module,exports){
+},{"./SyntheticEvent":256}],255:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -37348,7 +37927,7 @@ SyntheticMouseEvent.augmentClass(SyntheticDragEvent, DragEventInterface);
 
 module.exports = SyntheticDragEvent;
 
-},{"./SyntheticMouseEvent":254}],250:[function(require,module,exports){
+},{"./SyntheticMouseEvent":260}],256:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -37514,7 +38093,7 @@ PooledClass.addPoolingTo(SyntheticEvent, PooledClass.threeArgumentPooler);
 
 module.exports = SyntheticEvent;
 
-},{"./Object.assign":170,"./PooledClass":171,"./emptyFunction":271,"./getEventTarget":282}],251:[function(require,module,exports){
+},{"./Object.assign":176,"./PooledClass":177,"./emptyFunction":277,"./getEventTarget":288}],257:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -37553,7 +38132,7 @@ SyntheticUIEvent.augmentClass(SyntheticFocusEvent, FocusEventInterface);
 
 module.exports = SyntheticFocusEvent;
 
-},{"./SyntheticUIEvent":256}],252:[function(require,module,exports){
+},{"./SyntheticUIEvent":262}],258:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -37599,7 +38178,7 @@ SyntheticEvent.augmentClass(
 
 module.exports = SyntheticInputEvent;
 
-},{"./SyntheticEvent":250}],253:[function(require,module,exports){
+},{"./SyntheticEvent":256}],259:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -37686,7 +38265,7 @@ SyntheticUIEvent.augmentClass(SyntheticKeyboardEvent, KeyboardEventInterface);
 
 module.exports = SyntheticKeyboardEvent;
 
-},{"./SyntheticUIEvent":256,"./getEventCharCode":279,"./getEventKey":280,"./getEventModifierState":281}],254:[function(require,module,exports){
+},{"./SyntheticUIEvent":262,"./getEventCharCode":285,"./getEventKey":286,"./getEventModifierState":287}],260:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -37767,7 +38346,7 @@ SyntheticUIEvent.augmentClass(SyntheticMouseEvent, MouseEventInterface);
 
 module.exports = SyntheticMouseEvent;
 
-},{"./SyntheticUIEvent":256,"./ViewportMetrics":259,"./getEventModifierState":281}],255:[function(require,module,exports){
+},{"./SyntheticUIEvent":262,"./ViewportMetrics":265,"./getEventModifierState":287}],261:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -37815,7 +38394,7 @@ SyntheticUIEvent.augmentClass(SyntheticTouchEvent, TouchEventInterface);
 
 module.exports = SyntheticTouchEvent;
 
-},{"./SyntheticUIEvent":256,"./getEventModifierState":281}],256:[function(require,module,exports){
+},{"./SyntheticUIEvent":262,"./getEventModifierState":287}],262:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -37877,7 +38456,7 @@ SyntheticEvent.augmentClass(SyntheticUIEvent, UIEventInterface);
 
 module.exports = SyntheticUIEvent;
 
-},{"./SyntheticEvent":250,"./getEventTarget":282}],257:[function(require,module,exports){
+},{"./SyntheticEvent":256,"./getEventTarget":288}],263:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -37938,7 +38517,7 @@ SyntheticMouseEvent.augmentClass(SyntheticWheelEvent, WheelEventInterface);
 
 module.exports = SyntheticWheelEvent;
 
-},{"./SyntheticMouseEvent":254}],258:[function(require,module,exports){
+},{"./SyntheticMouseEvent":260}],264:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -38179,7 +38758,7 @@ var Transaction = {
 module.exports = Transaction;
 
 }).call(this,require('_process'))
-},{"./invariant":292,"_process":7}],259:[function(require,module,exports){
+},{"./invariant":298,"_process":7}],265:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -38208,7 +38787,7 @@ var ViewportMetrics = {
 
 module.exports = ViewportMetrics;
 
-},{}],260:[function(require,module,exports){
+},{}],266:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -38274,7 +38853,7 @@ function accumulateInto(current, next) {
 module.exports = accumulateInto;
 
 }).call(this,require('_process'))
-},{"./invariant":292,"_process":7}],261:[function(require,module,exports){
+},{"./invariant":298,"_process":7}],267:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -38308,7 +38887,7 @@ function adler32(data) {
 
 module.exports = adler32;
 
-},{}],262:[function(require,module,exports){
+},{}],268:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -38340,7 +38919,7 @@ function camelize(string) {
 
 module.exports = camelize;
 
-},{}],263:[function(require,module,exports){
+},{}],269:[function(require,module,exports){
 /**
  * Copyright 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -38382,7 +38961,7 @@ function camelizeStyleName(string) {
 
 module.exports = camelizeStyleName;
 
-},{"./camelize":262}],264:[function(require,module,exports){
+},{"./camelize":268}],270:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -38441,7 +39020,7 @@ function cloneWithProps(child, props) {
 module.exports = cloneWithProps;
 
 }).call(this,require('_process'))
-},{"./ReactElement":204,"./ReactPropTransferer":224,"./keyOf":299,"./warning":313,"_process":7}],265:[function(require,module,exports){
+},{"./ReactElement":210,"./ReactPropTransferer":230,"./keyOf":305,"./warning":319,"_process":7}],271:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -38485,7 +39064,7 @@ function containsNode(outerNode, innerNode) {
 
 module.exports = containsNode;
 
-},{"./isTextNode":296}],266:[function(require,module,exports){
+},{"./isTextNode":302}],272:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -38571,7 +39150,7 @@ function createArrayFromMixed(obj) {
 
 module.exports = createArrayFromMixed;
 
-},{"./toArray":310}],267:[function(require,module,exports){
+},{"./toArray":316}],273:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -38633,7 +39212,7 @@ function createFullPageComponent(tag) {
 module.exports = createFullPageComponent;
 
 }).call(this,require('_process'))
-},{"./ReactClass":179,"./ReactElement":204,"./invariant":292,"_process":7}],268:[function(require,module,exports){
+},{"./ReactClass":185,"./ReactElement":210,"./invariant":298,"_process":7}],274:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -38723,7 +39302,7 @@ function createNodesFromMarkup(markup, handleScript) {
 module.exports = createNodesFromMarkup;
 
 }).call(this,require('_process'))
-},{"./ExecutionEnvironment":163,"./createArrayFromMixed":266,"./getMarkupWrap":284,"./invariant":292,"_process":7}],269:[function(require,module,exports){
+},{"./ExecutionEnvironment":169,"./createArrayFromMixed":272,"./getMarkupWrap":290,"./invariant":298,"_process":7}],275:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -38779,7 +39358,7 @@ function cx(classNames) {
 module.exports = cx;
 
 }).call(this,require('_process'))
-},{"./warning":313,"_process":7}],270:[function(require,module,exports){
+},{"./warning":319,"_process":7}],276:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -38837,7 +39416,7 @@ function dangerousStyleValue(name, value) {
 
 module.exports = dangerousStyleValue;
 
-},{"./CSSProperty":146}],271:[function(require,module,exports){
+},{"./CSSProperty":152}],277:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -38871,7 +39450,7 @@ emptyFunction.thatReturnsArgument = function(arg) { return arg; };
 
 module.exports = emptyFunction;
 
-},{}],272:[function(require,module,exports){
+},{}],278:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -38895,7 +39474,7 @@ if ("production" !== process.env.NODE_ENV) {
 module.exports = emptyObject;
 
 }).call(this,require('_process'))
-},{"_process":7}],273:[function(require,module,exports){
+},{"_process":7}],279:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -38935,7 +39514,7 @@ function escapeTextContentForBrowser(text) {
 
 module.exports = escapeTextContentForBrowser;
 
-},{}],274:[function(require,module,exports){
+},{}],280:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -39008,7 +39587,7 @@ function findDOMNode(componentOrElement) {
 module.exports = findDOMNode;
 
 }).call(this,require('_process'))
-},{"./ReactCurrentOwner":186,"./ReactInstanceMap":214,"./ReactMount":218,"./invariant":292,"./isNode":294,"./warning":313,"_process":7}],275:[function(require,module,exports){
+},{"./ReactCurrentOwner":192,"./ReactInstanceMap":220,"./ReactMount":224,"./invariant":298,"./isNode":300,"./warning":319,"_process":7}],281:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -39066,7 +39645,7 @@ function flattenChildren(children) {
 module.exports = flattenChildren;
 
 }).call(this,require('_process'))
-},{"./traverseAllChildren":311,"./warning":313,"_process":7}],276:[function(require,module,exports){
+},{"./traverseAllChildren":317,"./warning":319,"_process":7}],282:[function(require,module,exports){
 /**
  * Copyright 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -39095,7 +39674,7 @@ function focusNode(node) {
 
 module.exports = focusNode;
 
-},{}],277:[function(require,module,exports){
+},{}],283:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -39126,7 +39705,7 @@ var forEachAccumulated = function(arr, cb, scope) {
 
 module.exports = forEachAccumulated;
 
-},{}],278:[function(require,module,exports){
+},{}],284:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -39155,7 +39734,7 @@ function getActiveElement() /*?DOMElement*/ {
 
 module.exports = getActiveElement;
 
-},{}],279:[function(require,module,exports){
+},{}],285:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -39207,7 +39786,7 @@ function getEventCharCode(nativeEvent) {
 
 module.exports = getEventCharCode;
 
-},{}],280:[function(require,module,exports){
+},{}],286:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -39312,7 +39891,7 @@ function getEventKey(nativeEvent) {
 
 module.exports = getEventKey;
 
-},{"./getEventCharCode":279}],281:[function(require,module,exports){
+},{"./getEventCharCode":285}],287:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -39359,7 +39938,7 @@ function getEventModifierState(nativeEvent) {
 
 module.exports = getEventModifierState;
 
-},{}],282:[function(require,module,exports){
+},{}],288:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -39390,7 +39969,7 @@ function getEventTarget(nativeEvent) {
 
 module.exports = getEventTarget;
 
-},{}],283:[function(require,module,exports){
+},{}],289:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -39434,7 +40013,7 @@ function getIteratorFn(maybeIterable) {
 
 module.exports = getIteratorFn;
 
-},{}],284:[function(require,module,exports){
+},{}],290:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -39553,7 +40132,7 @@ function getMarkupWrap(nodeName) {
 module.exports = getMarkupWrap;
 
 }).call(this,require('_process'))
-},{"./ExecutionEnvironment":163,"./invariant":292,"_process":7}],285:[function(require,module,exports){
+},{"./ExecutionEnvironment":169,"./invariant":298,"_process":7}],291:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -39628,7 +40207,7 @@ function getNodeForCharacterOffset(root, offset) {
 
 module.exports = getNodeForCharacterOffset;
 
-},{}],286:[function(require,module,exports){
+},{}],292:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -39663,7 +40242,7 @@ function getReactRootElementInContainer(container) {
 
 module.exports = getReactRootElementInContainer;
 
-},{}],287:[function(require,module,exports){
+},{}],293:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -39700,7 +40279,7 @@ function getTextContentAccessor() {
 
 module.exports = getTextContentAccessor;
 
-},{"./ExecutionEnvironment":163}],288:[function(require,module,exports){
+},{"./ExecutionEnvironment":169}],294:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -39740,7 +40319,7 @@ function getUnboundedScrollPosition(scrollable) {
 
 module.exports = getUnboundedScrollPosition;
 
-},{}],289:[function(require,module,exports){
+},{}],295:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -39773,7 +40352,7 @@ function hyphenate(string) {
 
 module.exports = hyphenate;
 
-},{}],290:[function(require,module,exports){
+},{}],296:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -39814,7 +40393,7 @@ function hyphenateStyleName(string) {
 
 module.exports = hyphenateStyleName;
 
-},{"./hyphenate":289}],291:[function(require,module,exports){
+},{"./hyphenate":295}],297:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -39952,7 +40531,7 @@ function instantiateReactComponent(node, parentCompositeType) {
 module.exports = instantiateReactComponent;
 
 }).call(this,require('_process'))
-},{"./Object.assign":170,"./ReactCompositeComponent":184,"./ReactEmptyComponent":206,"./ReactNativeComponent":221,"./invariant":292,"./warning":313,"_process":7}],292:[function(require,module,exports){
+},{"./Object.assign":176,"./ReactCompositeComponent":190,"./ReactEmptyComponent":212,"./ReactNativeComponent":227,"./invariant":298,"./warning":319,"_process":7}],298:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -40009,7 +40588,7 @@ var invariant = function(condition, format, a, b, c, d, e, f) {
 module.exports = invariant;
 
 }).call(this,require('_process'))
-},{"_process":7}],293:[function(require,module,exports){
+},{"_process":7}],299:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -40074,7 +40653,7 @@ function isEventSupported(eventNameSuffix, capture) {
 
 module.exports = isEventSupported;
 
-},{"./ExecutionEnvironment":163}],294:[function(require,module,exports){
+},{"./ExecutionEnvironment":169}],300:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -40101,7 +40680,7 @@ function isNode(object) {
 
 module.exports = isNode;
 
-},{}],295:[function(require,module,exports){
+},{}],301:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -40144,7 +40723,7 @@ function isTextInputElement(elem) {
 
 module.exports = isTextInputElement;
 
-},{}],296:[function(require,module,exports){
+},{}],302:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -40169,7 +40748,7 @@ function isTextNode(object) {
 
 module.exports = isTextNode;
 
-},{"./isNode":294}],297:[function(require,module,exports){
+},{"./isNode":300}],303:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -40210,7 +40789,7 @@ function joinClasses(className/*, ... */) {
 
 module.exports = joinClasses;
 
-},{}],298:[function(require,module,exports){
+},{}],304:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -40265,7 +40844,7 @@ var keyMirror = function(obj) {
 module.exports = keyMirror;
 
 }).call(this,require('_process'))
-},{"./invariant":292,"_process":7}],299:[function(require,module,exports){
+},{"./invariant":298,"_process":7}],305:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -40301,7 +40880,7 @@ var keyOf = function(oneKeyObj) {
 
 module.exports = keyOf;
 
-},{}],300:[function(require,module,exports){
+},{}],306:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -40354,7 +40933,7 @@ function mapObject(object, callback, context) {
 
 module.exports = mapObject;
 
-},{}],301:[function(require,module,exports){
+},{}],307:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -40387,7 +40966,7 @@ function memoizeStringOnly(callback) {
 
 module.exports = memoizeStringOnly;
 
-},{}],302:[function(require,module,exports){
+},{}],308:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -40427,7 +41006,7 @@ function onlyChild(children) {
 module.exports = onlyChild;
 
 }).call(this,require('_process'))
-},{"./ReactElement":204,"./invariant":292,"_process":7}],303:[function(require,module,exports){
+},{"./ReactElement":210,"./invariant":298,"_process":7}],309:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -40455,7 +41034,7 @@ if (ExecutionEnvironment.canUseDOM) {
 
 module.exports = performance || {};
 
-},{"./ExecutionEnvironment":163}],304:[function(require,module,exports){
+},{"./ExecutionEnvironment":169}],310:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -40483,7 +41062,7 @@ var performanceNow = performance.now.bind(performance);
 
 module.exports = performanceNow;
 
-},{"./performance":303}],305:[function(require,module,exports){
+},{"./performance":309}],311:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -40511,7 +41090,7 @@ function quoteAttributeValueForBrowser(value) {
 
 module.exports = quoteAttributeValueForBrowser;
 
-},{"./escapeTextContentForBrowser":273}],306:[function(require,module,exports){
+},{"./escapeTextContentForBrowser":279}],312:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -40600,7 +41179,7 @@ if (ExecutionEnvironment.canUseDOM) {
 
 module.exports = setInnerHTML;
 
-},{"./ExecutionEnvironment":163}],307:[function(require,module,exports){
+},{"./ExecutionEnvironment":169}],313:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -40642,7 +41221,7 @@ if (ExecutionEnvironment.canUseDOM) {
 
 module.exports = setTextContent;
 
-},{"./ExecutionEnvironment":163,"./escapeTextContentForBrowser":273,"./setInnerHTML":306}],308:[function(require,module,exports){
+},{"./ExecutionEnvironment":169,"./escapeTextContentForBrowser":279,"./setInnerHTML":312}],314:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -40686,7 +41265,7 @@ function shallowEqual(objA, objB) {
 
 module.exports = shallowEqual;
 
-},{}],309:[function(require,module,exports){
+},{}],315:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -40790,7 +41369,7 @@ function shouldUpdateReactComponent(prevElement, nextElement) {
 module.exports = shouldUpdateReactComponent;
 
 }).call(this,require('_process'))
-},{"./warning":313,"_process":7}],310:[function(require,module,exports){
+},{"./warning":319,"_process":7}],316:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -40862,7 +41441,7 @@ function toArray(obj) {
 module.exports = toArray;
 
 }).call(this,require('_process'))
-},{"./invariant":292,"_process":7}],311:[function(require,module,exports){
+},{"./invariant":298,"_process":7}],317:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -41115,7 +41694,7 @@ function traverseAllChildren(children, callback, traverseContext) {
 module.exports = traverseAllChildren;
 
 }).call(this,require('_process'))
-},{"./ReactElement":204,"./ReactFragment":210,"./ReactInstanceHandles":213,"./getIteratorFn":283,"./invariant":292,"./warning":313,"_process":7}],312:[function(require,module,exports){
+},{"./ReactElement":210,"./ReactFragment":216,"./ReactInstanceHandles":219,"./getIteratorFn":289,"./invariant":298,"./warning":319,"_process":7}],318:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -41286,7 +41865,7 @@ function update(value, spec) {
 module.exports = update;
 
 }).call(this,require('_process'))
-},{"./Object.assign":170,"./invariant":292,"./keyOf":299,"_process":7}],313:[function(require,module,exports){
+},{"./Object.assign":176,"./invariant":298,"./keyOf":305,"_process":7}],319:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -41349,13 +41928,29 @@ if ("production" !== process.env.NODE_ENV) {
 module.exports = warning;
 
 }).call(this,require('_process'))
-},{"./emptyFunction":271,"_process":7}],314:[function(require,module,exports){
+},{"./emptyFunction":277,"_process":7}],320:[function(require,module,exports){
 module.exports = require('./lib/React');
 
-},{"./lib/React":172}],"addon":[function(require,module,exports){
-var addonEntry, app;
+},{"./lib/React":178}],"addon":[function(require,module,exports){
+var addonEntry, app, innerHTML, reactId, style, styleWrapLongLinesForSelect;
 
 app = require('./app');
+
+reactId = require('react/lib/DOMProperty').ID_ATTRIBUTE_NAME;
+
+styleWrapLongLinesForSelect = '';
+
+innerHTML = '';
+
+innerHTML += '\n.selectFieldWrapper div[tabindex="0"] div { text-overflow: ellipsis; overflow-x: hidden; }';
+
+innerHTML += '\n.selectFieldWrapper div[' + reactId + '$=".2.0.1:1"] { box-sizing: border-box; overflow: hidden; padding-right: 24px; height: 56px; white-space: nowrap; text-overflow: ellipsis; } ';
+
+style = document.createElement('style');
+
+style.innerHTML = innerHTML;
+
+document.getElementsByTagName('head')[0].appendChild(style);
 
 addonEntry = {
   start: function(_taistApi, entryPoint) {
@@ -41367,27 +41962,28 @@ addonEntry = {
     DOMObserver = require('./helpers/domObserver');
     app.elementObserver = new DOMObserver();
     app.container = document.createElement('div');
-    app.pipelinerAPI.getRequest('Clients').then(function(clients) {
+    return app.pipelinerAPI.getRequest('Clients').then(function(clients) {
       return app.actions.onLoadClients(clients).map(function(client) {
         client.name = client.FIRSTNAME + " " + client.LASTNAME;
         return client;
       });
+    }).then(function() {
+      return app.elementObserver.waitElement('table[role="presentation"]>tr>td:first-child', function(parent) {
+        var mailId, participants, ref;
+        parent.insertBefore(app.container, parent.querySelector('div'));
+        mailId = (ref = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)) != null ? ref[1] : void 0;
+        if (mailId) {
+          participants = app.gMailAPI.getParticipants(parent);
+        }
+        return app.actions.onChangeMail(participants);
+      });
     })["catch"](function(err) {
       return console.log(err);
-    });
-    return app.elementObserver.waitElement('table[role="presentation"]>tr>td:first-child', function(parent) {
-      var mailId, participants, ref;
-      parent.insertBefore(app.container, parent.querySelector('div'));
-      mailId = (ref = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)) != null ? ref[1] : void 0;
-      if (mailId) {
-        participants = app.gMailAPI.getParticipants(parent);
-      }
-      return app.actions.onChangeMail(participants);
     });
   }
 };
 
 module.exports = addonEntry;
 
-},{"./api/gmail":1,"./api/pipeliner":2,"./app":3,"./helpers/domObserver":5}]},{},[]);
+},{"./api/gmail":1,"./api/pipeliner":2,"./app":3,"./helpers/domObserver":5,"react/lib/DOMProperty":158}]},{},[]);
 ;return require("addon")}
