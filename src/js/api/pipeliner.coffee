@@ -24,14 +24,25 @@ pipelinerAPI = extend require('../helpers/apiRequestInterface'),
     spaceID: 'us_Taist'
     serviceURL: 'https://eu-central-1.pipelinersales.com'
 
+  processResponse: (proxyResponse) ->
+    if proxyResponse.statusCode is 201
+      for header in proxyResponse.headers
+        if matches = header.match /^Location:.+\/([^/]+)$/
+          return { ID: matches[1] }
+
+    JSON.parse proxyResponse.body
+
+  processError: (proxyError) ->
+    JSON.parse(proxyError.response.body).message
+
   getClients: ->
     @getRequest 'Clients'
 
   createContact: (data) ->
     @postRequest 'Contacts', data
-    .catch (proxyError) ->
-      error = JSON.parse proxyError.response.body
-      Q.reject error.message
+
+  createAccount: (data) ->
+    @postRequest 'Accounts', data
 
 module.exports =
   init: (_app, propertyName) ->

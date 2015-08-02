@@ -29,10 +29,12 @@ module.exports =
       headers: { Authorization }
     }, options
 
-    @getApp?().api.proxy.jQueryAjax url, '', requestOptions, (error, response) ->
+    @getApp?().api.proxy.jQueryAjax url, '', requestOptions, (error, response) =>
       if error
+        error = @processError(error) if @processError
         deferred.reject error
       else
-        deferred.resolve response.result
+        response = @processResponse(response) if @processResponse
+        deferred.resolve response
 
     deferred.promise

@@ -27,6 +27,8 @@ GmailBlock = React.createFactory React.createClass
       firstName: ''
       lastName: ''
       clientPhone: ''
+      clientCompany: ''
+      leadName: ''
 
       snackbarMessage: ''
   }
@@ -62,6 +64,8 @@ GmailBlock = React.createFactory React.createClass
         firstName: @state.firstName
         lastName: @state.lastName
         clientPhone: @state.clientPhone
+        clientCompany: @state.clientCompany
+        leadName: @state.leadName
       }
     else
       @showMessage 'Please select contact person and client'
@@ -112,6 +116,13 @@ GmailBlock = React.createFactory React.createClass
               onChange: (event, value) => @onChange 'lastName', event, value
             }
 
+            # React.createElement TextField, {
+            #   floatingLabelText: "Company"
+            #   value: @state.clientCompany
+            #   fullWidth: true
+            #   onChange: (event, value) => @onChange 'clientCompany', event, value
+            # }
+
             React.createElement TextField, {
               floatingLabelText: "Phone"
               value: @state.clientPhone
@@ -130,6 +141,13 @@ GmailBlock = React.createFactory React.createClass
               onChange: @onSelectClient
               fullWidth: true
             }
+
+            # React.createElement TextField, {
+            #   floatingLabelText: "Lead Name"
+            #   value: @state.leadName
+            #   fullWidth: true
+            #   onChange: (event, value) => @onChange 'leadName', event, value
+            # }
 
           div {},
             React.createElement RaisedButton, {

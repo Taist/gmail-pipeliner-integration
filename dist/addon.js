@@ -63,15 +63,32 @@ pipelinerAPI = extend(require('../helpers/apiRequestInterface'), {
       serviceURL: 'https://eu-central-1.pipelinersales.com'
     };
   },
+  processResponse: function(proxyResponse) {
+    var header, i, len, matches, ref;
+    if (proxyResponse.statusCode === 201) {
+      ref = proxyResponse.headers;
+      for (i = 0, len = ref.length; i < len; i++) {
+        header = ref[i];
+        if (matches = header.match(/^Location:.+\/([^\/]+)$/)) {
+          return {
+            ID: matches[1]
+          };
+        }
+      }
+    }
+    return JSON.parse(proxyResponse.body);
+  },
+  processError: function(proxyError) {
+    return JSON.parse(proxyError.response.body).message;
+  },
   getClients: function() {
     return this.getRequest('Clients');
   },
   createContact: function(data) {
-    return this.postRequest('Contacts', data)["catch"](function(proxyError) {
-      var error;
-      error = JSON.parse(proxyError.response.body);
-      return Q.reject(error.message);
-    });
+    return this.postRequest('Contacts', data);
+  },
+  createAccount: function(data) {
+    return this.postRequest('Accounts', data);
   }
 });
 
@@ -158,18 +175,28 @@ app = {
       });
       return app.render();
     },
-    onCreateContact: function(selectedContact, selectedClient, data) {
-      return app.pipelinerAPI.createContact({
+    onCreateContact: function(selectedContact, selectedClient, formData) {
+      var accountData, ref;
+      return Q.all(((ref = formData.clientCompany) != null ? ref.length : void 0) > 0 ? (accountData = {
         OWNER_ID: selectedClient.ID,
-        EMAIL1: selectedContact.email,
-        FIRST_NAME: data.firstName,
-        SURNAME: data.lastName,
-        PHONE1: data.clientPhone,
-        SALES_UNIT_ID: selectedClient.DEFAULT_SALES_UNIT_ID
-      }).then(function(result) {
+        SALES_UNIT_ID: selectedClient.DEFAULT_SALES_UNIT_ID,
+        ORGANIZATION: formData.clientCompany
+      }, [app.pipelinerAPI.createAccount(accountData)]) : []).spread(function(account) {
+        var contactData;
+        contactData = {
+          OWNER_ID: selectedClient.ID,
+          SALES_UNIT_ID: selectedClient.DEFAULT_SALES_UNIT_ID,
+          EMAIL1: selectedContact.email,
+          FIRST_NAME: formData.firstName,
+          SURNAME: formData.lastName,
+          PHONE1: formData.clientPhone
+        };
+        return Q.all([app.pipelinerAPI.createContact(contactData), account, contactData, Q.delay(5000)]);
+      }).then(function() {
         return app.renderMessage('Contact successfully created');
       })["catch"](function(error) {
-        return app.renderMessage(error);
+        console.log(error);
+        return app.renderMessage(error.toString());
       });
     }
   }
@@ -217,13 +244,21 @@ module.exports = {
       }
     }, options);
     if (typeof this.getApp === "function") {
-      this.getApp().api.proxy.jQueryAjax(url, '', requestOptions, function(error, response) {
-        if (error) {
-          return deferred.reject(error);
-        } else {
-          return deferred.resolve(response.result);
-        }
-      });
+      this.getApp().api.proxy.jQueryAjax(url, '', requestOptions, (function(_this) {
+        return function(error, response) {
+          if (error) {
+            if (_this.processError) {
+              error = _this.processError(error);
+            }
+            return deferred.reject(error);
+          } else {
+            if (_this.processResponse) {
+              response = _this.processResponse(response);
+            }
+            return deferred.resolve(response);
+          }
+        };
+      })(this));
     }
     return deferred.promise;
   }
@@ -341,6 +376,8 @@ GmailBlock = React.createFactory(React.createClass({
       firstName: '',
       lastName: '',
       clientPhone: '',
+      clientCompany: '',
+      leadName: '',
       snackbarMessage: ''
     };
   },
@@ -399,7 +436,9 @@ GmailBlock = React.createFactory(React.createClass({
       return this.props.actions.onCreateContact(this.state.selectedContact, this.state.selectedClient, {
         firstName: this.state.firstName,
         lastName: this.state.lastName,
-        clientPhone: this.state.clientPhone
+        clientPhone: this.state.clientPhone,
+        clientCompany: this.state.clientCompany,
+        leadName: this.state.leadName
       });
     } else {
       return this.showMessage('Please select contact person and client');
@@ -521,7 +560,6 @@ MessageSnackbar = React.createFactory(React.createClass({
   },
   render: function() {
     var ref;
-    console.log(this.props);
     return React.createElement(Snackbar, {
       ref: 'snackbar',
       message: (ref = this.props) != null ? ref.message : void 0,

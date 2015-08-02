@@ -23,7 +23,6 @@ MessageSnackbar = React.createFactory React.createClass
       @refs.snackbar.show()
 
   render: ->
-    console.log @props
     React.createElement Snackbar, {
       ref: 'snackbar'
       message: @props?.message
