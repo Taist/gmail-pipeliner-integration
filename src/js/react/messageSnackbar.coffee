@@ -6,9 +6,6 @@ ThemeManager.setTheme ThemeManager.types.LIGHT
 
 { Snackbar } = mui
 
-injectTapEventPlugin = require 'react-tap-event-plugin'
-injectTapEventPlugin()
-
 MessageSnackbar = React.createFactory React.createClass
   #needed for mui ThemeManager
   childContextTypes:

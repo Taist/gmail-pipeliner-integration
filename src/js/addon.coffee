@@ -4,6 +4,7 @@ reactId = require('react/lib/DOMProperty').ID_ATTRIBUTE_NAME
 
 styleWrapLongLinesForSelect = ''
 
+# fixes styles for material-ui
 innerHTML = ''
 innerHTML += '\n.selectFieldWrapper div[tabindex="0"] div { text-overflow: ellipsis; overflow-x: hidden; }'
 innerHTML += '\n.selectFieldWrapper div[' + reactId + '$=".2.0.1:1"] { box-sizing: border-box; overflow: hidden; padding-right: 24px; height: 56px; white-space: nowrap; text-overflow: ellipsis; } '
@@ -11,6 +12,10 @@ innerHTML += '\n.selectFieldWrapper div[' + reactId + '$=".2.0.1:1"] { box-sizin
 style = document.createElement 'style'
 style.innerHTML = innerHTML
 document.getElementsByTagName('head')[0].appendChild style
+
+#  
+injectTapEventPlugin = require 'react-tap-event-plugin'
+injectTapEventPlugin()
 
 addonEntry =
   start: (_taistApi, entryPoint) ->
