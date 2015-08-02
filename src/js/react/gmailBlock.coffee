@@ -1,4 +1,5 @@
 React = require 'react'
+extend = require 'react/lib/Object.assign'
 
 { div } = React.DOM
 
@@ -9,8 +10,12 @@ ThemeManager.setTheme ThemeManager.types.LIGHT
 { Paper } = mui
 
 GMailContactForm = require './gmailContactForm'
+GMailCredsForm = require './gmailCredsForm'
 
 GmailBlock = React.createFactory React.createClass
+  getInitialState: ->
+    isMainView: true
+
   #needed for mui ThemeManager
   childContextTypes:
     muiTheme: React.PropTypes.object
@@ -18,6 +23,9 @@ GmailBlock = React.createFactory React.createClass
   #needed for mui ThemeManager
   getChildContext: () ->
     muiTheme: ThemeManager.getCurrentTheme()
+
+  toggleMode: ->
+    @setState isMainView: !@state.isMainView
 
   render: ->
     React.createElement Paper, {
@@ -29,6 +37,9 @@ GmailBlock = React.createFactory React.createClass
         padding: 8
         boxSizing: 'border-box'
     },
-      GMailContactForm @props
+      if @state.isMainView
+        GMailContactForm extend {}, @props, reactActions: toggleMode: @toggleMode
+      else
+        GMailCredsForm extend {}, @props, reactActions: toggleMode: @toggleMode
 
 module.exports = GmailBlock

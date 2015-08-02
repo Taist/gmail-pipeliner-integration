@@ -1,6 +1,6 @@
 React = require 'react'
 
-{ div } = React.DOM
+{ div, span } = React.DOM
 
 mui = require 'material-ui'
 ThemeManager = new mui.Styles.ThemeManager()
@@ -143,6 +143,13 @@ GmailContactForm = React.createFactory React.createClass
             React.createElement RaisedButton, {
               label: 'Create Contact'
               onClick: @onCreateContact
+            }
+
+            div { style: width: 16, display: 'inline-block' }, ''
+
+            React.createElement RaisedButton, {
+              label: 'Change API keys'
+              onClick: @props.reactActions?.toggleMode
             }
 
 module.exports = GmailContactForm
