@@ -1,4 +1,5 @@
 React = require 'react'
+extend = require 'react/lib/Object.assign'
 
 { div } = React.DOM
 
@@ -25,6 +26,12 @@ GmailCredsForm = React.createFactory React.createClass
       serviceURL: ''
     }
 
+  componentDidMount: () ->
+    @setState @props.data.pipelinerCreds
+
+  componentWillReceiveProps: (newProps) ->
+    @setState newProps.data.pipelinerCreds
+
   onChange: (fieldName, event) ->
     valueObj = {}
     valueObj[fieldName] = event.target.value
@@ -49,17 +56,19 @@ GmailCredsForm = React.createFactory React.createClass
         }
 
         React.createElement RaisedButton, {
-          label: 'Save API Data'
-          onClick: @onCreateContact
+          label: 'Save'
+          onClick: =>
+            @props.actions.onSaveCreds? extend {}, @state
+            @props.reactActions?.toggleMode()
         }
 
         div { style: width: 16, display: 'inline-block' }, ''
 
         React.createElement RaisedButton, {
-          label: 'Change API keys'
+          label: 'Cancel'
           onClick: @props.reactActions?.toggleMode
         }
-        
+
       div { className: 'col span_1_of_2' },
         React.createElement TextField, {
           floatingLabelText: "Space ID"

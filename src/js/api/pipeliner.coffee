@@ -3,6 +3,8 @@ app = null
 
 extend = require 'react/lib/Object.assign'
 
+_creds = {}
+
 pipelinerAPI = extend require('../helpers/apiRequestInterface'),
   name: 'Pipeliner API'
   # is used for mixin apiRequestInterface
@@ -11,18 +13,20 @@ pipelinerAPI = extend require('../helpers/apiRequestInterface'),
   # is used for mixin apiRequestInterface
   getAPIAddress: (path) ->
     creds = @getCreds()
-    "#{creds.serviceURL}/rest_services/v1/#{creds.spaceID}/#{path}"
+    # replace with url matching
+    if creds.serviceURL?.length > 0
+      "#{creds.serviceURL}/rest_services/v1/#{creds.spaceID}/#{path}"
 
   # is used for mixin apiRequestInterface
   getAuthorizationHeader: ->
     creds = @getCreds()
     'Basic ' + btoa "#{creds.token}:#{creds.password}"
 
+  setCreds: (creds) ->
+    _creds = creds
+
   getCreds: ->
-    token: 'us_Taist_3GKJPC1IGOFDL73R'
-    password: 'XQjveyjSsprRF8A2'
-    spaceID: 'us_Taist'
-    serviceURL: 'https://eu-central-1.pipelinersales.com'
+    _creds
 
   processResponse: (proxyResponse) ->
     if proxyResponse.statusCode is 201

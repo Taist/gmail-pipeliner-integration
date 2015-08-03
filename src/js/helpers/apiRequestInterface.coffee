@@ -16,25 +16,26 @@ module.exports =
     @sendRequest path, { data: JSON.stringify(data), method: 'put' }
 
   sendRequest: (path, options = {}) ->
-    deferred = Q.defer()
+    if url = @getAPIAddress? path
+      deferred = Q.defer()
 
-    url = @getAPIAddress? path
+      Authorization = @getAuthorizationHeader?()
 
-    Authorization = @getAuthorizationHeader?()
+      requestOptions = extend {
+        type: 'json'
+        method: 'get'
+        contentType: 'application/json'
+        headers: { Authorization }
+      }, options
 
-    requestOptions = extend {
-      type: 'json'
-      method: 'get'
-      contentType: 'application/json'
-      headers: { Authorization }
-    }, options
+      @getApp?().api.proxy.jQueryAjax url, '', requestOptions, (error, response) =>
+        if error
+          error = @processError(error) if @processError
+          deferred.reject error
+        else
+          response = @processResponse(response) if @processResponse
+          deferred.resolve response
 
-    @getApp?().api.proxy.jQueryAjax url, '', requestOptions, (error, response) =>
-      if error
-        error = @processError(error) if @processError
-        deferred.reject error
-      else
-        response = @processResponse(response) if @processResponse
-        deferred.resolve response
-
-    deferred.promise
+      deferred.promise
+    else
+      Q.reject 'Please setup correct API URL'

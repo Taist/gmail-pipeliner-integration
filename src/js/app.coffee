@@ -6,6 +6,11 @@ React = require 'react'
 extend = require 'react/lib/Object.assign'
 
 appData =
+  pipelinerCreds:
+    token: ''
+    password: ''
+    spaceID: ''
+    serviceURL: ''
   clients: []
   participants: []
 
@@ -44,9 +49,25 @@ app =
     messageSnackbar = require './react/messageSnackbar'
     React.render ( messageSnackbar { message } ), app.messageContainer
 
-  _data: -> appData
+  getPipelinerCreds: () ->
+    app.exapi.getCompanyData 'pipelinerCreds'
+    .then (creds) ->
+      if creds?
+        app.pipelinerAPI.setCreds creds
+        appData.pipelinerCreds = creds
+
+      appData.pipelinerCreds
+
+  setPipelinerCreds: (creds) ->
+    app.exapi.setCompanyData 'pipelinerCreds', creds
+    .then ->
+      app.pipelinerAPI.setCreds creds
+      appData.pipelinerCreds = creds
 
   actions:
+    onSaveCreds: (creds) ->
+      app.setPipelinerCreds creds
+
     onLoadClients: (clients = []) ->
       appData.clients = clients
 

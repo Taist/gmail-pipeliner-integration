@@ -32,7 +32,7 @@ module.exports = {
 };
 
 },{}],2:[function(require,module,exports){
-var Q, app, extend, pipelinerAPI;
+var Q, _creds, app, extend, pipelinerAPI;
 
 Q = require('q');
 
@@ -40,28 +40,30 @@ app = null;
 
 extend = require('react/lib/Object.assign');
 
+_creds = {};
+
 pipelinerAPI = extend(require('../helpers/apiRequestInterface'), {
   name: 'Pipeliner API',
   getApp: function() {
     return app;
   },
   getAPIAddress: function(path) {
-    var creds;
+    var creds, ref;
     creds = this.getCreds();
-    return creds.serviceURL + "/rest_services/v1/" + creds.spaceID + "/" + path;
+    if (((ref = creds.serviceURL) != null ? ref.length : void 0) > 0) {
+      return creds.serviceURL + "/rest_services/v1/" + creds.spaceID + "/" + path;
+    }
   },
   getAuthorizationHeader: function() {
     var creds;
     creds = this.getCreds();
     return 'Basic ' + btoa(creds.token + ":" + creds.password);
   },
+  setCreds: function(creds) {
+    return _creds = creds;
+  },
   getCreds: function() {
-    return {
-      token: 'us_Taist_3GKJPC1IGOFDL73R',
-      password: 'XQjveyjSsprRF8A2',
-      spaceID: 'us_Taist',
-      serviceURL: 'https://eu-central-1.pipelinersales.com'
-    };
+    return _creds;
   },
   processResponse: function(proxyResponse) {
     var header, i, len, matches, ref;
@@ -111,6 +113,12 @@ React = require('react');
 extend = require('react/lib/Object.assign');
 
 appData = {
+  pipelinerCreds: {
+    token: '',
+    password: '',
+    spaceID: '',
+    serviceURL: ''
+  },
   clients: [],
   participants: []
 };
@@ -154,10 +162,25 @@ app = {
       message: message
     }), app.messageContainer);
   },
-  _data: function() {
-    return appData;
+  getPipelinerCreds: function() {
+    return app.exapi.getCompanyData('pipelinerCreds').then(function(creds) {
+      if (creds != null) {
+        app.pipelinerAPI.setCreds(creds);
+        appData.pipelinerCreds = creds;
+      }
+      return appData.pipelinerCreds;
+    });
+  },
+  setPipelinerCreds: function(creds) {
+    return app.exapi.setCompanyData('pipelinerCreds', creds).then(function() {
+      app.pipelinerAPI.setCreds(creds);
+      return appData.pipelinerCreds = creds;
+    });
   },
   actions: {
+    onSaveCreds: function(creds) {
+      return app.setPipelinerCreds(creds);
+    },
     onLoadClients: function(clients) {
       if (clients == null) {
         clients = [];
@@ -232,35 +255,38 @@ module.exports = {
     if (options == null) {
       options = {};
     }
-    deferred = Q.defer();
-    url = typeof this.getAPIAddress === "function" ? this.getAPIAddress(path) : void 0;
-    Authorization = typeof this.getAuthorizationHeader === "function" ? this.getAuthorizationHeader() : void 0;
-    requestOptions = extend({
-      type: 'json',
-      method: 'get',
-      contentType: 'application/json',
-      headers: {
-        Authorization: Authorization
+    if (url = typeof this.getAPIAddress === "function" ? this.getAPIAddress(path) : void 0) {
+      deferred = Q.defer();
+      Authorization = typeof this.getAuthorizationHeader === "function" ? this.getAuthorizationHeader() : void 0;
+      requestOptions = extend({
+        type: 'json',
+        method: 'get',
+        contentType: 'application/json',
+        headers: {
+          Authorization: Authorization
+        }
+      }, options);
+      if (typeof this.getApp === "function") {
+        this.getApp().api.proxy.jQueryAjax(url, '', requestOptions, (function(_this) {
+          return function(error, response) {
+            if (error) {
+              if (_this.processError) {
+                error = _this.processError(error);
+              }
+              return deferred.reject(error);
+            } else {
+              if (_this.processResponse) {
+                response = _this.processResponse(response);
+              }
+              return deferred.resolve(response);
+            }
+          };
+        })(this));
       }
-    }, options);
-    if (typeof this.getApp === "function") {
-      this.getApp().api.proxy.jQueryAjax(url, '', requestOptions, (function(_this) {
-        return function(error, response) {
-          if (error) {
-            if (_this.processError) {
-              error = _this.processError(error);
-            }
-            return deferred.reject(error);
-          } else {
-            if (_this.processResponse) {
-              response = _this.processResponse(response);
-            }
-            return deferred.resolve(response);
-          }
-        };
-      })(this));
+      return deferred.promise;
+    } else {
+      return Q.reject('Please setup correct API URL');
     }
-    return deferred.promise;
   }
 };
 
@@ -587,9 +613,11 @@ GmailContactForm = React.createFactory(React.createClass({
 module.exports = GmailContactForm;
 
 },{"material-ui":44,"react":323}],8:[function(require,module,exports){
-var GmailCredsForm, RaisedButton, React, TextField, ThemeManager, div, mui;
+var GmailCredsForm, RaisedButton, React, TextField, ThemeManager, div, extend, mui;
 
 React = require('react');
+
+extend = require('react/lib/Object.assign');
 
 div = React.DOM.div;
 
@@ -618,6 +646,12 @@ GmailCredsForm = React.createFactory(React.createClass({
       spaceID: '',
       serviceURL: ''
     };
+  },
+  componentDidMount: function() {
+    return this.setState(this.props.data.pipelinerCreds);
+  },
+  componentWillReceiveProps: function(newProps) {
+    return this.setState(newProps.data.pipelinerCreds);
   },
   onChange: function(fieldName, event) {
     var valueObj;
@@ -650,15 +684,23 @@ GmailCredsForm = React.createFactory(React.createClass({
         };
       })(this)
     }), React.createElement(RaisedButton, {
-      label: 'Save API Data',
-      onClick: this.onCreateContact
+      label: 'Save',
+      onClick: (function(_this) {
+        return function() {
+          var base, ref;
+          if (typeof (base = _this.props.actions).onSaveCreds === "function") {
+            base.onSaveCreds(extend({}, _this.state));
+          }
+          return (ref = _this.props.reactActions) != null ? ref.toggleMode() : void 0;
+        };
+      })(this)
     }), div({
       style: {
         width: 16,
         display: 'inline-block'
       }
     }, ''), React.createElement(RaisedButton, {
-      label: 'Change API keys',
+      label: 'Cancel',
       onClick: (ref = this.props.reactActions) != null ? ref.toggleMode : void 0
     })), div({
       className: 'col span_1_of_2'
@@ -686,7 +728,7 @@ GmailCredsForm = React.createFactory(React.createClass({
 
 module.exports = GmailCredsForm;
 
-},{"material-ui":44,"react":323}],9:[function(require,module,exports){
+},{"material-ui":44,"react":323,"react/lib/Object.assign":179}],9:[function(require,module,exports){
 var MessageSnackbar, React, Snackbar, ThemeManager, mui;
 
 React = require('react');
@@ -42272,12 +42314,14 @@ addonEntry = {
     app.container = document.createElement('div');
     app.messageContainer = document.createElement('div');
     app.renderMessage('');
-    return app.pipelinerAPI.getClients().then(function(clients) {
+    return app.getPipelinerCreds().then(function() {
+      return app.pipelinerAPI.getClients();
+    }).then(function(clients) {
       return app.actions.onLoadClients(clients).map(function(client) {
         client.name = client.FIRSTNAME + " " + client.LASTNAME;
         return client;
       });
-    }).then(function() {
+    })["finally"](function(result) {
       return app.elementObserver.waitElement('table[role="presentation"]>tr>td:first-child', function(parent) {
         var mailId, participants, ref;
         parent.insertBefore(app.container, parent.querySelector('div'));
@@ -42289,6 +42333,7 @@ addonEntry = {
         return app.actions.onChangeMail(participants);
       });
     })["catch"](function(err) {
+      app.renderMessage(err);
       return console.log(err);
     });
   }

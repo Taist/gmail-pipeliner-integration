@@ -13,7 +13,7 @@ style = document.createElement 'style'
 style.innerHTML = innerHTML
 document.getElementsByTagName('head')[0].appendChild style
 
-#  
+#
 injectTapEventPlugin = require 'react-tap-event-plugin'
 injectTapEventPlugin()
 
@@ -33,7 +33,10 @@ addonEntry =
     app.messageContainer = document.createElement 'div'
     app.renderMessage('')
 
-    app.pipelinerAPI.getClients()
+    app.getPipelinerCreds()
+
+    .then () ->
+      app.pipelinerAPI.getClients()
 
     .then (clients) ->
       app.actions.onLoadClients clients
@@ -41,7 +44,7 @@ addonEntry =
         client.name = "#{client.FIRSTNAME} #{client.LASTNAME}"
         client
 
-    .then ->
+    .finally (result) ->
       app.elementObserver.waitElement 'table[role="presentation"]>tr>td:first-child', (parent) ->
         parent.insertBefore app.container, parent.querySelector 'div'
         parent.insertBefore app.messageContainer, parent.querySelector 'div'
@@ -53,6 +56,7 @@ addonEntry =
         app.actions.onChangeMail participants
 
     .catch (err) ->
+      app.renderMessage err
       console.log err
 
 
