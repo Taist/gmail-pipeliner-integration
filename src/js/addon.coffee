@@ -49,6 +49,15 @@ addonEntry =
         parent.insertBefore app.container, parent.querySelector 'div'
         parent.insertBefore app.messageContainer, parent.querySelector 'div'
 
+        buttonsContainer = document.querySelector '[gh="mtb"]>div'
+        donorButton = buttonsContainer.querySelector '[role="button"]'
+
+        button = document.createElement 'div'
+        button.style.display = 'inline-block'
+        button.innerText = 'Pilepliner'
+        button.className = donorButton.className
+        buttonsContainer.appendChild button
+
         mailId = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)?[1]
         if mailId
           participants = app.gMailAPI.getParticipants parent
