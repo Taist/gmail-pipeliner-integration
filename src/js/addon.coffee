@@ -29,6 +29,11 @@ addonEntry =
     app.elementObserver = new DOMObserver()
 
     app.container = document.createElement 'div'
+    app.container.style.position = 'absolute'
+    app.container.style.width = '640px'
+    app.container.style.zIndex = '4'
+    app.container.style.right = '0'
+    app.container.style.display = 'none'
 
     app.messageContainer = document.createElement 'div'
     app.renderMessage('')
@@ -56,7 +61,13 @@ addonEntry =
         button.style.display = 'inline-block'
         button.innerText = 'Pilepliner'
         button.className = donorButton.className
+        button.onclick = ->
+          app.container.style.display = 'block'
+
         buttonsContainer.appendChild button
+
+        # buttonsContainer.appendChild app.container
+        # buttonsContainer.appendChild app.messageContainer
 
         mailId = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)?[1]
         if mailId

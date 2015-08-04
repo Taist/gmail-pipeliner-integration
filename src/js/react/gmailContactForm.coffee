@@ -145,11 +145,19 @@ GmailContactForm = React.createFactory React.createClass
               onClick: @onCreateContact
             }
 
-            div { style: width: 16, display: 'inline-block' }, ''
+            # temp magic number in the next line
+            div { style: width: 16, marginBottom: 135 }, ''
 
             React.createElement RaisedButton, {
               label: 'Change API keys'
               onClick: @props.reactActions?.toggleMode
+            }
+
+            div { style: width: 16, display: 'inline-block' }, ''
+
+            React.createElement RaisedButton, {
+              label: 'Close'
+              onClick: @props.actions?.onHide
             }
 
 module.exports = GmailContactForm

@@ -76,6 +76,9 @@ app =
         !appData.clients.filter((client) -> client.EMAIL is person.email).length
       app.render()
 
+    onHide: () ->
+      app.container.style.display = 'none';
+
     onCreateContact: (selectedContact, selectedClient, formData) ->
       Q.all(
         if formData.clientCompany?.length > 0

@@ -1,7 +1,7 @@
 React = require 'react'
 extend = require 'react/lib/Object.assign'
 
-{ div } = React.DOM
+{ div, h2 } = React.DOM
 
 mui = require 'material-ui'
 ThemeManager = new mui.Styles.ThemeManager()
@@ -29,14 +29,16 @@ GmailBlock = React.createFactory React.createClass
 
   render: ->
     React.createElement Paper, {
-      zDepth: 1
+      zDepth: 2
       rounded: false
       style:
         margin: 4
-        marginRight: 40
+        marginRight: 16
         padding: 8
         boxSizing: 'border-box'
     },
+      h2 {}, 'Pipeliner Integration'
+
       if @state.isMainView
         GMailContactForm extend {}, @props, reactActions: toggleMode: @toggleMode
       else

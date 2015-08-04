@@ -198,6 +198,9 @@ app = {
       });
       return app.render();
     },
+    onHide: function() {
+      return app.container.style.display = 'none';
+    },
     onCreateContact: function(selectedContact, selectedClient, formData) {
       var accountData, ref;
       return Q.all(((ref = formData.clientCompany) != null ? ref.length : void 0) > 0 ? (accountData = {
@@ -367,13 +370,13 @@ DOMObserver = (function() {
 module.exports = DOMObserver;
 
 },{}],6:[function(require,module,exports){
-var GMailContactForm, GMailCredsForm, GmailBlock, Paper, React, ThemeManager, div, extend, mui;
+var GMailContactForm, GMailCredsForm, GmailBlock, Paper, React, ThemeManager, div, extend, h2, mui, ref;
 
 React = require('react');
 
 extend = require('react/lib/Object.assign');
 
-div = React.DOM.div;
+ref = React.DOM, div = ref.div, h2 = ref.h2;
 
 mui = require('material-ui');
 
@@ -408,15 +411,15 @@ GmailBlock = React.createFactory(React.createClass({
   },
   render: function() {
     return React.createElement(Paper, {
-      zDepth: 1,
+      zDepth: 2,
       rounded: false,
       style: {
         margin: 4,
-        marginRight: 40,
+        marginRight: 16,
         padding: 8,
         boxSizing: 'border-box'
       }
-    }, this.state.isMainView ? GMailContactForm(extend({}, this.props, {
+    }, h2({}, 'Pipeliner Integration'), this.state.isMainView ? GMailContactForm(extend({}, this.props, {
       reactActions: {
         toggleMode: this.toggleMode
       }
@@ -531,7 +534,7 @@ GmailContactForm = React.createFactory(React.createClass({
     }
   },
   render: function() {
-    var ref1;
+    var ref1, ref2;
     return div({}, div({}, React.createElement(Snackbar, {
       ref: 'snackbar',
       message: this.state.snackbarMessage,
@@ -601,11 +604,19 @@ GmailContactForm = React.createFactory(React.createClass({
     }), div({
       style: {
         width: 16,
-        display: 'inline-block'
+        marginBottom: 135
       }
     }, ''), React.createElement(RaisedButton, {
       label: 'Change API keys',
       onClick: (ref1 = this.props.reactActions) != null ? ref1.toggleMode : void 0
+    }), div({
+      style: {
+        width: 16,
+        display: 'inline-block'
+      }
+    }, ''), React.createElement(RaisedButton, {
+      label: 'Close',
+      onClick: (ref2 = this.props.actions) != null ? ref2.onHide : void 0
     })))));
   }
 }));
@@ -42312,6 +42323,11 @@ addonEntry = {
     DOMObserver = require('./helpers/domObserver');
     app.elementObserver = new DOMObserver();
     app.container = document.createElement('div');
+    app.container.style.position = 'absolute';
+    app.container.style.width = '640px';
+    app.container.style.zIndex = '4';
+    app.container.style.right = '0';
+    app.container.style.display = 'none';
     app.messageContainer = document.createElement('div');
     app.renderMessage('');
     return app.getPipelinerCreds().then(function() {
@@ -42332,6 +42348,9 @@ addonEntry = {
         button.style.display = 'inline-block';
         button.innerText = 'Pilepliner';
         button.className = donorButton.className;
+        button.onclick = function() {
+          return app.container.style.display = 'block';
+        };
         buttonsContainer.appendChild(button);
         mailId = (ref = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)) != null ? ref[1] : void 0;
         if (mailId) {
