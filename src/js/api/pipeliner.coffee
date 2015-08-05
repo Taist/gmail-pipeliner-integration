@@ -31,7 +31,7 @@ pipelinerAPI = extend require('../helpers/apiRequestInterface'),
   processResponse: (proxyResponse) ->
     if proxyResponse.statusCode is 201
       for header in proxyResponse.headers
-        if matches = header.match /^Location:.+\/([^/]+)$/
+        if matches = header.match /^Location:.+\/([^/\s]+)\s+?$/
           return { ID: matches[1] }
 
     JSON.parse proxyResponse.body

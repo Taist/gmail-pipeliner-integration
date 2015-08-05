@@ -117,18 +117,18 @@ app =
       #     }
       #     app.pipelinerAPI.postRequest 'Leads', leadData
 
-      # .spread (contact, account, contactData) ->
-      #   Q.all [
-      #     contact,
-      #     account,
-      #     contactData,
-      #     app.pipelinerAPI.postRequest 'AddressbookRelations', {
-      #       ACCOUNT_ID: account.ID
-      #       CONTACT_ID: contact.ID
-      #       PARENT_CONTACT_ID: 'ROOT'
-      #       IS_PRIMARY: 1
-      #     }
-      #   ]
+      .spread (contact, account, contactData) ->
+        Q.all [
+          contact,
+          account,
+          contactData,
+          app.pipelinerAPI.postRequest 'AddressbookRelations', {
+            ACCOUNT_ID: account.ID
+            CONTACT_ID: contact.ID
+            PARENT_CONTACT_ID: 'ROOT'
+            IS_PRIMARY: 1
+          }
+        ]
       #
       # .spread (contact, account, contactData) ->
       #   if account.ID?

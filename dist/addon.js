@@ -71,7 +71,7 @@ pipelinerAPI = extend(require('../helpers/apiRequestInterface'), {
       ref = proxyResponse.headers;
       for (i = 0, len = ref.length; i < len; i++) {
         header = ref[i];
-        if (matches = header.match(/^Location:.+\/([^\/]+)$/)) {
+        if (matches = header.match(/^Location:.+\/([^\/\s]+)\s+?$/)) {
           return {
             ID: matches[1]
           };
@@ -218,6 +218,15 @@ app = {
           PHONE1: formData.clientPhone
         };
         return Q.all([app.pipelinerAPI.createContact(contactData), account, contactData, Q.delay(5000)]);
+      }).spread(function(contact, account, contactData) {
+        return Q.all([
+          contact, account, contactData, app.pipelinerAPI.postRequest('AddressbookRelations', {
+            ACCOUNT_ID: account.ID,
+            CONTACT_ID: contact.ID,
+            PARENT_CONTACT_ID: 'ROOT',
+            IS_PRIMARY: 1
+          })
+        ]);
       }).then(function() {
         return app.renderMessage('Contact successfully created');
       })["catch"](function(error) {
@@ -575,6 +584,15 @@ GmailContactForm = React.createFactory(React.createClass({
       onChange: (function(_this) {
         return function(event, value) {
           return _this.onChange('lastName', event, value);
+        };
+      })(this)
+    }), React.createElement(TextField, {
+      floatingLabelText: "Company",
+      value: this.state.clientCompany,
+      fullWidth: true,
+      onChange: (function(_this) {
+        return function(event, value) {
+          return _this.onChange('clientCompany', event, value);
         };
       })(this)
     }), React.createElement(TextField, {
@@ -42346,7 +42364,7 @@ addonEntry = {
         donorButton = buttonsContainer.querySelector('[role="button"]');
         button = document.createElement('div');
         button.style.display = 'inline-block';
-        button.innerText = 'Pilepliner';
+        button.innerText = 'Pipeliner';
         button.className = donorButton.className;
         button.onclick = function() {
           return app.container.style.display = 'block';

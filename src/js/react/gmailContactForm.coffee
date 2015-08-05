@@ -106,12 +106,12 @@ GmailContactForm = React.createFactory React.createClass
               onChange: (event, value) => @onChange 'lastName', event, value
             }
 
-            # React.createElement TextField, {
-            #   floatingLabelText: "Company"
-            #   value: @state.clientCompany
-            #   fullWidth: true
-            #   onChange: (event, value) => @onChange 'clientCompany', event, value
-            # }
+            React.createElement TextField, {
+              floatingLabelText: "Company"
+              value: @state.clientCompany
+              fullWidth: true
+              onChange: (event, value) => @onChange 'clientCompany', event, value
+            }
 
             React.createElement TextField, {
               floatingLabelText: "Phone"

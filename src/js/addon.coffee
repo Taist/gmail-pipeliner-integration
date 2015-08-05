@@ -59,7 +59,7 @@ addonEntry =
 
         button = document.createElement 'div'
         button.style.display = 'inline-block'
-        button.innerText = 'Pilepliner'
+        button.innerText = 'Pipeliner'
         button.className = donorButton.className
         button.onclick = ->
           app.container.style.display = 'block'
