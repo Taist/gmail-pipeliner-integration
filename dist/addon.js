@@ -88,6 +88,9 @@ pipelinerAPI = extend(require('../helpers/apiRequestInterface'), {
   getClients: function() {
     return this.getRequest('Clients');
   },
+  getSalesUnits: function() {
+    return this.getRequest('SalesUnits');
+  },
   createContact: function(data) {
     return this.postRequest('Contacts', data);
   },
@@ -140,6 +143,7 @@ appData = {
     serviceURL: ''
   },
   clients: [],
+  salesUnits: [],
   contacts: [],
   participants: []
 };
@@ -211,6 +215,12 @@ app = {
       }
       return appData.clients = clients;
     },
+    onLoadSalesUnits: function(salesUnits) {
+      if (salesUnits == null) {
+        salesUnits = [];
+      }
+      return appData.salesUnits = salesUnits;
+    },
     onChangeMail: function(participants) {
       if (participants == null) {
         participants = [];
@@ -229,23 +239,18 @@ app = {
       appData.contacts = contacts;
       return app.render();
     },
-    onCreateContact: function(selectedContact, selectedClient, formData) {
-      var accountData, ref;
-      return Q.all(((ref = formData.clientCompany) != null ? ref.length : void 0) > 0 ? (accountData = {
-        OWNER_ID: selectedClient.ID,
-        SALES_UNIT_ID: selectedClient.DEFAULT_SALES_UNIT_ID,
-        ORGANIZATION: formData.clientCompany
-      }, []) : []).spread(function(account) {
+    onCreateContact: function(selectedClient, selectedSalesUnit, formData) {
+      return Q.all([]).spread(function() {
         var contactData;
         contactData = {
           OWNER_ID: selectedClient.ID,
-          SALES_UNIT_ID: selectedClient.DEFAULT_SALES_UNIT_ID,
-          EMAIL1: selectedContact.email,
+          SALES_UNIT_ID: selectedSalesUnit.ID,
+          EMAIL1: formData.clientEmail,
           FIRST_NAME: formData.firstName,
           SURNAME: formData.lastName,
           PHONE1: formData.clientPhone
         };
-        return Q.all([app.pipelinerAPI.createContact(contactData), account, contactData, Q.delay(5000)]);
+        return Q.all([app.pipelinerAPI.createContact(contactData), contactData]);
       }).then(function() {
         return app.renderMessage('Contact successfully created');
       })["catch"](function(error) {
@@ -557,8 +562,9 @@ GmailContactForm = React.createFactory(React.createClass({
   getInitialState: function() {
     var state;
     return state = {
-      selectedContact: null,
       selectedClient: null,
+      selectedSalesUnit: null,
+      selectedContact: null,
       firstName: '',
       lastName: '',
       clientEmail: '',
@@ -570,6 +576,7 @@ GmailContactForm = React.createFactory(React.createClass({
     var newState;
     newState = this.getInitialState();
     newState.selectedClient = this.state.selectedClient;
+    newState.selectedSalesUnit = this.state.selectedSalesUnit;
     return this.setState({
       newState: newState,
       selectedContact: newProps.activePerson
@@ -598,6 +605,11 @@ GmailContactForm = React.createFactory(React.createClass({
       selectedClient: selectedClient
     });
   },
+  onSelectSalesUnit: function(event, index, selectedSalesUnit) {
+    return this.setState({
+      selectedSalesUnit: selectedSalesUnit
+    });
+  },
   onChange: function(fieldName, event) {
     var valueObj;
     valueObj = {};
@@ -605,17 +617,16 @@ GmailContactForm = React.createFactory(React.createClass({
     return this.setState(valueObj);
   },
   onCreateContact: function() {
-    if (this.state.selectedClient != null) {
-      return this.props.actions.onCreateContact(this.state.selectedContact, this.state.selectedClient, {
+    if ((this.state.selectedClient != null) && (this.state.selectedSalesUnit != null)) {
+      return this.props.actions.onCreateContact(this.state.selectedClient, this.state.selectedSalesUnit, {
         firstName: this.state.firstName,
         lastName: this.state.lastName,
         clientEmail: this.state.clientEmail,
         clientPhone: this.state.clientPhone,
-        clientCompany: this.state.clientCompany,
-        leadName: this.state.leadName
+        clientCompany: this.state.clientCompany
       });
     } else {
-      return this.props.actions.showMessage('Please select contact person');
+      return this.props.actions.showMessage('Please select client and sales unit');
     }
   },
   render: function() {
@@ -633,6 +644,16 @@ GmailContactForm = React.createFactory(React.createClass({
       floatingLabelText: 'Selected Client',
       value: this.state.selectedClient,
       onChange: this.onSelectClient,
+      fullWidth: true
+    })), div({
+      className: 'selectFieldWrapper'
+    }, React.createElement(SelectField, {
+      menuItems: this.props.data.salesUnits,
+      valueMember: 'ID',
+      displayMember: 'SALES_UNIT_NAME',
+      floatingLabelText: 'Selected Sales Unit',
+      value: this.state.selectedSalesUnit,
+      onChange: this.onSelectSalesUnit,
       fullWidth: true
     }))), div({
       className: 'col span_1_of_2'
@@ -42459,9 +42480,11 @@ module.exports = warning;
 module.exports = require('./lib/React');
 
 },{"./lib/React":182}],"addon":[function(require,module,exports){
-var addonEntry, app, injectTapEventPlugin, innerHTML, reactId, style, styleWrapLongLinesForSelect;
+var Q, addonEntry, app, injectTapEventPlugin, innerHTML, reactId, style, styleWrapLongLinesForSelect;
 
 app = require('./app');
+
+Q = require('q');
 
 reactId = require('react/lib/DOMProperty').ID_ATTRIBUTE_NAME;
 
@@ -42502,13 +42525,14 @@ addonEntry = {
     app.renderMessage('');
     app.container.style.display = 'block';
     return app.getPipelinerCreds().then(function() {
-      return app.pipelinerAPI.getClients();
-    }).then(function(clients) {
+      return Q.all([app.pipelinerAPI.getClients(), app.pipelinerAPI.getSalesUnits()]);
+    }).spread(function(clients, salesUnits) {
+      app.actions.onLoadSalesUnits(salesUnits);
       return app.actions.onLoadClients(clients).map(function(client) {
         client.name = client.FIRSTNAME + " " + client.LASTNAME;
         return client;
       });
-    })["finally"](function(result) {
+    })["finally"](function() {
       return app.elementObserver.waitElement('table[role="presentation"]>tr>td:first-child', function(parent) {
         var button, buttonsContainer, donorButton, mailId, participants, ref;
         parent.insertBefore(app.container, parent.querySelector('div'));
@@ -42541,5 +42565,5 @@ addonEntry = {
 
 module.exports = addonEntry;
 
-},{"./api/gmail":1,"./api/pipeliner":2,"./app":3,"./helpers/domObserver":5,"react-tap-event-plugin":151,"react/lib/DOMProperty":162}]},{},[]);
+},{"./api/gmail":1,"./api/pipeliner":2,"./app":3,"./helpers/domObserver":5,"q":147,"react-tap-event-plugin":151,"react/lib/DOMProperty":162}]},{},[]);
 ;return require("addon")}

@@ -12,6 +12,7 @@ appData =
     spaceID: ''
     serviceURL: ''
   clients: []
+  salesUnits: []
   contacts: []
   participants: []
 
@@ -75,6 +76,9 @@ app =
     onLoadClients: (clients = []) ->
       appData.clients = clients
 
+    onLoadSalesUnits: (salesUnits = []) ->
+      appData.salesUnits = salesUnits
+
     onChangeMail: (participants = []) ->
       appData.participants = participants.filter (person) ->
         !appData.clients.filter((client) -> client.EMAIL is person.email).length
@@ -87,31 +91,21 @@ app =
       appData.contacts = contacts
       app.render()
 
-    onCreateContact: (selectedContact, selectedClient, formData) ->
+    onCreateContact: (selectedClient, selectedSalesUnit, formData) ->
       Q.all(
-        if formData.clientCompany?.length > 0
-          accountData = {
-            OWNER_ID: selectedClient.ID # mandatory field
-            SALES_UNIT_ID: selectedClient.DEFAULT_SALES_UNIT_ID # mandatory field
-            ORGANIZATION: formData.clientCompany
-          }
-          # [ app.pipelinerAPI.createAccount accountData ]
-          # DON'T CREATE ACCOUNT
-          []
-        else
           []
       )
 
-      .spread (account) ->
+      .spread () ->
         contactData = {
           OWNER_ID: selectedClient.ID # mandatory field
-          SALES_UNIT_ID: selectedClient.DEFAULT_SALES_UNIT_ID # mandatory field
-          EMAIL1: selectedContact.email
+          SALES_UNIT_ID: selectedSalesUnit.ID # mandatory field
+          EMAIL1: formData.clientEmail
           FIRST_NAME: formData.firstName
           SURNAME: formData.lastName
           PHONE1: formData.clientPhone
         }
-        Q.all [ app.pipelinerAPI.createContact(contactData), account, contactData, Q.delay 5000 ]
+        Q.all [ app.pipelinerAPI.createContact(contactData), contactData ]
 
       # .spread (contact, account, contactData) ->
       #   console.log 'starts to create lead'

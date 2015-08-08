@@ -44,6 +44,9 @@ pipelinerAPI = extend require('../helpers/apiRequestInterface'),
   getClients: ->
     @getRequest 'Clients'
 
+  getSalesUnits: ->
+    @getRequest 'SalesUnits'
+
   createContact: (data) ->
     @postRequest 'Contacts', data
 

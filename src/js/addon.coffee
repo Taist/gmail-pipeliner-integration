@@ -1,5 +1,7 @@
 app = require './app'
 
+Q = require 'q'
+
 reactId = require('react/lib/DOMProperty').ID_ATTRIBUTE_NAME
 
 styleWrapLongLinesForSelect = ''
@@ -44,15 +46,21 @@ addonEntry =
     app.getPipelinerCreds()
 
     .then () ->
-      app.pipelinerAPI.getClients()
+      Q.all [
+        app.pipelinerAPI.getClients()
+        app.pipelinerAPI.getSalesUnits()
+      ]
 
-    .then (clients) ->
+    .spread (clients, salesUnits) ->
+      app.actions.onLoadSalesUnits salesUnits
+
       app.actions.onLoadClients clients
       .map (client) ->
         client.name = "#{client.FIRSTNAME} #{client.LASTNAME}"
         client
 
-    .finally (result) ->
+
+    .finally ->
       app.elementObserver.waitElement 'table[role="presentation"]>tr>td:first-child', (parent) ->
         parent.insertBefore app.container, parent.querySelector 'div'
         parent.insertBefore app.messageContainer, parent.querySelector 'div'

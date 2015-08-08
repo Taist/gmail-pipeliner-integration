@@ -19,8 +19,10 @@ GmailContactForm = React.createFactory React.createClass
 
   getInitialState: ->
     state = {
-      selectedContact: null
       selectedClient: null
+      selectedSalesUnit: null
+
+      selectedContact: null
       firstName: ''
       lastName: ''
       clientEmail: ''
@@ -31,6 +33,7 @@ GmailContactForm = React.createFactory React.createClass
   updateComponent: (newProps) ->
     newState = @getInitialState()
     newState.selectedClient = @state.selectedClient
+    newState.selectedSalesUnit = @state.selectedSalesUnit
 
     @setState { newState, selectedContact: newProps.activePerson },  =>
       if newProps.activePerson
@@ -46,23 +49,25 @@ GmailContactForm = React.createFactory React.createClass
   onSelectClient: (event, index, selectedClient) ->
     @setState { selectedClient }
 
+  onSelectSalesUnit: (event, index, selectedSalesUnit) ->
+    @setState { selectedSalesUnit }
+
   onChange: (fieldName, event) ->
     valueObj = {}
     valueObj[fieldName] = event.target.value
     @setState valueObj
 
   onCreateContact: ->
-    if @state.selectedClient?
-      @props.actions.onCreateContact @state.selectedContact, @state.selectedClient, {
-        firstName: @state.firstName
-        lastName: @state.lastName
-        clientEmail: @state.clientEmail
-        clientPhone: @state.clientPhone
-        clientCompany: @state.clientCompany
-        leadName: @state.leadName
-      }
+    if @state.selectedClient? and @state.selectedSalesUnit?
+        @props.actions.onCreateContact @state.selectedClient, @state.selectedSalesUnit, {
+          firstName: @state.firstName
+          lastName: @state.lastName
+          clientEmail: @state.clientEmail
+          clientPhone: @state.clientPhone
+          clientCompany: @state.clientCompany
+        }
     else
-      @props.actions.showMessage 'Please select contact person'
+      @props.actions.showMessage 'Please select client and sales unit'
 
   render: ->
     div {},
@@ -78,6 +83,17 @@ GmailContactForm = React.createFactory React.createClass
               floatingLabelText: 'Selected Client'
               value: @state.selectedClient
               onChange: @onSelectClient
+              fullWidth: true
+            }
+
+          div { className: 'selectFieldWrapper' },
+            React.createElement SelectField, {
+              menuItems: @props.data.salesUnits
+              valueMember: 'ID'
+              displayMember: 'SALES_UNIT_NAME'
+              floatingLabelText: 'Selected Sales Unit'
+              value: @state.selectedSalesUnit
+              onChange: @onSelectSalesUnit
               fullWidth: true
             }
 
