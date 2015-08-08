@@ -38,6 +38,9 @@ addonEntry =
     app.messageContainer = document.createElement 'div'
     app.renderMessage('')
 
+    #VR FOR DEVELOPMENT ONLY
+    app.container.style.display = 'block'
+
     app.getPipelinerCreds()
 
     .then () ->

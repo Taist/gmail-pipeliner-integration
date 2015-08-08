@@ -12,9 +12,12 @@ ThemeManager.setTheme ThemeManager.types.LIGHT
 GMailContactForm = require './gmailContactForm'
 GMailCredsForm = require './gmailCredsForm'
 
+GMailMain = require './gmailMain'
+
 GmailBlock = React.createFactory React.createClass
   getInitialState: ->
     isMainView: true
+    activeView: 'main'
 
   #needed for mui ThemeManager
   childContextTypes:
@@ -39,9 +42,13 @@ GmailBlock = React.createFactory React.createClass
     },
       h2 {}, 'Pipeliner Integration'
 
-      if @state.isMainView
-        GMailContactForm extend {}, @props, reactActions: toggleMode: @toggleMode
-      else
-        GMailCredsForm extend {}, @props, reactActions: toggleMode: @toggleMode
+      switch @state.activeView
+        when 'main'
+          GMailMain @props
+
+      # if @state.isMainView
+      #   GMailContactForm extend {}, @props, reactActions: toggleMode: @toggleMode
+      # else
+      #   GMailCredsForm extend {}, @props, reactActions: toggleMode: @toggleMode
 
 module.exports = GmailBlock
