@@ -1,6 +1,6 @@
 React = require 'react'
 
-{ div, span } = React.DOM
+{ div, span, h3 } = React.DOM
 
 mui = require 'material-ui'
 ThemeManager = new mui.Styles.ThemeManager()
@@ -66,6 +66,7 @@ GmailContactForm = React.createFactory React.createClass
 
   render: ->
     div {},
+      h3 {}, 'Add contact to Pipeliner'
       div { className: 'section group' },
 
         div { className: 'col span_1_of_2' },
