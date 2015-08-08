@@ -22,7 +22,7 @@ MessageSnackbar = React.createFactory React.createClass
   render: ->
     React.createElement Snackbar, {
       ref: 'snackbar'
-      message: @props?.message
+      message: @props?.message.toString()
       autoHideDuration: 5000
       onActionTouchTap: => @refs.snackbar.dismiss()
     }

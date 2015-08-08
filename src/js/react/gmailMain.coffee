@@ -41,28 +41,16 @@ GMailMain = React.createFactory React.createClass
           email: content: person.email
           buttons:
             style: width: 48
-            content: a {
-              href: 'javascript:;'
-              onClick: -> @onClickToCRMButton
-              style:
-                display: if @state?["rowButtons#{index}"] then 'block' else 'none'
-            }, 'To CRM'
+            content:
+              if @props.data.contacts[person.email] is false
+                a {
+                  href: 'javascript:;'
+                  onClick: -> @onClickToCRMButton
+                  style:
+                    display: if @state?["rowButtons#{index}"] then 'block' else 'none'
+                }, 'To CRM'
+              else
+                ''
       }
 
 module.exports = GMailMain
-
-# <Table
-#   headerColumns={headerCols}
-#   footerColumns={footerCols}
-#   columnOrder={colOrder}
-#   rowData={this.state.rowData}
-#   height={this.state.height}
-#   fixedHeader={this.state.fixedHeader}
-#   fixedFooter={this.state.fixedFooter}
-#   stripedRows={this.state.stripedRows}
-#   showRowHover={this.state.showRowHover}
-#   selectable={this.state.selectable}
-#   multiSelectable={this.state.multiSelectable}
-#   canSelectAll={this.state.canSelectAll}
-#   deselectOnClickaway={this.state.deselectOnClickaway}
-#   onRowSelection={this._onRowSelection} />

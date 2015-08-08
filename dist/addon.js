@@ -32,7 +32,7 @@ module.exports = {
 };
 
 },{}],2:[function(require,module,exports){
-var Q, _creds, app, extend, pipelinerAPI;
+var Q, _contactsCache, _creds, app, extend, pipelinerAPI;
 
 Q = require('q');
 
@@ -41,6 +41,8 @@ app = null;
 extend = require('react/lib/Object.assign');
 
 _creds = {};
+
+_contactsCache = {};
 
 pipelinerAPI = extend(require('../helpers/apiRequestInterface'), {
   name: 'Pipeliner API',
@@ -91,6 +93,24 @@ pipelinerAPI = extend(require('../helpers/apiRequestInterface'), {
   },
   createAccount: function(data) {
     return this.postRequest('Accounts', data);
+  },
+  getCachedContact: function(email) {
+    return _contactsCache[email];
+  },
+  findContacts: function(participants) {
+    return Q.all(participants.map((function(_this) {
+      return function(p) {
+        var filter;
+        filter = "EMAIL1::" + p.email;
+        return _this.getRequest('Contacts', {
+          filter: filter
+        }).then(function(result) {
+          return _contactsCache[p.email] = result[0] || false;
+        });
+      };
+    })(this))).then(function() {
+      return extend({}, _contactsCache);
+    });
   }
 });
 
@@ -120,6 +140,7 @@ appData = {
     serviceURL: ''
   },
   clients: [],
+  contacts: [],
   participants: []
 };
 
@@ -201,6 +222,10 @@ app = {
     onHide: function() {
       return app.container.style.display = 'none';
     },
+    onUpdateContacts: function(contacts) {
+      appData.contacts = contacts;
+      return app.render();
+    },
     onCreateContact: function(selectedContact, selectedClient, formData) {
       var accountData, ref;
       return Q.all(((ref = formData.clientCompany) != null ? ref.length : void 0) > 0 ? (accountData = {
@@ -247,7 +272,20 @@ Q = require('q');
 extend = require('react/lib/Object.assign');
 
 module.exports = {
-  getRequest: function(path) {
+  getRequest: function(path, data) {
+    var key, params, val;
+    params = data ? ((function() {
+      var results;
+      results = [];
+      for (key in data) {
+        val = data[key];
+        results.push(key + "=" + val);
+      }
+      return results;
+    })()).join('&') : void 0;
+    if (params) {
+      path += "?" + params;
+    }
     return this.sendRequest(path);
   },
   postRequest: function(path, data) {
@@ -822,7 +860,7 @@ GMailMain = React.createFactory(React.createClass({
               style: {
                 width: 48
               },
-              content: a({
+              content: _this.props.data.contacts[person.email] === false ? a({
                 href: 'javascript:;',
                 onClick: function() {
                   return this.onClickToCRMButton;
@@ -830,7 +868,7 @@ GMailMain = React.createFactory(React.createClass({
                 style: {
                   display: ((ref1 = _this.state) != null ? ref1["rowButtons" + index] : void 0) ? 'block' : 'none'
                 }
-              }, 'To CRM')
+              }, 'To CRM') : ''
             }
           };
         };
@@ -873,7 +911,7 @@ MessageSnackbar = React.createFactory(React.createClass({
     var ref;
     return React.createElement(Snackbar, {
       ref: 'snackbar',
-      message: (ref = this.props) != null ? ref.message : void 0,
+      message: (ref = this.props) != null ? ref.message.toString() : void 0,
       autoHideDuration: 5000,
       onActionTouchTap: (function(_this) {
         return function() {
@@ -42458,6 +42496,9 @@ addonEntry = {
         mailId = (ref = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)) != null ? ref[1] : void 0;
         if (mailId) {
           participants = app.gMailAPI.getParticipants(parent);
+          app.pipelinerAPI.findContacts(participants).then(function(contacts) {
+            return app.actions.onUpdateContacts(contacts);
+          });
         }
         return app.actions.onChangeMail(participants);
       });

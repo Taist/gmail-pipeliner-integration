@@ -5,6 +5,8 @@ extend = require 'react/lib/Object.assign'
 
 _creds = {}
 
+_contactsCache = {}
+
 pipelinerAPI = extend require('../helpers/apiRequestInterface'),
   name: 'Pipeliner API'
   # is used for mixin apiRequestInterface
@@ -47,6 +49,19 @@ pipelinerAPI = extend require('../helpers/apiRequestInterface'),
 
   createAccount: (data) ->
     @postRequest 'Accounts', data
+
+  getCachedContact: (email) ->
+    _contactsCache[email]
+
+  findContacts: (participants) ->
+    Q.all(
+      participants.map (p) =>
+        filter = "EMAIL1::#{p.email}"
+        @getRequest 'Contacts', { filter }
+        .then (result) ->
+          _contactsCache[p.email] = result[0] or false
+    ).then ->
+      extend {}, _contactsCache
 
 module.exports =
   init: (_app, propertyName) ->

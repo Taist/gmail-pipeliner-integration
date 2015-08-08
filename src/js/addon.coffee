@@ -76,12 +76,14 @@ addonEntry =
         if mailId
           participants = app.gMailAPI.getParticipants parent
 
+          app.pipelinerAPI.findContacts participants
+          .then (contacts) ->
+            app.actions.onUpdateContacts contacts
+
         app.actions.onChangeMail participants
 
     .catch (err) ->
       app.renderMessage err
       console.log err
-
-
 
 module.exports = addonEntry

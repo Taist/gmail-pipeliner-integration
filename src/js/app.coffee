@@ -12,6 +12,7 @@ appData =
     spaceID: ''
     serviceURL: ''
   clients: []
+  contacts: []
   participants: []
 
 app =
@@ -78,6 +79,10 @@ app =
 
     onHide: () ->
       app.container.style.display = 'none';
+
+    onUpdateContacts: (contacts) ->
+      appData.contacts = contacts
+      app.render()
 
     onCreateContact: (selectedContact, selectedClient, formData) ->
       Q.all(

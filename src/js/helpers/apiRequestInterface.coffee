@@ -6,7 +6,15 @@ Q = require 'q'
 extend = require 'react/lib/Object.assign'
 
 module.exports =
-  getRequest: (path) ->
+  getRequest: (path, data) ->
+    params = if data
+      (for key, val of data
+        "#{key}=#{val}"
+      ).join '&'
+
+    if params
+      path += "?#{params}"
+
     @sendRequest path
 
   postRequest: (path, data) ->
