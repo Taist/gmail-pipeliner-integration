@@ -18,6 +18,7 @@ GmailBlock = React.createFactory React.createClass
   getInitialState: ->
     isMainView: true
     activeView: 'main'
+    activePerson: null
 
   #needed for mui ThemeManager
   childContextTypes:
@@ -27,8 +28,14 @@ GmailBlock = React.createFactory React.createClass
   getChildContext: () ->
     muiTheme: ThemeManager.getCurrentTheme()
 
+  backToMain: ->
+    @setState activeView: 'main'
+
   toggleMode: ->
     @setState isMainView: !@state.isMainView
+
+  onClickToCRMButton: (person) ->
+    @setState activePerson: person, activeView: 'addContact'
 
   render: ->
     React.createElement Paper, {
@@ -44,7 +51,9 @@ GmailBlock = React.createFactory React.createClass
 
       switch @state.activeView
         when 'main'
-          GMailMain @props
+          GMailMain extend {}, @props, reactActions: onClickToCRMButton: @onClickToCRMButton
+        when 'addContact'
+          GMailContactForm extend {}, @props, activePerson: @state.activePerson, reactActions: backToMain: @backToMain
 
       # if @state.isMainView
       #   GMailContactForm extend {}, @props, reactActions: toggleMode: @toggleMode

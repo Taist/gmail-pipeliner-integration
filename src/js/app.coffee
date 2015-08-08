@@ -92,7 +92,9 @@ app =
             SALES_UNIT_ID: selectedClient.DEFAULT_SALES_UNIT_ID # mandatory field
             ORGANIZATION: formData.clientCompany
           }
-          [ app.pipelinerAPI.createAccount accountData ]
+          # [ app.pipelinerAPI.createAccount accountData ]
+          # DON'T CREATE ACCOUNT
+          []
         else
           []
       )
@@ -122,19 +124,19 @@ app =
       #     }
       #     app.pipelinerAPI.postRequest 'Leads', leadData
 
-      .spread (contact, account, contactData) ->
-        Q.all [
-          contact,
-          account,
-          contactData,
-          app.pipelinerAPI.postRequest 'AddressbookRelations', {
-            ACCOUNT_ID: account.ID
-            CONTACT_ID: contact.ID
-            PARENT_CONTACT_ID: 'ROOT'
-            IS_PRIMARY: 1
-          }
-        ]
-      #
+      # .spread (contact, account, contactData) ->
+      #   Q.all [
+      #     contact,
+      #     account,
+      #     contactData,
+      #     app.pipelinerAPI.postRequest 'AddressbookRelations', {
+      #       ACCOUNT_ID: account.ID
+      #       CONTACT_ID: contact.ID
+      #       PARENT_CONTACT_ID: 'ROOT'
+      #       IS_PRIMARY: 1
+      #     }
+      #   ]
+
       # .spread (contact, account, contactData) ->
       #   if account.ID?
       #     contactData.ACCOUNT_RELATIONS = [{

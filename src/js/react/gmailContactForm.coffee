@@ -23,25 +23,27 @@ GmailContactForm = React.createFactory React.createClass
       selectedClient: null
       firstName: ''
       lastName: ''
+      clientEmail: ''
       clientPhone: ''
       clientCompany: ''
-      leadName: ''
 
       snackbarMessage: ''
     }
 
-  componentWillReceiveProps: () ->
+  updateComponent: (newProps) ->
     newState = @getInitialState()
     newState.selectedClient = @state.selectedClient
-    @setState newState, =>
-      if @props.data.participants[0]?.email?
-        @onSelectContact null, null, @props.data.participants[0]
 
-  onSelectContact: (event, index, selectedContact) ->
-    @setState { selectedContact }, =>
-      if selectedContact
-        matches = selectedContact.name.match /(\S+)\s?(.*)/
-        @setState { firstName: matches[1], lastName: matches[2] }
+    @setState { newState, selectedContact: newProps.activePerson },  =>
+      if newProps.activePerson
+        matches = newProps.activePerson.name.match /(\S+)\s?(.*)/
+        @setState { firstName: matches[1], lastName: matches[2], clientEmail: newProps.activePerson.email }
+
+  componentDidMount: ->
+    @updateComponent @props
+
+  componentWillReceiveProps: (newProps) ->
+    @updateComponent newProps
 
   onSelectClient: (event, index, selectedClient) ->
     @setState { selectedClient }
@@ -60,6 +62,7 @@ GmailContactForm = React.createFactory React.createClass
       @props.actions.onCreateContact @state.selectedContact, @state.selectedClient, {
         firstName: @state.firstName
         lastName: @state.lastName
+        clientEmail: @state.clientEmail
         clientPhone: @state.clientPhone
         clientCompany: @state.clientCompany
         leadName: @state.leadName
@@ -83,46 +86,6 @@ GmailContactForm = React.createFactory React.createClass
         div { className: 'col span_1_of_2' },
           div { className: 'selectFieldWrapper' },
             React.createElement SelectField, {
-              menuItems: @props.data.participants
-              valueMember: 'email'
-              displayMember: 'text'
-              floatingLabelText: 'Selected Contact Person'
-              value: @state.selectedContact
-              onChange: @onSelectContact
-              fullWidth: true
-            }
-
-            React.createElement TextField, {
-              floatingLabelText: "First Name"
-              value: @state.firstName
-              fullWidth: true
-              onChange: (event, value) => @onChange 'firstName', event, value
-            }
-
-            React.createElement TextField, {
-              floatingLabelText: "Last Name"
-              value: @state.lastName
-              fullWidth: true
-              onChange: (event, value) => @onChange 'lastName', event, value
-            }
-
-            React.createElement TextField, {
-              floatingLabelText: "Company"
-              value: @state.clientCompany
-              fullWidth: true
-              onChange: (event, value) => @onChange 'clientCompany', event, value
-            }
-
-            React.createElement TextField, {
-              floatingLabelText: "Phone"
-              value: @state.clientPhone
-              fullWidth: true
-              onChange: (event, value) => @onChange 'clientPhone', event, value
-            }
-
-        div { className: 'col span_1_of_2' },
-          div { className: 'selectFieldWrapper' },
-            React.createElement SelectField, {
               menuItems: @props.data.clients
               valueMember: 'ID'
               displayMember: 'name'
@@ -132,32 +95,60 @@ GmailContactForm = React.createFactory React.createClass
               fullWidth: true
             }
 
-            # React.createElement TextField, {
-            #   floatingLabelText: "Lead Name"
-            #   value: @state.leadName
-            #   fullWidth: true
-            #   onChange: (event, value) => @onChange 'leadName', event, value
-            # }
+        div { className: 'col span_1_of_2' },
+          React.createElement TextField, {
+            floatingLabelText: "Company"
+            value: @state.clientCompany
+            fullWidth: true
+            onChange: (event, value) => @onChange 'clientCompany', event, value
+          }
 
-          div {},
-            React.createElement RaisedButton, {
-              label: 'Create Contact'
-              onClick: @onCreateContact
-            }
+      div { className: 'section group' },
 
-            # temp magic number in the next line
-            div { style: width: 16, marginBottom: 135 }, ''
+        div { className: 'col span_1_of_2' },
+          React.createElement TextField, {
+            floatingLabelText: "First Name"
+            value: @state.firstName
+            fullWidth: true
+            onChange: (event, value) => @onChange 'firstName', event, value
+          }
 
-            React.createElement RaisedButton, {
-              label: 'Change API keys'
-              onClick: @props.reactActions?.toggleMode
-            }
+          React.createElement TextField, {
+            floatingLabelText: "Email"
+            value: @state.clientEmail
+            fullWidth: true
+            disabled: true
+            onChange: (event, value) => @onChange 'clientEmail', event, value
+          }
 
-            div { style: width: 16, display: 'inline-block' }, ''
+        div { className: 'col span_1_of_2' },
 
-            React.createElement RaisedButton, {
-              label: 'Close'
-              onClick: @props.actions?.onHide
-            }
+          React.createElement TextField, {
+            floatingLabelText: "Last Name"
+            value: @state.lastName
+            fullWidth: true
+            onChange: (event, value) => @onChange 'lastName', event, value
+          }
+
+          React.createElement TextField, {
+            floatingLabelText: "Phone"
+            value: @state.clientPhone
+            fullWidth: true
+            onChange: (event, value) => @onChange 'clientPhone', event, value
+          }
+
+      div { style: textAlign: 'right' },
+
+        React.createElement RaisedButton, {
+          label: 'Add to CRM'
+          onClick: @onCreateContact
+        }
+
+        div { style: width: 8, display: 'inline-block' }
+
+        React.createElement RaisedButton, {
+          label: 'Cancel'
+          onClick: @props.reactActions?.backToMain
+        }
 
 module.exports = GmailContactForm

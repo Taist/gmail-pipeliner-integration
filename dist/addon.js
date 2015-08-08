@@ -232,7 +232,7 @@ app = {
         OWNER_ID: selectedClient.ID,
         SALES_UNIT_ID: selectedClient.DEFAULT_SALES_UNIT_ID,
         ORGANIZATION: formData.clientCompany
-      }, [app.pipelinerAPI.createAccount(accountData)]) : []).spread(function(account) {
+      }, []) : []).spread(function(account) {
         var contactData;
         contactData = {
           OWNER_ID: selectedClient.ID,
@@ -243,15 +243,6 @@ app = {
           PHONE1: formData.clientPhone
         };
         return Q.all([app.pipelinerAPI.createContact(contactData), account, contactData, Q.delay(5000)]);
-      }).spread(function(contact, account, contactData) {
-        return Q.all([
-          contact, account, contactData, app.pipelinerAPI.postRequest('AddressbookRelations', {
-            ACCOUNT_ID: account.ID,
-            CONTACT_ID: contact.ID,
-            PARENT_CONTACT_ID: 'ROOT',
-            IS_PRIMARY: 1
-          })
-        ]);
       }).then(function() {
         return app.renderMessage('Contact successfully created');
       })["catch"](function(error) {
@@ -443,7 +434,8 @@ GmailBlock = React.createFactory(React.createClass({
   getInitialState: function() {
     return {
       isMainView: true,
-      activeView: 'main'
+      activeView: 'main',
+      activePerson: null
     };
   },
   childContextTypes: {
@@ -454,9 +446,20 @@ GmailBlock = React.createFactory(React.createClass({
       muiTheme: ThemeManager.getCurrentTheme()
     };
   },
+  backToMain: function() {
+    return this.setState({
+      activeView: 'main'
+    });
+  },
   toggleMode: function() {
     return this.setState({
       isMainView: !this.state.isMainView
+    });
+  },
+  onClickToCRMButton: function(person) {
+    return this.setState({
+      activePerson: person,
+      activeView: 'addContact'
     });
   },
   render: function() {
@@ -472,7 +475,18 @@ GmailBlock = React.createFactory(React.createClass({
     }, h2({}, 'Pipeliner Integration'), (function() {
       switch (this.state.activeView) {
         case 'main':
-          return GMailMain(this.props);
+          return GMailMain(extend({}, this.props, {
+            reactActions: {
+              onClickToCRMButton: this.onClickToCRMButton
+            }
+          }));
+        case 'addContact':
+          return GMailContactForm(extend({}, this.props, {
+            activePerson: this.state.activePerson,
+            reactActions: {
+              backToMain: this.backToMain
+            }
+          }));
       }
     }).call(this));
   }
@@ -511,40 +525,38 @@ GmailContactForm = React.createFactory(React.createClass({
       selectedClient: null,
       firstName: '',
       lastName: '',
+      clientEmail: '',
       clientPhone: '',
       clientCompany: '',
-      leadName: '',
       snackbarMessage: ''
     };
   },
-  componentWillReceiveProps: function() {
+  updateComponent: function(newProps) {
     var newState;
     newState = this.getInitialState();
     newState.selectedClient = this.state.selectedClient;
-    return this.setState(newState, (function(_this) {
-      return function() {
-        var ref1;
-        if (((ref1 = _this.props.data.participants[0]) != null ? ref1.email : void 0) != null) {
-          return _this.onSelectContact(null, null, _this.props.data.participants[0]);
-        }
-      };
-    })(this));
-  },
-  onSelectContact: function(event, index, selectedContact) {
     return this.setState({
-      selectedContact: selectedContact
+      newState: newState,
+      selectedContact: newProps.activePerson
     }, (function(_this) {
       return function() {
         var matches;
-        if (selectedContact) {
-          matches = selectedContact.name.match(/(\S+)\s?(.*)/);
+        if (newProps.activePerson) {
+          matches = newProps.activePerson.name.match(/(\S+)\s?(.*)/);
           return _this.setState({
             firstName: matches[1],
-            lastName: matches[2]
+            lastName: matches[2],
+            clientEmail: newProps.activePerson.email
           });
         }
       };
     })(this));
+  },
+  componentDidMount: function() {
+    return this.updateComponent(this.props);
+  },
+  componentWillReceiveProps: function(newProps) {
+    return this.updateComponent(newProps);
   },
   onSelectClient: function(event, index, selectedClient) {
     return this.setState({
@@ -572,6 +584,7 @@ GmailContactForm = React.createFactory(React.createClass({
       return this.props.actions.onCreateContact(this.state.selectedContact, this.state.selectedClient, {
         firstName: this.state.firstName,
         lastName: this.state.lastName,
+        clientEmail: this.state.clientEmail,
         clientPhone: this.state.clientPhone,
         clientCompany: this.state.clientCompany,
         leadName: this.state.leadName
@@ -581,7 +594,7 @@ GmailContactForm = React.createFactory(React.createClass({
     }
   },
   render: function() {
-    var ref1, ref2;
+    var ref1;
     return div({}, div({}, React.createElement(Snackbar, {
       ref: 'snackbar',
       message: this.state.snackbarMessage,
@@ -599,14 +612,29 @@ GmailContactForm = React.createFactory(React.createClass({
     }, div({
       className: 'selectFieldWrapper'
     }, React.createElement(SelectField, {
-      menuItems: this.props.data.participants,
-      valueMember: 'email',
-      displayMember: 'text',
-      floatingLabelText: 'Selected Contact Person',
-      value: this.state.selectedContact,
-      onChange: this.onSelectContact,
+      menuItems: this.props.data.clients,
+      valueMember: 'ID',
+      displayMember: 'name',
+      floatingLabelText: 'Selected Client',
+      value: this.state.selectedClient,
+      onChange: this.onSelectClient,
       fullWidth: true
-    }), React.createElement(TextField, {
+    }))), div({
+      className: 'col span_1_of_2'
+    }, React.createElement(TextField, {
+      floatingLabelText: "Company",
+      value: this.state.clientCompany,
+      fullWidth: true,
+      onChange: (function(_this) {
+        return function(event, value) {
+          return _this.onChange('clientCompany', event, value);
+        };
+      })(this)
+    }))), div({
+      className: 'section group'
+    }, div({
+      className: 'col span_1_of_2'
+    }, React.createElement(TextField, {
       floatingLabelText: "First Name",
       value: this.state.firstName,
       fullWidth: true,
@@ -616,21 +644,24 @@ GmailContactForm = React.createFactory(React.createClass({
         };
       })(this)
     }), React.createElement(TextField, {
+      floatingLabelText: "Email",
+      value: this.state.clientEmail,
+      fullWidth: true,
+      disabled: true,
+      onChange: (function(_this) {
+        return function(event, value) {
+          return _this.onChange('clientEmail', event, value);
+        };
+      })(this)
+    })), div({
+      className: 'col span_1_of_2'
+    }, React.createElement(TextField, {
       floatingLabelText: "Last Name",
       value: this.state.lastName,
       fullWidth: true,
       onChange: (function(_this) {
         return function(event, value) {
           return _this.onChange('lastName', event, value);
-        };
-      })(this)
-    }), React.createElement(TextField, {
-      floatingLabelText: "Company",
-      value: this.state.clientCompany,
-      fullWidth: true,
-      onChange: (function(_this) {
-        return function(event, value) {
-          return _this.onChange('clientCompany', event, value);
         };
       })(this)
     }), React.createElement(TextField, {
@@ -643,37 +674,21 @@ GmailContactForm = React.createFactory(React.createClass({
         };
       })(this)
     }))), div({
-      className: 'col span_1_of_2'
-    }, div({
-      className: 'selectFieldWrapper'
-    }, React.createElement(SelectField, {
-      menuItems: this.props.data.clients,
-      valueMember: 'ID',
-      displayMember: 'name',
-      floatingLabelText: 'Selected Client',
-      value: this.state.selectedClient,
-      onChange: this.onSelectClient,
-      fullWidth: true
-    })), div({}, React.createElement(RaisedButton, {
-      label: 'Create Contact',
+      style: {
+        textAlign: 'right'
+      }
+    }, React.createElement(RaisedButton, {
+      label: 'Add to CRM',
       onClick: this.onCreateContact
     }), div({
       style: {
-        width: 16,
-        marginBottom: 135
-      }
-    }, ''), React.createElement(RaisedButton, {
-      label: 'Change API keys',
-      onClick: (ref1 = this.props.reactActions) != null ? ref1.toggleMode : void 0
-    }), div({
-      style: {
-        width: 16,
+        width: 8,
         display: 'inline-block'
       }
-    }, ''), React.createElement(RaisedButton, {
-      label: 'Close',
-      onClick: (ref2 = this.props.actions) != null ? ref2.onHide : void 0
-    })))));
+    }), React.createElement(RaisedButton, {
+      label: 'Cancel',
+      onClick: (ref1 = this.props.reactActions) != null ? ref1.backToMain : void 0
+    })));
   }
 }));
 
@@ -819,8 +834,8 @@ GMailMain = React.createFactory(React.createClass({
       muiTheme: ThemeManager.getCurrentTheme()
     };
   },
-  onClickToCRMButton: function(event) {
-    return console.log(event);
+  onClickToCRMButton: function(person) {
+    return this.props.reactActions.onClickToCRMButton(person);
   },
   onRowHover: function(row) {
     var obj;
@@ -863,7 +878,7 @@ GMailMain = React.createFactory(React.createClass({
               content: _this.props.data.contacts[person.email] === false ? a({
                 href: 'javascript:;',
                 onClick: function() {
-                  return this.onClickToCRMButton;
+                  return _this.onClickToCRMButton(person);
                 },
                 style: {
                   display: ((ref1 = _this.state) != null ? ref1["rowButtons" + index] : void 0) ? 'block' : 'none'

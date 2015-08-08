@@ -17,8 +17,8 @@ GMailMain = React.createFactory React.createClass
   getChildContext: () ->
     muiTheme: ThemeManager.getCurrentTheme()
 
-  onClickToCRMButton: (event) ->
-    console.log event
+  onClickToCRMButton: (person) ->
+    @props.reactActions.onClickToCRMButton person
 
   onRowHover: (row) ->
     @setState "rowButtons#{row}": true
@@ -45,7 +45,7 @@ GMailMain = React.createFactory React.createClass
               if @props.data.contacts[person.email] is false
                 a {
                   href: 'javascript:;'
-                  onClick: -> @onClickToCRMButton
+                  onClick: => @onClickToCRMButton person
                   style:
                     display: if @state?["rowButtons#{index}"] then 'block' else 'none'
                 }, 'To CRM'
