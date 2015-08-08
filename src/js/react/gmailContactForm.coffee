@@ -6,7 +6,7 @@ mui = require 'material-ui'
 ThemeManager = new mui.Styles.ThemeManager()
 ThemeManager.setTheme ThemeManager.types.LIGHT
 
-{ Snackbar, TextField, SelectField, RaisedButton } = mui
+{ TextField, SelectField, RaisedButton } = mui
 
 GmailContactForm = React.createFactory React.createClass
   #needed for mui ThemeManager
@@ -26,8 +26,6 @@ GmailContactForm = React.createFactory React.createClass
       clientEmail: ''
       clientPhone: ''
       clientCompany: ''
-
-      snackbarMessage: ''
     }
 
   updateComponent: (newProps) ->
@@ -53,12 +51,8 @@ GmailContactForm = React.createFactory React.createClass
     valueObj[fieldName] = event.target.value
     @setState valueObj
 
-  showMessage: (snackbarMessage) ->
-    @setState { snackbarMessage }, =>
-      @refs.snackbar?.show()
-
   onCreateContact: ->
-    if @state.selectedContact? and @state.selectedClient?
+    if @state.selectedClient?
       @props.actions.onCreateContact @state.selectedContact, @state.selectedClient, {
         firstName: @state.firstName
         lastName: @state.lastName
@@ -68,19 +62,10 @@ GmailContactForm = React.createFactory React.createClass
         leadName: @state.leadName
       }
     else
-      @showMessage 'Please select contact person and client'
+      @props.actions.showMessage 'Please select contact person'
 
   render: ->
     div {},
-
-      div {},
-        React.createElement Snackbar, {
-          ref: 'snackbar'
-          message: @state.snackbarMessage
-          autoHideDuration: 5000
-          onActionTouchTap: => @refs.snackbar?.dismiss()
-        }
-
       div { className: 'section group' },
 
         div { className: 'col span_1_of_2' },

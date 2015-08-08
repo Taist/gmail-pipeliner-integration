@@ -199,6 +199,9 @@ app = {
     });
   },
   actions: {
+    showMessage: function(message) {
+      return app.renderMessage(message);
+    },
     onSaveCreds: function(creds) {
       return app.setPipelinerCreds(creds);
     },
@@ -495,7 +498,7 @@ GmailBlock = React.createFactory(React.createClass({
 module.exports = GmailBlock;
 
 },{"./gmailContactForm":7,"./gmailCredsForm":8,"./gmailMain":9,"material-ui":45,"react":324,"react/lib/Object.assign":180}],7:[function(require,module,exports){
-var GmailContactForm, RaisedButton, React, SelectField, Snackbar, TextField, ThemeManager, div, mui, ref, span;
+var GmailContactForm, RaisedButton, React, SelectField, TextField, ThemeManager, div, mui, ref, span;
 
 React = require('react');
 
@@ -507,7 +510,7 @@ ThemeManager = new mui.Styles.ThemeManager();
 
 ThemeManager.setTheme(ThemeManager.types.LIGHT);
 
-Snackbar = mui.Snackbar, TextField = mui.TextField, SelectField = mui.SelectField, RaisedButton = mui.RaisedButton;
+TextField = mui.TextField, SelectField = mui.SelectField, RaisedButton = mui.RaisedButton;
 
 GmailContactForm = React.createFactory(React.createClass({
   childContextTypes: {
@@ -527,8 +530,7 @@ GmailContactForm = React.createFactory(React.createClass({
       lastName: '',
       clientEmail: '',
       clientPhone: '',
-      clientCompany: '',
-      snackbarMessage: ''
+      clientCompany: ''
     };
   },
   updateComponent: function(newProps) {
@@ -569,18 +571,8 @@ GmailContactForm = React.createFactory(React.createClass({
     valueObj[fieldName] = event.target.value;
     return this.setState(valueObj);
   },
-  showMessage: function(snackbarMessage) {
-    return this.setState({
-      snackbarMessage: snackbarMessage
-    }, (function(_this) {
-      return function() {
-        var ref1;
-        return (ref1 = _this.refs.snackbar) != null ? ref1.show() : void 0;
-      };
-    })(this));
-  },
   onCreateContact: function() {
-    if ((this.state.selectedContact != null) && (this.state.selectedClient != null)) {
+    if (this.state.selectedClient != null) {
       return this.props.actions.onCreateContact(this.state.selectedContact, this.state.selectedClient, {
         firstName: this.state.firstName,
         lastName: this.state.lastName,
@@ -590,22 +582,12 @@ GmailContactForm = React.createFactory(React.createClass({
         leadName: this.state.leadName
       });
     } else {
-      return this.showMessage('Please select contact person and client');
+      return this.props.actions.showMessage('Please select contact person');
     }
   },
   render: function() {
     var ref1;
-    return div({}, div({}, React.createElement(Snackbar, {
-      ref: 'snackbar',
-      message: this.state.snackbarMessage,
-      autoHideDuration: 5000,
-      onActionTouchTap: (function(_this) {
-        return function() {
-          var ref1;
-          return (ref1 = _this.refs.snackbar) != null ? ref1.dismiss() : void 0;
-        };
-      })(this)
-    })), div({
+    return div({}, div({
       className: 'section group'
     }, div({
       className: 'col span_1_of_2'

@@ -66,6 +66,9 @@ app =
       appData.pipelinerCreds = creds
 
   actions:
+    showMessage: (message) ->
+      app.renderMessage message
+
     onSaveCreds: (creds) ->
       app.setPipelinerCreds creds
 
