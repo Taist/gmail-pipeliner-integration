@@ -8,6 +8,8 @@ ThemeManager.setTheme ThemeManager.types.LIGHT
 
 { TextField, SelectField, RaisedButton } = mui
 
+CustomSelect = require './taist/customSelect'
+
 GmailContactForm = React.createFactory React.createClass
   #needed for mui ThemeManager
   childContextTypes:
@@ -28,6 +30,8 @@ GmailContactForm = React.createFactory React.createClass
       clientEmail: ''
       clientPhone: ''
       clientCompany: ''
+
+      selectedAccount: null
     }
 
   updateComponent: (newProps) ->
@@ -56,6 +60,9 @@ GmailContactForm = React.createFactory React.createClass
     valueObj = {}
     valueObj[fieldName] = event.target.value
     @setState valueObj
+
+  onSelectAccount: (selectedAccount) ->
+    @setState { selectedAccount }
 
   onCreateContact: ->
     if @state.selectedClient? and @state.selectedSalesUnit?
@@ -98,12 +105,19 @@ GmailContactForm = React.createFactory React.createClass
             }
 
         div { className: 'col span_1_of_2' },
-          React.createElement TextField, {
-            floatingLabelText: "Company"
-            value: @state.clientCompany
-            fullWidth: true
-            onChange: (event, value) => @onChange 'clientCompany', event, value
+          CustomSelect {
+            selectType: 'search'
+            onSelect: @onSelectAccount
+            onChange: @props.actions.onChangeAccountName
+            placeholder: 'Start typing to find an account'
           }
+
+          # React.createElement TextField, {
+          #   floatingLabelText: "Company"
+          #   value: @state.clientCompany
+          #   fullWidth: true
+          #   onChange: (event, value) => @onChange 'clientCompany', event, value
+          # }
 
       div { className: 'section group' },
 

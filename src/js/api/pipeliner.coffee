@@ -66,6 +66,10 @@ pipelinerAPI = extend require('../helpers/apiRequestInterface'),
     ).then ->
       extend {}, _contactsCache
 
+  findAccounts: (name) ->
+    filter = "ORGANIZATION::#{name}::ll"
+    @getRequest 'Accounts', { filter }
+
 module.exports =
   init: (_app, propertyName) ->
     app = _app

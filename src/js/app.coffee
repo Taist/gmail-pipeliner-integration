@@ -91,6 +91,19 @@ app =
       appData.contacts = contacts
       app.render()
 
+    onChangeAccountName: (accountName) ->
+      app.pipelinerAPI.findAccounts accountName
+      .then (result) ->
+        console.log 'onChangeAccountName', accountName, result
+        accounts = result.map (account) =>
+          { id: account.ID, value: account.ORGANIZATION }
+        accounts.sort (a, b) =>
+          if a.value.toLowerCase() < b.value.toLowerCase() then -1 else 1  
+        accounts
+      .catch (error) ->
+        console.log error
+        []
+
     onCreateContact: (selectedClient, selectedSalesUnit, formData) ->
       Q.all(
           []
