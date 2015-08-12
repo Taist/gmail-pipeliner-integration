@@ -1051,11 +1051,19 @@ module.exports = {
 };
 
 },{}],12:[function(require,module,exports){
-var AwesomeIcons, CustomSelect, CustomSelectOption, React, Spinner, attrName, dataAttrName, div, input, ref;
+var AwesomeIcons, CustomSelect, CustomSelectOption, Menu, MenuItem, React, Spinner, TextField, ThemeManager, attrName, dataAttrName, div, input, mui, path, ref, svg;
 
 React = require('react');
 
-ref = React.DOM, div = ref.div, input = ref.input;
+ref = React.DOM, div = ref.div, input = ref.input, svg = ref.svg, path = ref.path;
+
+mui = require('material-ui');
+
+ThemeManager = new mui.Styles.ThemeManager();
+
+ThemeManager.setTheme(ThemeManager.types.LIGHT);
+
+TextField = mui.TextField, Menu = mui.Menu, MenuItem = mui.MenuItem;
 
 AwesomeIcons = require('./awesomeIcons');
 
@@ -1102,6 +1110,14 @@ dataAttrName = attrName.replace(/^data-/, '').replace(/-./g, function(a) {
 });
 
 CustomSelect = React.createFactory(React.createClass({
+  childContextTypes: {
+    muiTheme: React.PropTypes.object
+  },
+  getChildContext: function() {
+    return {
+      muiTheme: ThemeManager.getCurrentTheme()
+    };
+  },
   getInitialState: function() {
     return {
       isSpinnerActive: false,
@@ -1165,11 +1181,14 @@ CustomSelect = React.createFactory(React.createClass({
   componentWillReceiveProps: function(nextProps) {
     return this.updateState(nextProps);
   },
+  getInputNode: function() {
+    var container, ref1;
+    container = (ref1 = this.refs.inputText) != null ? ref1.getDOMNode() : void 0;
+    return container.querySelector('input');
+  },
   onSelectOption: function(selectedOption) {
-    var base, ref1;
-    if ((ref1 = this.refs.inputText) != null) {
-      ref1.getDOMNode().value = selectedOption.value;
-    }
+    var base;
+    this.getInputNode().value = selectedOption.value;
     this.setState({
       options: [selectedOption],
       mode: 'view'
@@ -1177,8 +1196,8 @@ CustomSelect = React.createFactory(React.createClass({
     return typeof (base = this.props).onSelect === "function" ? base.onSelect(selectedOption) : void 0;
   },
   onChange: function() {
-    var ref1, value;
-    value = (ref1 = this.refs.inputText) != null ? ref1.getDOMNode().value : void 0;
+    var value;
+    value = this.getInputNode().value;
     return this.setState({
       isSpinnerActive: true
     }, (function(_this) {
@@ -1220,47 +1239,41 @@ CustomSelect = React.createFactory(React.createClass({
         width: controlWidth,
         position: 'relative'
       }
-    }, div({}), input({
+    }, div({}), React.createElement(TextField, {
       ref: 'inputText',
-      onChange: this.onChange,
-      onMouseDown: this.onClickOnInput,
-      readOnly: this.props.selectType === 'static' ? true : void 0,
-      placeholder: this.props.placeholder ? this.props.placeholder : void 0,
-      style: {
-        width: controlWidth,
-        boxSizing: 'border-box',
-        marginBottom: 0,
-        backgroundColor: 'white'
-      }
+      floatingLabelText: 'Account name',
+      fullWidth: true,
+      onChange: this.onChange
     }), div({
-      onMouseDown: this.onClickOnInput,
       style: {
         position: 'absolute',
-        top: 0,
+        top: 16,
         right: 0,
+        bottom: 0,
         boxSizing: 'border-box',
-        height: '100%',
-        paddingLeft: 6,
-        width: 24,
-        paddingRight: 6,
-        borderLeft: '1px solid silver'
+        width: 24
       }
-    }, div({
+    }, svg({
+      onMouseDown: this.onClickOnInput,
       style: {
-        width: 12,
-        height: '100%',
-        backgroundImage: AwesomeIcons.getURL('caret-down'),
-        backgroundSize: 'contain',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center',
-        display: this.state.isSpinnerActive ? 'none' : ''
+        display: 'inline-block',
+        height: 24,
+        width: 24,
+        position: 'absolute',
+        top: 20,
+        right: 0,
+        fill: '#e0e0e0',
+        viewBox: '0 0 24 24',
+        cursor: 'pointer'
       }
-    }), div({
+    }, path({
+      d: 'M7 10l5 5 5-5z'
+    })), div({
       ref: 'spinnerContainer',
       style: {
         position: 'absolute',
         left: '50%',
-        top: '50%',
+        top: '55%',
         transform: 'translate(-50%, -50%)',
         backgroundColor: 'white',
         display: this.state.isSpinnerActive ? '' : 'none'
@@ -1298,7 +1311,7 @@ CustomSelect = React.createFactory(React.createClass({
 
 module.exports = CustomSelect;
 
-},{"./awesomeIcons":11,"react":326,"react/lib/DOMProperty":164,"spin":327}],13:[function(require,module,exports){
+},{"./awesomeIcons":11,"material-ui":47,"react":326,"react/lib/DOMProperty":164,"spin":327}],13:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};

@@ -1,6 +1,12 @@
 React = require 'react'
 
-{ div, input } = React.DOM
+{ div, input, svg, path } = React.DOM
+
+mui = require 'material-ui'
+ThemeManager = new mui.Styles.ThemeManager()
+ThemeManager.setTheme ThemeManager.types.LIGHT
+
+{ TextField, Menu, MenuItem } = mui
 
 AwesomeIcons = require './awesomeIcons'
 
@@ -34,6 +40,14 @@ attrName = require('react/lib/DOMProperty').ID_ATTRIBUTE_NAME
 dataAttrName = attrName.replace(/^data-/, '').replace /-./g, (a) -> a.slice(1).toUpperCase()
 
 CustomSelect = React.createFactory React.createClass
+  #needed for mui ThemeManager
+  childContextTypes:
+    muiTheme: React.PropTypes.object
+
+  #needed for mui ThemeManager
+  getChildContext: () ->
+    muiTheme: ThemeManager.getCurrentTheme()
+
   getInitialState: ->
     isSpinnerActive: false
     textBoxValue: ''
@@ -88,13 +102,17 @@ CustomSelect = React.createFactory React.createClass
   componentWillReceiveProps: (nextProps) ->
     @updateState nextProps
 
+  getInputNode: ->
+    container = @refs.inputText?.getDOMNode()
+    container.querySelector 'input'
+
   onSelectOption: (selectedOption) ->
-    @refs.inputText?.getDOMNode().value = selectedOption.value
+    @getInputNode().value = selectedOption.value
     @setState { options: [selectedOption], mode: 'view' }
     @props.onSelect?(selectedOption)
 
   onChange: ->
-    value = @refs.inputText?.getDOMNode().value
+    value = @getInputNode().value
     @setState { isSpinnerActive: true }, =>
       @props.onChange?(value)
       .then (newOptions) =>
@@ -125,54 +143,63 @@ CustomSelect = React.createFactory React.createClass
         position: 'relative'
     },
       div {}
-        input {
+        # input {
+        #   ref: 'inputText'
+        #
+        #   onChange: @onChange
+        #   onMouseDown: @onClickOnInput
+        #
+        #   readOnly: true if @props.selectType is 'static'
+        #
+        #   placeholder: @props.placeholder if @props.placeholder
+        #
+        #   style:
+        #     width: controlWidth
+        #     boxSizing: 'border-box'
+        #     marginBottom: 0
+        #     backgroundColor: 'white'
+        # }
+
+        React.createElement TextField, {
           ref: 'inputText'
 
+          floatingLabelText: 'Account name'
+          # value: @state.clientEmail
+          fullWidth: true
           onChange: @onChange
-          onMouseDown: @onClickOnInput
-
-          readOnly: true if @props.selectType is 'static'
-
-          placeholder: @props.placeholder if @props.placeholder
-
-          style:
-            width: controlWidth
-            boxSizing: 'border-box'
-            marginBottom: 0
-            backgroundColor: 'white'
         }
 
         div {
-          onMouseDown: @onClickOnInput
-
           style:
             position: 'absolute'
-            top: 0
+            top: 16
             right: 0
+            bottom: 0
             boxSizing: 'border-box'
-            height: '100%'
-            paddingLeft: 6
             width: 24
-            paddingRight: 6
-            borderLeft: '1px solid silver'
         },
-          div {
+
+          svg {
+            onMouseDown: @onClickOnInput
             style:
-              width: 12
-              height: '100%'
-              backgroundImage: AwesomeIcons.getURL('caret-down')
-              backgroundSize: 'contain'
-              backgroundRepeat: 'no-repeat'
-              backgroundPosition: 'center'
-              display: if @state.isSpinnerActive then 'none' else ''
-          }
+              display: 'inline-block'
+              height: 24
+              width: 24
+              position: 'absolute'
+              top: 20
+              right: 0
+              fill: '#e0e0e0'
+              viewBox: '0 0 24 24'
+              cursor: 'pointer'
+          },
+            path { d: 'M7 10l5 5 5-5z'}
 
           div {
             ref: 'spinnerContainer'
             style:
               position: 'absolute'
               left: '50%'
-              top: '50%'
+              top: '55%'
               transform: 'translate(-50%, -50%)'
               backgroundColor: 'white'
               display: if @state.isSpinnerActive then '' else 'none'
