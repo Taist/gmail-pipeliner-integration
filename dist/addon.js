@@ -1051,7 +1051,7 @@ module.exports = {
 };
 
 },{}],12:[function(require,module,exports){
-var AwesomeIcons, CustomSelect, CustomSelectOption, Menu, MenuItem, React, Spinner, TextField, ThemeManager, attrName, dataAttrName, div, input, mui, path, ref, svg;
+var AwesomeIcons, CustomSelect, CustomSelectOption, Paper, React, Spinner, TextField, ThemeManager, attrName, dataAttrName, div, input, mui, path, ref, svg;
 
 React = require('react');
 
@@ -1063,7 +1063,7 @@ ThemeManager = new mui.Styles.ThemeManager();
 
 ThemeManager.setTheme(ThemeManager.types.LIGHT);
 
-TextField = mui.TextField, Menu = mui.Menu, MenuItem = mui.MenuItem;
+TextField = mui.TextField, Paper = mui.Paper;
 
 AwesomeIcons = require('./awesomeIcons');
 
@@ -1095,7 +1095,7 @@ CustomSelectOption = React.createFactory(React.createClass({
       onMouseEnter: this.onMouseEnter,
       onMouseLeave: this.onMouseLeave,
       style: {
-        padding: "2px 16px 2px 4px",
+        padding: "4px 16px 4px 4px",
         backgroundColor: this.state.backgroundColor,
         whiteSpace: 'nowrap'
       }
@@ -1239,7 +1239,7 @@ CustomSelect = React.createFactory(React.createClass({
         width: controlWidth,
         position: 'relative'
       }
-    }, div({}), React.createElement(TextField, {
+    }, div({}, React.createElement(TextField, {
       ref: 'inputText',
       floatingLabelText: 'Account name',
       fullWidth: true,
@@ -1278,12 +1278,15 @@ CustomSelect = React.createFactory(React.createClass({
         backgroundColor: 'white',
         display: this.state.isSpinnerActive ? '' : 'none'
       }
-    })), this.state.mode === 'select' && ((ref1 = this.state.options) != null ? ref1.length : void 0) > 0 ? div({
+    }))), this.state.mode === 'select' && ((ref1 = this.state.options) != null ? ref1.length : void 0) > 0 ? React.createElement(Paper, {
+      circle: false,
+      rounded: true,
+      tabIndex: '0',
+      transitionEnabled: true,
+      zDepth: 1,
       ref: 'optionsContainer',
       style: {
         position: 'absolute',
-        border: '1px solid silver',
-        borderRadius: 3,
         width: controlWidth,
         cursor: 'pointer',
         zIndex: 1024,

@@ -6,7 +6,7 @@ mui = require 'material-ui'
 ThemeManager = new mui.Styles.ThemeManager()
 ThemeManager.setTheme ThemeManager.types.LIGHT
 
-{ TextField, Menu, MenuItem } = mui
+{ TextField, Paper } = mui
 
 AwesomeIcons = require './awesomeIcons'
 
@@ -31,7 +31,7 @@ CustomSelectOption = React.createFactory React.createClass
       onMouseEnter: @onMouseEnter
       onMouseLeave: @onMouseLeave
       style:
-        padding: "2px 16px 2px 4px"
+        padding: "4px 16px 4px 4px"
         backgroundColor: @state.backgroundColor
         whiteSpace: 'nowrap'
     }, @props.value
@@ -142,24 +142,7 @@ CustomSelect = React.createFactory React.createClass
         width: controlWidth
         position: 'relative'
     },
-      div {}
-        # input {
-        #   ref: 'inputText'
-        #
-        #   onChange: @onChange
-        #   onMouseDown: @onClickOnInput
-        #
-        #   readOnly: true if @props.selectType is 'static'
-        #
-        #   placeholder: @props.placeholder if @props.placeholder
-        #
-        #   style:
-        #     width: controlWidth
-        #     boxSizing: 'border-box'
-        #     marginBottom: 0
-        #     backgroundColor: 'white'
-        # }
-
+      div {},
         React.createElement TextField, {
           ref: 'inputText'
 
@@ -205,14 +188,17 @@ CustomSelect = React.createFactory React.createClass
               display: if @state.isSpinnerActive then '' else 'none'
           }
 
-
       if @state.mode is 'select' and @state.options?.length > 0
-        div {
+        React.createElement Paper, {
+          circle: false
+          rounded: true
+          tabIndex: '0'
+          transitionEnabled: true
+          zDepth: 1
+
           ref: 'optionsContainer'
           style:
             position: 'absolute'
-            border: '1px solid silver'
-            borderRadius: 3
             width: controlWidth
             cursor: 'pointer'
             zIndex: 1024
