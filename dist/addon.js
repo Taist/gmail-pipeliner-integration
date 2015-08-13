@@ -606,6 +606,7 @@ GmailContactForm = React.createFactory(React.createClass({
       clientEmail: '',
       clientPhone: '',
       clientCompany: '',
+      accountName: '',
       selectedAccount: null
     };
   },
@@ -658,6 +659,13 @@ GmailContactForm = React.createFactory(React.createClass({
       selectedAccount: selectedAccount
     });
   },
+  onChangeAccountName: function(accountName) {
+    this.setState({
+      selectedAccount: null,
+      accountName: accountName
+    });
+    return this.props.actions.onChangeAccountName(accountName);
+  },
   onCreateContact: function() {
     if ((this.state.selectedClient != null) && (this.state.selectedSalesUnit != null)) {
       return this.props.actions.onCreateContact(this.state.selectedClient, this.state.selectedSalesUnit, {
@@ -670,6 +678,9 @@ GmailContactForm = React.createFactory(React.createClass({
     } else {
       return this.props.actions.showMessage('Please select client and sales unit');
     }
+  },
+  onCreateAccount: function() {
+    return console.log('onCreateAccount');
   },
   render: function() {
     var ref1;
@@ -702,9 +713,17 @@ GmailContactForm = React.createFactory(React.createClass({
     }, CustomSelect({
       selectType: 'search',
       onSelect: this.onSelectAccount,
-      onChange: this.props.actions.onChangeAccountName,
+      onChange: this.onChangeAccountName,
       placeholder: 'Start typing to find an account'
-    }))), div({
+    }), div({
+      style: {
+        textAlign: 'right'
+      }
+    }, React.createElement(RaisedButton, {
+      label: 'Create new account',
+      onClick: this.onCreateAccount,
+      disabled: (this.state.selectedAccount != null) || this.state.accountName.length < 1
+    })))), div({
       className: 'section group'
     }, div({
       className: 'col span_1_of_2'
