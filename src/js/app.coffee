@@ -42,9 +42,9 @@ app =
           updatedData
 
   container: null
-  render: ->
+  render: (options) ->
     gMailBlock = require './react/gmailBlock'
-    React.render ( gMailBlock data: appData, actions: app.actions ), app.container
+    React.render ( gMailBlock data: appData, actions: app.actions, options: options ), app.container
 
   messageContainer: null
   renderMessage: ( message ) ->
@@ -82,7 +82,7 @@ app =
     onChangeMail: (participants = []) ->
       appData.participants = participants.filter (person) ->
         !appData.clients.filter((client) -> client.EMAIL is person.email).length
-      app.render()
+      app.render activeView: 'main'
 
     onHide: () ->
       app.container.style.display = 'none';
@@ -98,7 +98,7 @@ app =
         accounts = result.map (account) =>
           { id: account.ID, value: account.ORGANIZATION }
         accounts.sort (a, b) =>
-          if a.value.toLowerCase() < b.value.toLowerCase() then -1 else 1  
+          if a.value.toLowerCase() < b.value.toLowerCase() then -1 else 1
         accounts
       .catch (error) ->
         console.log error

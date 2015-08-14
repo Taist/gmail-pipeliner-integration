@@ -178,12 +178,13 @@ app = {
     };
   },
   container: null,
-  render: function() {
+  render: function(options) {
     var gMailBlock;
     gMailBlock = require('./react/gmailBlock');
     return React.render(gMailBlock({
       data: appData,
-      actions: app.actions
+      actions: app.actions,
+      options: options
     }), app.container);
   },
   messageContainer: null,
@@ -237,7 +238,9 @@ app = {
           return client.EMAIL === person.email;
         }).length;
       });
-      return app.render();
+      return app.render({
+        activeView: 'main'
+      });
     },
     onHide: function() {
       return app.container.style.display = 'none';
@@ -486,6 +489,15 @@ GmailBlock = React.createFactory(React.createClass({
     return {
       muiTheme: ThemeManager.getCurrentTheme()
     };
+  },
+  componentWillReceiveProps: function(newProps) {
+    var ref1;
+    console.log(newProps);
+    if (((ref1 = newProps.options) != null ? ref1.activeView : void 0) != null) {
+      return this.setState({
+        activeView: newProps.options.activeView
+      });
+    }
   },
   backToMain: function() {
     return this.setState({
