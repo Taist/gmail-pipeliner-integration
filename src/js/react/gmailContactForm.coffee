@@ -82,7 +82,10 @@ GmailContactForm = React.createFactory React.createClass
       @props.actions.showMessage 'Please select client and sales unit'
 
   onCreateAccount: ->
-    console.log 'onCreateAccount'
+    if @state.selectedClient? and @state.selectedSalesUnit?
+      @props.actions.onCreateAccount? @state.selectedClient, @state.selectedSalesUnit, @state.accountName
+    else
+      @props.actions.showMessage 'Please select client and sales unit'
 
   render: ->
     div {},

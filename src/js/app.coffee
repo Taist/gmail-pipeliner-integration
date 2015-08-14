@@ -104,6 +104,24 @@ app =
         console.log error
         []
 
+    onCreateAccount: (selectedClient, selectedSalesUnit, accountName) ->
+      accountData =
+        OWNER_ID: selectedClient.ID # mandatory field
+        SALES_UNIT_ID: selectedSalesUnit.ID # mandatory field
+        ORGANIZATION: accountName
+
+      app.pipelinerAPI.createAccount(accountData)
+      .then (account) ->
+        app.renderMessage 'Account successfully created'
+        account.value = accountName
+        account
+
+      .catch (error) ->
+        console.log error
+        app.renderMessage error.toString()
+
+
+
     onCreateContact: (selectedClient, selectedSalesUnit, formData) ->
       Q.all(
           []

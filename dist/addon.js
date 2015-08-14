@@ -276,6 +276,22 @@ app = {
         return [];
       });
     },
+    onCreateAccount: function(selectedClient, selectedSalesUnit, accountName) {
+      var accountData;
+      accountData = {
+        OWNER_ID: selectedClient.ID,
+        SALES_UNIT_ID: selectedSalesUnit.ID,
+        ORGANIZATION: accountName
+      };
+      return app.pipelinerAPI.createAccount(accountData).then(function(account) {
+        app.renderMessage('Account successfully created');
+        account.value = accountName;
+        return account;
+      })["catch"](function(error) {
+        console.log(error);
+        return app.renderMessage(error.toString());
+      });
+    },
     onCreateContact: function(selectedClient, selectedSalesUnit, formData) {
       return Q.all([]).spread(function() {
         var contactData;
@@ -692,7 +708,12 @@ GmailContactForm = React.createFactory(React.createClass({
     }
   },
   onCreateAccount: function() {
-    return console.log('onCreateAccount');
+    var base;
+    if ((this.state.selectedClient != null) && (this.state.selectedSalesUnit != null)) {
+      return typeof (base = this.props.actions).onCreateAccount === "function" ? base.onCreateAccount(this.state.selectedClient, this.state.selectedSalesUnit, this.state.accountName) : void 0;
+    } else {
+      return this.props.actions.showMessage('Please select client and sales unit');
+    }
   },
   render: function() {
     var ref1;
