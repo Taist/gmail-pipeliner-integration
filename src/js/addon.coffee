@@ -88,6 +88,10 @@ addonEntry =
           .then (contacts) ->
             app.actions.onUpdateContacts contacts
 
+          app.exapi.getCompanyData "Lead_#{mailId}"
+          .then (lead) ->
+            app.actions.onLeadInfoUpdated lead
+
         app.actions.onChangeMail participants
 
     .catch (err) ->

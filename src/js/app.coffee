@@ -16,6 +16,8 @@ appData =
   contacts: []
   participants: []
 
+  attachedLead: null
+
 app =
   api: null
   exapi: {}
@@ -91,6 +93,10 @@ app =
       appData.contacts = contacts
       app.render()
 
+    onLeadInfoUpdated: (leadInfo) ->
+      appData.attachedLead = leadInfo
+      app.render()
+
     onChangeAccountName: (accountName) ->
       app.pipelinerAPI.findAccounts accountName
       .then (result) ->
@@ -156,6 +162,10 @@ app =
         }]
       }
       app.pipelinerAPI.postRequest 'Leads', leadData
+
+      .then (lead) ->
+        mailId = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)?[1]
+        app.exapi.setCompanyData "Lead_#{mailId}", lead
 
       .then () ->
         app.renderMessage 'Lead successfully created'

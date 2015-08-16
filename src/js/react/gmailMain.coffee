@@ -54,9 +54,12 @@ GMailMain = React.createFactory React.createClass
       }
 
       h3 {}, 'Lead'
-        React.createElement RaisedButton, {
-          label: 'Create lead'
-          onClick: @props.reactActions.onClickCreateLeadButton
-        }
+        if @props.data.attachedLead?.ID?
+          div {}, @props.data.attachedLead.ID
+        else
+          React.createElement RaisedButton, {
+            label: 'Create lead'
+            onClick: @props.reactActions.onClickCreateLeadButton
+          }
 
 module.exports = GMailMain

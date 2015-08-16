@@ -152,7 +152,8 @@ appData = {
   clients: [],
   salesUnits: [],
   contacts: [],
-  participants: []
+  participants: [],
+  attachedLead: null
 };
 
 app = {
@@ -249,6 +250,10 @@ app = {
       appData.contacts = contacts;
       return app.render();
     },
+    onLeadInfoUpdated: function(leadInfo) {
+      appData.attachedLead = leadInfo;
+      return app.render();
+    },
     onChangeAccountName: function(accountName) {
       return app.pipelinerAPI.findAccounts(accountName).then(function(result) {
         var accounts;
@@ -332,7 +337,11 @@ app = {
           }
         ]
       };
-      return app.pipelinerAPI.postRequest('Leads', leadData).then(function() {
+      return app.pipelinerAPI.postRequest('Leads', leadData).then(function(lead) {
+        var mailId, ref;
+        mailId = (ref = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)) != null ? ref[1] : void 0;
+        return app.exapi.setCompanyData("Lead_" + mailId, lead);
+      }).then(function() {
         return app.renderMessage('Lead successfully created');
       })["catch"](function(error) {
         console.log(error);
@@ -1187,6 +1196,7 @@ GMailMain = React.createFactory(React.createClass({
     ));
   },
   render: function() {
+    var ref1;
     return div({}, h3({}, 'Contacts'), React.createElement(Table, {
       columnOrder: ['name', 'email', 'buttons'],
       showRowHover: true,
@@ -1221,7 +1231,7 @@ GMailMain = React.createFactory(React.createClass({
           };
         };
       })(this))
-    }), h3({}, 'Lead'), React.createElement(RaisedButton, {
+    }), h3({}, 'Lead'), ((ref1 = this.props.data.attachedLead) != null ? ref1.ID : void 0) != null ? div({}, this.props.data.attachedLead.ID) : React.createElement(RaisedButton, {
       label: 'Create lead',
       onClick: this.props.reactActions.onClickCreateLeadButton
     }));
@@ -43426,6 +43436,9 @@ addonEntry = {
           participants = app.gMailAPI.getParticipants(parent);
           app.pipelinerAPI.findContacts(participants).then(function(contacts) {
             return app.actions.onUpdateContacts(contacts);
+          });
+          app.exapi.getCompanyData("Lead_" + mailId).then(function(lead) {
+            return app.actions.onLeadInfoUpdated(lead);
           });
         }
         return app.actions.onChangeMail(participants);
