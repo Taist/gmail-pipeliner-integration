@@ -121,6 +121,9 @@ pipelinerAPI = extend(require('../helpers/apiRequestInterface'), {
     return this.getRequest('Accounts', {
       filter: filter
     });
+  },
+  getLead: function(leadId) {
+    return this.getRequest("Leads/" + leadId);
   }
 });
 
@@ -151,7 +154,7 @@ appData = {
   },
   clients: [],
   salesUnits: [],
-  contacts: [],
+  contacts: {},
   participants: [],
   attachedLead: null
 };
@@ -251,8 +254,16 @@ app = {
       return app.render();
     },
     onLeadInfoUpdated: function(leadInfo) {
-      appData.attachedLead = leadInfo;
-      return app.render();
+      if (leadInfo.ID != null) {
+        return app.pipelinerAPI.getLead(leadInfo.ID).then(function(lead) {
+          appData.attachedLead = lead;
+          return app.render();
+        })["catch"](function(error) {
+          return console.log(error);
+        });
+      } else {
+        return appData.attachedLead = null;
+      }
     },
     onChangeAccountName: function(accountName) {
       return app.pipelinerAPI.findAccounts(accountName).then(function(result) {
@@ -325,10 +336,20 @@ app = {
       });
     },
     onCreateLead: function(selectedClient, selectedSalesUnit, leadName, contactId) {
-      var leadData;
+      var _, contact, leadData, ref, selectedContact;
+      selectedContact = {};
+      ref = appData.contacts;
+      for (_ in ref) {
+        contact = ref[_];
+        if (contact.ID === contactId) {
+          selectedContact = contact;
+          break;
+        }
+      }
       leadData = {
         OWNER_ID: selectedClient.ID,
         SALES_UNIT_ID: selectedClient.DEFAULT_SALES_UNIT_ID,
+        QUICK_CONTACT_NAME: selectedContact.FIRST_NAME + " " + selectedContact.SURNAME,
         OPPORTUNITY_NAME: leadName,
         CONTACT_RELATIONS: [
           {
@@ -338,8 +359,8 @@ app = {
         ]
       };
       return app.pipelinerAPI.postRequest('Leads', leadData).then(function(lead) {
-        var mailId, ref;
-        mailId = (ref = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)) != null ? ref[1] : void 0;
+        var mailId, ref1;
+        mailId = (ref1 = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)) != null ? ref1[1] : void 0;
         return app.exapi.setCompanyData("Lead_" + mailId, lead);
       }).then(function() {
         return app.renderMessage('Lead successfully created');
@@ -1231,7 +1252,7 @@ GMailMain = React.createFactory(React.createClass({
           };
         };
       })(this))
-    }), h3({}, 'Lead'), ((ref1 = this.props.data.attachedLead) != null ? ref1.ID : void 0) != null ? div({}, this.props.data.attachedLead.ID) : React.createElement(RaisedButton, {
+    }), h3({}, 'Lead'), ((ref1 = this.props.data.attachedLead) != null ? ref1.ID : void 0) != null ? div({}, this.props.data.attachedLead.OPPORTUNITY_NAME, ' (', this.props.data.attachedLead.QUICK_CONTACT_NAME, ')') : React.createElement(RaisedButton, {
       label: 'Create lead',
       onClick: this.props.reactActions.onClickCreateLeadButton
     }));
@@ -43407,7 +43428,6 @@ addonEntry = {
     app.container.style.display = 'none';
     app.messageContainer = document.createElement('div');
     app.renderMessage('');
-    app.container.style.display = 'block';
     return app.getPipelinerCreds().then(function() {
       return Q.all([app.pipelinerAPI.getClients(), app.pipelinerAPI.getSalesUnits()]);
     }).spread(function(clients, salesUnits) {

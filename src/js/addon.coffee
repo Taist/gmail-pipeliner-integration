@@ -41,7 +41,7 @@ addonEntry =
     app.renderMessage('')
 
     #VR FOR DEVELOPMENT ONLY
-    app.container.style.display = 'block'
+    #app.container.style.display = 'block'
 
     app.getPipelinerCreds()
 

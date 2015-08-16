@@ -13,7 +13,7 @@ appData =
     serviceURL: ''
   clients: []
   salesUnits: []
-  contacts: []
+  contacts: {}
   participants: []
 
   attachedLead: null
@@ -94,8 +94,15 @@ app =
       app.render()
 
     onLeadInfoUpdated: (leadInfo) ->
-      appData.attachedLead = leadInfo
-      app.render()
+      if leadInfo.ID?
+        app.pipelinerAPI.getLead leadInfo.ID
+        .then (lead) ->
+          appData.attachedLead = lead
+          app.render()
+        .catch (error) ->
+          console.log error
+      else
+        appData.attachedLead = null
 
     onChangeAccountName: (accountName) ->
       app.pipelinerAPI.findAccounts accountName
@@ -152,15 +159,23 @@ app =
         app.renderMessage error.toString()
 
     onCreateLead: (selectedClient, selectedSalesUnit, leadName, contactId) ->
+      selectedContact = {}
+      for _, contact of appData.contacts
+        if contact.ID is contactId
+          selectedContact = contact
+          break
+
       leadData = {
         OWNER_ID: selectedClient.ID # mandatory field
         SALES_UNIT_ID: selectedClient.DEFAULT_SALES_UNIT_ID # mandatory field
+        QUICK_CONTACT_NAME: "#{selectedContact.FIRST_NAME} #{selectedContact.SURNAME}"
         OPPORTUNITY_NAME: leadName
         CONTACT_RELATIONS: [{
           CONTACT_ID: contactId
           IS_PRIMARY: 1
         }]
       }
+
       app.pipelinerAPI.postRequest 'Leads', leadData
 
       .then (lead) ->

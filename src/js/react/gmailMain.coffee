@@ -55,7 +55,7 @@ GMailMain = React.createFactory React.createClass
 
       h3 {}, 'Lead'
         if @props.data.attachedLead?.ID?
-          div {}, @props.data.attachedLead.ID
+          div {}, @props.data.attachedLead.OPPORTUNITY_NAME, ' (', @props.data.attachedLead.QUICK_CONTACT_NAME, ')'
         else
           React.createElement RaisedButton, {
             label: 'Create lead'

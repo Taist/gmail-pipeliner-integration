@@ -70,6 +70,9 @@ pipelinerAPI = extend require('../helpers/apiRequestInterface'),
     filter = "ORGANIZATION::#{name}::ll"
     @getRequest 'Accounts', { filter }
 
+  getLead: (leadId) ->
+    @getRequest "Leads/#{leadId}"
+
 module.exports =
   init: (_app, propertyName) ->
     app = _app
