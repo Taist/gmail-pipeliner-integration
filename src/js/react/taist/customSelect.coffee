@@ -8,8 +8,6 @@ ThemeManager.setTheme ThemeManager.types.LIGHT
 
 { TextField, Paper } = mui
 
-AwesomeIcons = require './awesomeIcons'
-
 Spinner = require 'spin'
 
 CustomSelectOption = React.createFactory React.createClass
