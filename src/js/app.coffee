@@ -138,22 +138,27 @@ app =
 
       app.pipelinerAPI.createContact(contactData)
 
-      # .spread (contact, account, contactData) ->
-      #   console.log 'starts to create lead'
-      #   if formData.leadName?.length > 0
-      #     leadData = {
-      #       OWNER_ID: selectedClient.ID # mandatory field
-      #       SALES_UNIT_ID: selectedClient.DEFAULT_SALES_UNIT_ID # mandatory field
-      #       OPPORTUNITY_NAME: formData.leadName
-      #       CONTACT_RELATIONS: [{
-      #         CONTACT_ID: contact.ID
-      #         IS_PRIMARY: 1
-      #       }]
-      #     }
-      #     app.pipelinerAPI.postRequest 'Leads', leadData
-
       .then () ->
         app.renderMessage 'Contact successfully created'
+
+      .catch (error) ->
+        console.log error
+        app.renderMessage error.toString()
+
+    onCreateLead: (selectedClient, selectedSalesUnit, leadName, contactId) ->
+      leadData = {
+        OWNER_ID: selectedClient.ID # mandatory field
+        SALES_UNIT_ID: selectedClient.DEFAULT_SALES_UNIT_ID # mandatory field
+        OPPORTUNITY_NAME: leadName
+        CONTACT_RELATIONS: [{
+          CONTACT_ID: contactId
+          IS_PRIMARY: 1
+        }]
+      }
+      app.pipelinerAPI.postRequest 'Leads', leadData
+
+      .then () ->
+        app.renderMessage 'Lead successfully created'
 
       .catch (error) ->
         console.log error

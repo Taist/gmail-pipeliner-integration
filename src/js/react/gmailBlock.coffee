@@ -9,10 +9,10 @@ ThemeManager.setTheme ThemeManager.types.LIGHT
 
 { Paper, FlatButton, SvgIcon } = mui
 
+GMailMain = require './gmailMain'
 GMailContactForm = require './gmailContactForm'
 GMailCredsForm = require './gmailCredsForm'
-
-GMailMain = require './gmailMain'
+GMailLead = require './gmailLead'
 
 GmailBlock = React.createFactory React.createClass
   getInitialState: ->
@@ -40,6 +40,9 @@ GmailBlock = React.createFactory React.createClass
 
   onClickSettingsIcon: ->
     @setState activeView: 'settings'
+
+  onClickCreateLeadButton: ->
+    @setState activeView: 'createLead'
 
   render: ->
     React.createElement Paper, {
@@ -77,10 +80,15 @@ GmailBlock = React.createFactory React.createClass
 
       switch @state.activeView
         when 'main'
-          GMailMain extend {}, @props, reactActions: onClickToCRMButton: @onClickToCRMButton
+          GMailMain extend {}, @props,
+            reactActions:
+              onClickToCRMButton: @onClickToCRMButton
+              onClickCreateLeadButton: @onClickCreateLeadButton
         when 'addContact'
           GMailContactForm extend {}, @props, activePerson: @state.activePerson, reactActions: backToMain: @backToMain
         when 'settings'
           GMailCredsForm extend {}, @props, reactActions: backToMain: @backToMain
+        when 'createLead'
+          GMailLead extend {}, @props, reactActions: backToMain: @backToMain
 
 module.exports = GmailBlock

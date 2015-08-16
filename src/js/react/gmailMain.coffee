@@ -6,7 +6,7 @@ mui = require 'material-ui'
 ThemeManager = new mui.Styles.ThemeManager()
 ThemeManager.setTheme ThemeManager.types.LIGHT
 
-{ Table } = mui
+{ Table, RaisedButton } = mui
 
 GMailMain = React.createFactory React.createClass
   #needed for mui ThemeManager
@@ -52,5 +52,11 @@ GMailMain = React.createFactory React.createClass
               else
                 ''
       }
+
+      h3 {}, 'Lead'
+        React.createElement RaisedButton, {
+          label: 'Create lead'
+          onClick: @props.reactActions.onClickCreateLeadButton
+        }
 
 module.exports = GMailMain

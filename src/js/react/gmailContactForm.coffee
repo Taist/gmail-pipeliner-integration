@@ -181,7 +181,7 @@ GmailContactForm = React.createFactory React.createClass
         div { style: width: 8, display: 'inline-block' }
 
         React.createElement RaisedButton, {
-          label: 'Cancel'
+          label: 'Close'
           onClick: @props.reactActions?.backToMain
         }
 
