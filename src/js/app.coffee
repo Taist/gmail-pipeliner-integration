@@ -94,7 +94,7 @@ app =
       app.render()
 
     onLeadInfoUpdated: (leadInfo) ->
-      if leadInfo.ID?
+      if leadInfo?.ID?
         app.pipelinerAPI.getLead leadInfo.ID
         .then (lead) ->
           appData.attachedLead = lead
@@ -103,6 +103,7 @@ app =
           console.log error
       else
         appData.attachedLead = null
+        app.render()
 
     onChangeAccountName: (accountName) ->
       app.pipelinerAPI.findAccounts accountName

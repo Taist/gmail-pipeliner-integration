@@ -254,7 +254,7 @@ app = {
       return app.render();
     },
     onLeadInfoUpdated: function(leadInfo) {
-      if (leadInfo.ID != null) {
+      if ((leadInfo != null ? leadInfo.ID : void 0) != null) {
         return app.pipelinerAPI.getLead(leadInfo.ID).then(function(lead) {
           appData.attachedLead = lead;
           return app.render();
@@ -262,7 +262,8 @@ app = {
           return console.log(error);
         });
       } else {
-        return appData.attachedLead = null;
+        appData.attachedLead = null;
+        return app.render();
       }
     },
     onChangeAccountName: function(accountName) {
