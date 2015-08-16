@@ -252,7 +252,6 @@ app = {
     onChangeAccountName: function(accountName) {
       return app.pipelinerAPI.findAccounts(accountName).then(function(result) {
         var accounts;
-        console.log('onChangeAccountName', accountName, result);
         accounts = result.map((function(_this) {
           return function(account) {
             return {
@@ -285,26 +284,35 @@ app = {
       };
       return app.pipelinerAPI.createAccount(accountData).then(function(account) {
         app.renderMessage('Account successfully created');
-        account.value = accountName;
-        return account;
+        return {
+          id: account.ID,
+          value: accountName
+        };
       })["catch"](function(error) {
         console.log(error);
         return app.renderMessage(error.toString());
       });
     },
     onCreateContact: function(selectedClient, selectedSalesUnit, formData) {
-      return Q.all([]).spread(function() {
-        var contactData;
-        contactData = {
-          OWNER_ID: selectedClient.ID,
-          SALES_UNIT_ID: selectedSalesUnit.ID,
-          EMAIL1: formData.clientEmail,
-          FIRST_NAME: formData.firstName,
-          SURNAME: formData.lastName,
-          PHONE1: formData.clientPhone
-        };
-        return Q.all([app.pipelinerAPI.createContact(contactData), contactData]);
-      }).then(function() {
+      var contactData;
+      contactData = {
+        OWNER_ID: selectedClient.ID,
+        SALES_UNIT_ID: selectedSalesUnit.ID,
+        EMAIL1: formData.clientEmail,
+        FIRST_NAME: formData.firstName,
+        SURNAME: formData.lastName,
+        PHONE1: formData.clientPhone
+      };
+      if (formData.account) {
+        contactData.QUICK_ACCOUNT_NAME = formData.account.value;
+        contactData.ACCOUNT_RELATIONS = [
+          {
+            ACCOUNT_ID: formData.account.id,
+            IS_PRIMARY: 1
+          }
+        ];
+      }
+      return app.pipelinerAPI.createContact(contactData).then(function() {
         return app.renderMessage('Contact successfully created');
       })["catch"](function(error) {
         console.log(error);
@@ -701,7 +709,8 @@ GmailContactForm = React.createFactory(React.createClass({
         lastName: this.state.lastName,
         clientEmail: this.state.clientEmail,
         clientPhone: this.state.clientPhone,
-        clientCompany: this.state.clientCompany
+        clientCompany: this.state.clientCompany,
+        account: this.state.selectedAccount
       });
     } else {
       return this.props.actions.showMessage('Please select client and sales unit');
@@ -710,7 +719,12 @@ GmailContactForm = React.createFactory(React.createClass({
   onCreateAccount: function() {
     var base;
     if ((this.state.selectedClient != null) && (this.state.selectedSalesUnit != null)) {
-      return typeof (base = this.props.actions).onCreateAccount === "function" ? base.onCreateAccount(this.state.selectedClient, this.state.selectedSalesUnit, this.state.accountName) : void 0;
+      return typeof (base = this.props.actions).onCreateAccount === "function" ? base.onCreateAccount(this.state.selectedClient, this.state.selectedSalesUnit, this.state.accountName).then((function(_this) {
+        return function(createdAccount) {
+          _this.onSelectAccount(createdAccount);
+          return _this.refs.accountSelector.updateOptions([createdAccount]);
+        };
+      })(this)) : void 0;
     } else {
       return this.props.actions.showMessage('Please select client and sales unit');
     }
@@ -744,6 +758,7 @@ GmailContactForm = React.createFactory(React.createClass({
     }))), div({
       className: 'col span_1_of_2'
     }, CustomSelect({
+      ref: 'accountSelector',
       selectType: 'search',
       onSelect: this.onSelectAccount,
       onChange: this.onChangeAccountName,
@@ -1266,6 +1281,14 @@ CustomSelect = React.createFactory(React.createClass({
         }) : void 0;
       };
     })(this));
+  },
+  updateOptions: function(newOptions) {
+    console.log('updateOptions', newOptions);
+    return this.setState({
+      options: newOptions,
+      isSpinnerActive: false,
+      mode: 'select'
+    });
   },
   onClickOnInput: function() {
     return this.setState({

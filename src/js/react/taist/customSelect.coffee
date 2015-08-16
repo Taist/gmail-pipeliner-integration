@@ -120,6 +120,10 @@ CustomSelect = React.createFactory React.createClass
       .catch (error) =>
         console.log error
 
+  updateOptions: (newOptions) ->
+    console.log 'updateOptions', newOptions
+    @setState { options: newOptions, isSpinnerActive: false, mode: 'select' }
+
   onClickOnInput: ->
     @setState { mode: 'select' }, =>
 

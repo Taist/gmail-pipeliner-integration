@@ -94,7 +94,6 @@ app =
     onChangeAccountName: (accountName) ->
       app.pipelinerAPI.findAccounts accountName
       .then (result) ->
-        console.log 'onChangeAccountName', accountName, result
         accounts = result.map (account) =>
           { id: account.ID, value: account.ORGANIZATION }
         accounts.sort (a, b) =>
@@ -113,30 +112,31 @@ app =
       app.pipelinerAPI.createAccount(accountData)
       .then (account) ->
         app.renderMessage 'Account successfully created'
-        account.value = accountName
-        account
+        { id: account.ID, value: accountName }
 
       .catch (error) ->
         console.log error
         app.renderMessage error.toString()
 
 
-
     onCreateContact: (selectedClient, selectedSalesUnit, formData) ->
-      Q.all(
-          []
-      )
+      contactData = {
+        OWNER_ID: selectedClient.ID # mandatory field
+        SALES_UNIT_ID: selectedSalesUnit.ID # mandatory field
+        EMAIL1: formData.clientEmail
+        FIRST_NAME: formData.firstName
+        SURNAME: formData.lastName
+        PHONE1: formData.clientPhone
+      }
 
-      .spread () ->
-        contactData = {
-          OWNER_ID: selectedClient.ID # mandatory field
-          SALES_UNIT_ID: selectedSalesUnit.ID # mandatory field
-          EMAIL1: formData.clientEmail
-          FIRST_NAME: formData.firstName
-          SURNAME: formData.lastName
-          PHONE1: formData.clientPhone
-        }
-        Q.all [ app.pipelinerAPI.createContact(contactData), contactData ]
+      if formData.account
+        contactData.QUICK_ACCOUNT_NAME = formData.account.value
+        contactData.ACCOUNT_RELATIONS = [{
+          ACCOUNT_ID: formData.account.id
+          IS_PRIMARY: 1
+        }]
+
+      app.pipelinerAPI.createContact(contactData)
 
       # .spread (contact, account, contactData) ->
       #   console.log 'starts to create lead'
@@ -151,27 +151,6 @@ app =
       #       }]
       #     }
       #     app.pipelinerAPI.postRequest 'Leads', leadData
-
-      # .spread (contact, account, contactData) ->
-      #   Q.all [
-      #     contact,
-      #     account,
-      #     contactData,
-      #     app.pipelinerAPI.postRequest 'AddressbookRelations', {
-      #       ACCOUNT_ID: account.ID
-      #       CONTACT_ID: contact.ID
-      #       PARENT_CONTACT_ID: 'ROOT'
-      #       IS_PRIMARY: 1
-      #     }
-      #   ]
-
-      # .spread (contact, account, contactData) ->
-      #   if account.ID?
-      #     contactData.ACCOUNT_RELATIONS = [{
-      #       ACCOUNT_ID: account.ID
-      #       IS_PRIMARY: 1
-      #     }]
-      #   app.pipelinerAPI.putRequest "Contacts/#{contact.ID}", contactData
 
       .then () ->
         app.renderMessage 'Contact successfully created'

@@ -77,6 +77,7 @@ GmailContactForm = React.createFactory React.createClass
           clientEmail: @state.clientEmail
           clientPhone: @state.clientPhone
           clientCompany: @state.clientCompany
+          account: @state.selectedAccount
         }
     else
       @props.actions.showMessage 'Please select client and sales unit'
@@ -84,6 +85,10 @@ GmailContactForm = React.createFactory React.createClass
   onCreateAccount: ->
     if @state.selectedClient? and @state.selectedSalesUnit?
       @props.actions.onCreateAccount? @state.selectedClient, @state.selectedSalesUnit, @state.accountName
+      .then (createdAccount) =>
+        @onSelectAccount createdAccount
+        @refs.accountSelector.updateOptions [createdAccount]
+
     else
       @props.actions.showMessage 'Please select client and sales unit'
 
@@ -117,18 +122,13 @@ GmailContactForm = React.createFactory React.createClass
 
         div { className: 'col span_1_of_2' },
           CustomSelect {
+            ref: 'accountSelector'
             selectType: 'search'
             onSelect: @onSelectAccount
             onChange: @onChangeAccountName
             placeholder: 'Start typing to find an account'
           }
 
-          # React.createElement TextField, {
-          #   floatingLabelText: "Company"
-          #   value: @state.clientCompany
-          #   fullWidth: true
-          #   onChange: (event, value) => @onChange 'clientCompany', event, value
-          # }
           div { style: textAlign: 'right'},
             React.createElement RaisedButton, {
               label: 'Create new account'
