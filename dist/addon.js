@@ -813,7 +813,7 @@ GmailContactForm = React.createFactory(React.createClass({
       menuItems: this.props.data.clients,
       valueMember: 'ID',
       displayMember: 'name',
-      floatingLabelText: 'Selected Client',
+      floatingLabelText: 'Client',
       value: this.state.selectedClient,
       onChange: this.onSelectClient,
       fullWidth: true
@@ -823,7 +823,7 @@ GmailContactForm = React.createFactory(React.createClass({
       menuItems: this.props.data.salesUnits,
       valueMember: 'ID',
       displayMember: 'SALES_UNIT_NAME',
-      floatingLabelText: 'Selected Sales Unit',
+      floatingLabelText: 'Sales Unit',
       value: this.state.selectedSalesUnit,
       onChange: this.onSelectSalesUnit,
       fullWidth: true
@@ -1126,7 +1126,7 @@ GMailLead = React.createFactory(React.createClass({
       menuItems: this.props.data.clients,
       valueMember: 'ID',
       displayMember: 'name',
-      floatingLabelText: 'Selected Client',
+      floatingLabelText: 'Client',
       value: this.state.selectedClient,
       onChange: this.onSelectClient,
       fullWidth: true
@@ -1136,7 +1136,7 @@ GMailLead = React.createFactory(React.createClass({
       menuItems: this.props.data.salesUnits,
       valueMember: 'ID',
       displayMember: 'SALES_UNIT_NAME',
-      floatingLabelText: 'Selected Sales Unit',
+      floatingLabelText: 'Sales Unit',
       value: this.state.selectedSalesUnit,
       onChange: this.onSelectSalesUnit,
       fullWidth: true

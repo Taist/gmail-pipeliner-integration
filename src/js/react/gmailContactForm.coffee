@@ -103,7 +103,7 @@ GmailContactForm = React.createFactory React.createClass
               menuItems: @props.data.clients
               valueMember: 'ID'
               displayMember: 'name'
-              floatingLabelText: 'Selected Client'
+              floatingLabelText: 'Client'
               value: @state.selectedClient
               onChange: @onSelectClient
               fullWidth: true
@@ -114,7 +114,7 @@ GmailContactForm = React.createFactory React.createClass
               menuItems: @props.data.salesUnits
               valueMember: 'ID'
               displayMember: 'SALES_UNIT_NAME'
-              floatingLabelText: 'Selected Sales Unit'
+              floatingLabelText: 'Sales Unit'
               value: @state.selectedSalesUnit
               onChange: @onSelectSalesUnit
               fullWidth: true
