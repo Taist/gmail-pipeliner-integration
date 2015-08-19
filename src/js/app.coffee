@@ -185,8 +185,12 @@ app =
       .then (lead) ->
         mailId = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)?[1]
         app.exapi.setCompanyData "Lead_#{mailId}", lead
+        mailId
 
-      .then () ->
+      .then (mailId) ->
+        app.exapi.getCompanyData "Lead_#{mailId}"
+        .then (lead) ->
+          app.actions.onLeadInfoUpdated lead
         app.renderMessage 'Lead successfully created'
 
       .catch (error) ->

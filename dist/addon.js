@@ -365,8 +365,12 @@ app = {
       return app.pipelinerAPI.postRequest('Leads', leadData).then(function(lead) {
         var mailId, ref1;
         mailId = (ref1 = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)) != null ? ref1[1] : void 0;
-        return app.exapi.setCompanyData("Lead_" + mailId, lead);
-      }).then(function() {
+        app.exapi.setCompanyData("Lead_" + mailId, lead);
+        return mailId;
+      }).then(function(mailId) {
+        app.exapi.getCompanyData("Lead_" + mailId).then(function(lead) {
+          return app.actions.onLeadInfoUpdated(lead);
+        });
         return app.renderMessage('Lead successfully created');
       })["catch"](function(error) {
         console.log(error);
