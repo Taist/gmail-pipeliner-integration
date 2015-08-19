@@ -154,6 +154,9 @@ app =
 
       .then () ->
         app.renderMessage 'Contact successfully created'
+        app.pipelinerAPI.findContacts appData.participants
+        .then (contacts) ->
+          app.actions.onUpdateContacts contacts
 
       .catch (error) ->
         console.log error

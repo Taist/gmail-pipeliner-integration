@@ -330,7 +330,10 @@ app = {
         ];
       }
       return app.pipelinerAPI.createContact(contactData).then(function() {
-        return app.renderMessage('Contact successfully created');
+        app.renderMessage('Contact successfully created');
+        return app.pipelinerAPI.findContacts(appData.participants).then(function(contacts) {
+          return app.actions.onUpdateContacts(contacts);
+        });
       })["catch"](function(error) {
         console.log(error);
         return app.renderMessage(error.toString());
