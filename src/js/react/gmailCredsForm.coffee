@@ -7,7 +7,7 @@ mui = require 'material-ui'
 ThemeManager = new mui.Styles.ThemeManager()
 ThemeManager.setTheme ThemeManager.types.LIGHT
 
-{ TextField, RaisedButton } = mui
+{ TextField, RaisedButton, SelectField } = mui
 
 GmailCredsForm = React.createFactory React.createClass
   #needed for mui ThemeManager
@@ -24,18 +24,32 @@ GmailCredsForm = React.createFactory React.createClass
       password: ''
       spaceID: ''
       serviceURL: ''
+
+      selectedClient: null
     }
 
+  updateComponent: (newProps) ->
+    creds = newProps.data.pipelinerCreds
+    @setState creds, =>
+      if newProps.data.pipelinerCreds.selectedClient?.name?
+        @refs.clientSelector.getDOMNode()
+        .querySelector("div")
+        .querySelector("div div:nth-child(3)")
+        .innerText = newProps.data.pipelinerCreds.selectedClient.name
+
   componentDidMount: () ->
-    @setState @props.data.pipelinerCreds
+    @updateComponent @props
 
   componentWillReceiveProps: (newProps) ->
-    @setState newProps.data.pipelinerCreds
+    @updateComponent newProps
 
   onChange: (fieldName, event) ->
     valueObj = {}
     valueObj[fieldName] = event.target.value
     @setState valueObj
+
+  onSelectClient: (event, index, selectedClient) ->
+    @setState { selectedClient }
 
   render: ->
     div {},
@@ -43,6 +57,19 @@ GmailCredsForm = React.createFactory React.createClass
       div { className: 'section group' },
 
         div { className: 'col span_1_of_2' },
+          div { className: 'selectFieldWrapper' },
+            React.createElement SelectField, {
+              ref: 'clientSelector'
+              menuItems: @props.data.clients
+              valueMember: 'ID'
+              displayMember: 'name'
+              floatingLabelText: 'Client'
+              defaultValue: @props.data.pipelinerCreds?.selectedClient?.name
+              value: @state.selectedClient
+              onChange: @onSelectClient
+              fullWidth: true
+            }
+
           React.createElement TextField, {
             floatingLabelText: 'API Token'
             value: @state.token

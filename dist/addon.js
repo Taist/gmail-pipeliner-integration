@@ -292,8 +292,13 @@ app = {
         return [];
       });
     },
-    onCreateAccount: function(selectedClient, selectedSalesUnit, accountName) {
-      var accountData;
+    onCreateAccount: function(selectedSalesUnit, accountName) {
+      var accountData, selectedClient;
+      selectedClient = appData.pipelinerCreds.selectedClient;
+      if ((selectedClient != null ? selectedClient.ID : void 0) == null) {
+        app.renderMessage('Please select client on the settings page');
+        return;
+      }
       accountData = {
         OWNER_ID: selectedClient.ID,
         SALES_UNIT_ID: selectedSalesUnit.ID,
@@ -310,8 +315,13 @@ app = {
         return app.renderMessage(error.toString());
       });
     },
-    onCreateContact: function(selectedClient, selectedSalesUnit, formData) {
-      var contactData;
+    onCreateContact: function(selectedSalesUnit, formData) {
+      var contactData, selectedClient;
+      selectedClient = appData.pipelinerCreds.selectedClient;
+      if ((selectedClient != null ? selectedClient.ID : void 0) == null) {
+        app.renderMessage('Please select client on the settings page');
+        return;
+      }
       contactData = {
         OWNER_ID: selectedClient.ID,
         SALES_UNIT_ID: selectedSalesUnit.ID,
@@ -339,8 +349,13 @@ app = {
         return app.renderMessage(error.toString());
       });
     },
-    onCreateLead: function(selectedClient, selectedSalesUnit, leadName, contactId) {
-      var _, contact, leadData, ref, selectedContact;
+    onCreateLead: function(selectedSalesUnit, leadName, contactId) {
+      var _, contact, leadData, ref, selectedClient, selectedContact;
+      selectedClient = appData.pipelinerCreds.selectedClient;
+      if ((selectedClient != null ? selectedClient.ID : void 0) == null) {
+        app.renderMessage('Please select client on the settings page');
+        return;
+      }
       selectedContact = {};
       ref = appData.contacts;
       for (_ in ref) {
@@ -706,7 +721,6 @@ GmailContactForm = React.createFactory(React.createClass({
   getInitialState: function() {
     var state;
     return state = {
-      selectedClient: null,
       selectedSalesUnit: null,
       selectedContact: null,
       firstName: '',
@@ -721,7 +735,6 @@ GmailContactForm = React.createFactory(React.createClass({
   updateComponent: function(newProps) {
     var newState;
     newState = this.getInitialState();
-    newState.selectedClient = this.state.selectedClient;
     newState.selectedSalesUnit = this.state.selectedSalesUnit;
     return this.setState({
       newState: newState,
@@ -745,11 +758,6 @@ GmailContactForm = React.createFactory(React.createClass({
   },
   componentWillReceiveProps: function(newProps) {
     return this.updateComponent(newProps);
-  },
-  onSelectClient: function(event, index, selectedClient) {
-    return this.setState({
-      selectedClient: selectedClient
-    });
   },
   onSelectSalesUnit: function(event, index, selectedSalesUnit) {
     return this.setState({
@@ -775,8 +783,8 @@ GmailContactForm = React.createFactory(React.createClass({
     return this.props.actions.onChangeAccountName(accountName);
   },
   onCreateContact: function() {
-    if ((this.state.selectedClient != null) && (this.state.selectedSalesUnit != null)) {
-      return this.props.actions.onCreateContact(this.state.selectedClient, this.state.selectedSalesUnit, {
+    if (this.state.selectedSalesUnit != null) {
+      return this.props.actions.onCreateContact(this.state.selectedSalesUnit, {
         firstName: this.state.firstName,
         lastName: this.state.lastName,
         clientEmail: this.state.clientEmail,
@@ -785,20 +793,20 @@ GmailContactForm = React.createFactory(React.createClass({
         account: this.state.selectedAccount
       });
     } else {
-      return this.props.actions.showMessage('Please select client and sales unit');
+      return this.props.actions.showMessage('Please select sales unit');
     }
   },
   onCreateAccount: function() {
     var base;
-    if ((this.state.selectedClient != null) && (this.state.selectedSalesUnit != null)) {
-      return typeof (base = this.props.actions).onCreateAccount === "function" ? base.onCreateAccount(this.state.selectedClient, this.state.selectedSalesUnit, this.state.accountName).then((function(_this) {
+    if (this.state.selectedSalesUnit != null) {
+      return typeof (base = this.props.actions).onCreateAccount === "function" ? base.onCreateAccount(this.state.selectedSalesUnit, this.state.accountName).then((function(_this) {
         return function(createdAccount) {
           _this.onSelectAccount(createdAccount);
           return _this.refs.accountSelector.updateOptions([createdAccount]);
         };
       })(this)) : void 0;
     } else {
-      return this.props.actions.showMessage('Please select client and sales unit');
+      return this.props.actions.showMessage('Please select sales unit');
     }
   },
   render: function() {
@@ -808,16 +816,6 @@ GmailContactForm = React.createFactory(React.createClass({
     }, div({
       className: 'col span_1_of_2'
     }, div({
-      className: 'selectFieldWrapper'
-    }, React.createElement(SelectField, {
-      menuItems: this.props.data.clients,
-      valueMember: 'ID',
-      displayMember: 'name',
-      floatingLabelText: 'Client',
-      value: this.state.selectedClient,
-      onChange: this.onSelectClient,
-      fullWidth: true
-    })), div({
       className: 'selectFieldWrapper'
     }, React.createElement(SelectField, {
       menuItems: this.props.data.salesUnits,
@@ -908,7 +906,7 @@ GmailContactForm = React.createFactory(React.createClass({
 module.exports = GmailContactForm;
 
 },{"./taist/customSelect":12,"material-ui":47,"react":326}],8:[function(require,module,exports){
-var GmailCredsForm, RaisedButton, React, TextField, ThemeManager, div, extend, h3, mui, ref;
+var GmailCredsForm, RaisedButton, React, SelectField, TextField, ThemeManager, div, extend, h3, mui, ref;
 
 React = require('react');
 
@@ -922,7 +920,7 @@ ThemeManager = new mui.Styles.ThemeManager();
 
 ThemeManager.setTheme(ThemeManager.types.LIGHT);
 
-TextField = mui.TextField, RaisedButton = mui.RaisedButton;
+TextField = mui.TextField, RaisedButton = mui.RaisedButton, SelectField = mui.SelectField;
 
 GmailCredsForm = React.createFactory(React.createClass({
   childContextTypes: {
@@ -939,14 +937,27 @@ GmailCredsForm = React.createFactory(React.createClass({
       token: '',
       password: '',
       spaceID: '',
-      serviceURL: ''
+      serviceURL: '',
+      selectedClient: null
     };
   },
+  updateComponent: function(newProps) {
+    var creds;
+    creds = newProps.data.pipelinerCreds;
+    return this.setState(creds, (function(_this) {
+      return function() {
+        var ref1;
+        if (((ref1 = newProps.data.pipelinerCreds.selectedClient) != null ? ref1.name : void 0) != null) {
+          return _this.refs.clientSelector.getDOMNode().querySelector("div").querySelector("div div:nth-child(3)").innerText = newProps.data.pipelinerCreds.selectedClient.name;
+        }
+      };
+    })(this));
+  },
   componentDidMount: function() {
-    return this.setState(this.props.data.pipelinerCreds);
+    return this.updateComponent(this.props);
   },
   componentWillReceiveProps: function(newProps) {
-    return this.setState(newProps.data.pipelinerCreds);
+    return this.updateComponent(newProps);
   },
   onChange: function(fieldName, event) {
     var valueObj;
@@ -954,13 +965,30 @@ GmailCredsForm = React.createFactory(React.createClass({
     valueObj[fieldName] = event.target.value;
     return this.setState(valueObj);
   },
+  onSelectClient: function(event, index, selectedClient) {
+    return this.setState({
+      selectedClient: selectedClient
+    });
+  },
   render: function() {
-    var ref1;
+    var ref1, ref2, ref3;
     return div({}, h3({}, 'Settings'), div({
       className: 'section group'
     }, div({
       className: 'col span_1_of_2'
-    }, React.createElement(TextField, {
+    }, div({
+      className: 'selectFieldWrapper'
+    }, React.createElement(SelectField, {
+      ref: 'clientSelector',
+      menuItems: this.props.data.clients,
+      valueMember: 'ID',
+      displayMember: 'name',
+      floatingLabelText: 'Client',
+      defaultValue: (ref1 = this.props.data.pipelinerCreds) != null ? (ref2 = ref1.selectedClient) != null ? ref2.name : void 0 : void 0,
+      value: this.state.selectedClient,
+      onChange: this.onSelectClient,
+      fullWidth: true
+    })), React.createElement(TextField, {
       floatingLabelText: 'API Token',
       value: this.state.token,
       fullWidth: true,
@@ -982,11 +1010,11 @@ GmailCredsForm = React.createFactory(React.createClass({
       label: 'Save',
       onClick: (function(_this) {
         return function() {
-          var base, ref1;
+          var base, ref3;
           if (typeof (base = _this.props.actions).onSaveCreds === "function") {
             base.onSaveCreds(extend({}, _this.state));
           }
-          return (ref1 = _this.props.reactActions) != null ? ref1.backToMain() : void 0;
+          return (ref3 = _this.props.reactActions) != null ? ref3.backToMain() : void 0;
         };
       })(this)
     }), div({
@@ -996,7 +1024,7 @@ GmailCredsForm = React.createFactory(React.createClass({
       }
     }, ''), React.createElement(RaisedButton, {
       label: 'Cancel',
-      onClick: (ref1 = this.props.reactActions) != null ? ref1.backToMain : void 0
+      onClick: (ref3 = this.props.reactActions) != null ? ref3.backToMain : void 0
     })), div({
       className: 'col span_1_of_2'
     }, React.createElement(TextField, {
@@ -1049,7 +1077,6 @@ GMailLead = React.createFactory(React.createClass({
   },
   getInitialState: function() {
     return {
-      selectedClient: null,
       selectedSalesUnit: null,
       leadName: '',
       selectedContactId: null
@@ -1058,7 +1085,6 @@ GMailLead = React.createFactory(React.createClass({
   updateComponent: function(newProps) {
     var newState;
     newState = this.getInitialState();
-    newState.selectedClient = this.state.selectedClient;
     newState.selectedSalesUnit = this.state.selectedSalesUnit;
     return this.setState(newState);
   },
@@ -1067,11 +1093,6 @@ GMailLead = React.createFactory(React.createClass({
   },
   componentWillReceiveProps: function(newProps) {
     return this.updateComponent(newProps);
-  },
-  onSelectClient: function(event, index, selectedClient) {
-    return this.setState({
-      selectedClient: selectedClient
-    });
   },
   onSelectSalesUnit: function(event, index, selectedSalesUnit) {
     return this.setState({
@@ -1090,12 +1111,12 @@ GMailLead = React.createFactory(React.createClass({
     return this.setState(valueObj);
   },
   onCreateLead: function() {
-    if ((this.state.selectedClient != null) && (this.state.selectedSalesUnit != null)) {
+    if (this.state.selectedSalesUnit != null) {
       if (this.state.leadName.replace(/\s/g, '') === '') {
         this.props.actions.showMessage('Please fill in lead name');
         return;
       }
-      return this.props.actions.onCreateLead(this.state.selectedClient, this.state.selectedSalesUnit, this.state.leadName, this.state.selectedContactId);
+      return this.props.actions.onCreateLead(this.state.selectedSalesUnit, this.state.leadName, this.state.selectedContactId);
     } else {
       return this.props.actions.showMessage('Please select client and sales unit');
     }
@@ -1121,16 +1142,6 @@ GMailLead = React.createFactory(React.createClass({
     }, div({
       className: 'col span_1_of_2'
     }, div({
-      className: 'selectFieldWrapper'
-    }, React.createElement(SelectField, {
-      menuItems: this.props.data.clients,
-      valueMember: 'ID',
-      displayMember: 'name',
-      floatingLabelText: 'Client',
-      value: this.state.selectedClient,
-      onChange: this.onSelectClient,
-      fullWidth: true
-    })), div({
       className: 'selectFieldWrapper'
     }, React.createElement(SelectField, {
       menuItems: this.props.data.salesUnits,

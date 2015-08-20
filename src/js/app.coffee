@@ -117,7 +117,12 @@ app =
         console.log error
         []
 
-    onCreateAccount: (selectedClient, selectedSalesUnit, accountName) ->
+    onCreateAccount: (selectedSalesUnit, accountName) ->
+      selectedClient = appData.pipelinerCreds.selectedClient
+      unless selectedClient?.ID?
+        app.renderMessage 'Please select client on the settings page'
+        return
+
       accountData =
         OWNER_ID: selectedClient.ID # mandatory field
         SALES_UNIT_ID: selectedSalesUnit.ID # mandatory field
@@ -133,7 +138,12 @@ app =
         app.renderMessage error.toString()
 
 
-    onCreateContact: (selectedClient, selectedSalesUnit, formData) ->
+    onCreateContact: (selectedSalesUnit, formData) ->
+      selectedClient = appData.pipelinerCreds.selectedClient
+      unless selectedClient?.ID?
+        app.renderMessage 'Please select client on the settings page'
+        return
+
       contactData = {
         OWNER_ID: selectedClient.ID # mandatory field
         SALES_UNIT_ID: selectedSalesUnit.ID # mandatory field
@@ -162,7 +172,12 @@ app =
         console.log error
         app.renderMessage error.toString()
 
-    onCreateLead: (selectedClient, selectedSalesUnit, leadName, contactId) ->
+    onCreateLead: (selectedSalesUnit, leadName, contactId) ->
+      selectedClient = appData.pipelinerCreds.selectedClient
+      unless selectedClient?.ID?
+        app.renderMessage 'Please select client on the settings page'
+        return
+
       selectedContact = {}
       for _, contact of appData.contacts
         if contact.ID is contactId

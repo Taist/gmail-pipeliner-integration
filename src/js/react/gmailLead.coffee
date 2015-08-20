@@ -18,7 +18,6 @@ GMailLead = React.createFactory React.createClass
     muiTheme: ThemeManager.getCurrentTheme()
 
   getInitialState: () ->
-    selectedClient: null
     selectedSalesUnit: null
 
     leadName: ''
@@ -26,7 +25,6 @@ GMailLead = React.createFactory React.createClass
 
   updateComponent: (newProps) ->
     newState = @getInitialState()
-    newState.selectedClient = @state.selectedClient
     newState.selectedSalesUnit = @state.selectedSalesUnit
 
     @setState newState
@@ -36,9 +34,6 @@ GMailLead = React.createFactory React.createClass
 
   componentWillReceiveProps: (newProps) ->
     @updateComponent newProps
-
-  onSelectClient: (event, index, selectedClient) ->
-    @setState { selectedClient }
 
   onSelectSalesUnit: (event, index, selectedSalesUnit) ->
     @setState { selectedSalesUnit }
@@ -52,13 +47,13 @@ GMailLead = React.createFactory React.createClass
     @setState valueObj
 
   onCreateLead: ->
-    if @state.selectedClient? and @state.selectedSalesUnit?
+    if @state.selectedSalesUnit?
 
       if @state.leadName.replace(/\s/g, '') is ''
         @props.actions.showMessage 'Please fill in lead name'
         return
 
-      @props.actions.onCreateLead @state.selectedClient, @state.selectedSalesUnit, @state.leadName, @state.selectedContactId
+      @props.actions.onCreateLead @state.selectedSalesUnit, @state.leadName, @state.selectedContactId
 
     else
       @props.actions.showMessage 'Please select client and sales unit'
@@ -76,17 +71,6 @@ GMailLead = React.createFactory React.createClass
       div { className: 'section group' },
 
         div { className: 'col span_1_of_2' },
-          div { className: 'selectFieldWrapper' },
-            React.createElement SelectField, {
-              menuItems: @props.data.clients
-              valueMember: 'ID'
-              displayMember: 'name'
-              floatingLabelText: 'Client'
-              value: @state.selectedClient
-              onChange: @onSelectClient
-              fullWidth: true
-            }
-
           div { className: 'selectFieldWrapper' },
             React.createElement SelectField, {
               menuItems: @props.data.salesUnits
