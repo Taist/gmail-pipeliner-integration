@@ -28,7 +28,6 @@ GmailBlock = React.createFactory React.createClass
     muiTheme: ThemeManager.getCurrentTheme()
 
   componentWillReceiveProps: (newProps) ->
-    console.log newProps
     if newProps.options?.activeView?
       @setState activeView: newProps.options.activeView
 

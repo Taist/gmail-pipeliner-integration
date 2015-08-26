@@ -21,8 +21,6 @@ GmailContactForm = React.createFactory React.createClass
 
   getInitialState: ->
     state = {
-      selectedSalesUnit: null
-
       selectedContact: null
       firstName: ''
       lastName: ''
@@ -36,12 +34,21 @@ GmailContactForm = React.createFactory React.createClass
 
   updateComponent: (newProps) ->
     newState = @getInitialState()
-    newState.selectedSalesUnit = @state.selectedSalesUnit
 
-    @setState { newState, selectedContact: newProps.activePerson },  =>
+    @setState {
+      newState,
+      selectedContact: newProps.activePerson,
+      selectedSalesUnit: newProps.data.selectedSalesUnit
+    },  =>
       if newProps.activePerson
         matches = newProps.activePerson.name.match /(\S+)\s?(.*)/
         @setState { firstName: matches[1], lastName: matches[2], clientEmail: newProps.activePerson.email }
+
+      if newProps.data.selectedSalesUnit?.SALES_UNIT_NAME?
+        @refs.salesUnitSelector.getDOMNode()
+        .querySelector("div")
+        .querySelector("div div:nth-child(3)")
+        .innerText = newProps.data.selectedSalesUnit?.SALES_UNIT_NAME
 
   componentDidMount: ->
     @updateComponent @props
@@ -50,7 +57,8 @@ GmailContactForm = React.createFactory React.createClass
     @updateComponent newProps
 
   onSelectSalesUnit: (event, index, selectedSalesUnit) ->
-    @setState { selectedSalesUnit }
+    @props.actions.onSelectSalesUnit selectedSalesUnit
+    # @setState { selectedSalesUnit }
 
   onChange: (fieldName, event) ->
     valueObj = {}
@@ -66,7 +74,7 @@ GmailContactForm = React.createFactory React.createClass
 
   onCreateContact: ->
     if @state.selectedSalesUnit?
-        @props.actions.onCreateContact @state.selectedSalesUnit, {
+        @props.actions.onCreateContact {
           firstName: @state.firstName
           lastName: @state.lastName
           clientEmail: @state.clientEmail
@@ -74,12 +82,14 @@ GmailContactForm = React.createFactory React.createClass
           clientCompany: @state.clientCompany
           account: @state.selectedAccount
         }
+        .then =>
+          @props.reactActions?.backToMain();
     else
       @props.actions.showMessage 'Please select sales unit'
 
   onCreateAccount: ->
     if @state.selectedSalesUnit?
-      @props.actions.onCreateAccount? @state.selectedSalesUnit, @state.accountName
+      @props.actions.onCreateAccount? @state.accountName
       .then (createdAccount) =>
         @onSelectAccount createdAccount
         @refs.accountSelector.updateOptions [createdAccount]
@@ -95,6 +105,7 @@ GmailContactForm = React.createFactory React.createClass
         div { className: 'col span_1_of_2' },
           div { className: 'selectFieldWrapper' },
             React.createElement SelectField, {
+              ref: 'salesUnitSelector'
               menuItems: @props.data.salesUnits
               valueMember: 'ID'
               displayMember: 'SALES_UNIT_NAME'

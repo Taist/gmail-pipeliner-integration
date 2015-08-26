@@ -156,6 +156,7 @@ appData = {
   salesUnits: [],
   contacts: {},
   participants: [],
+  selectedSalesUnit: null,
   attachedLead: null
 };
 
@@ -231,7 +232,14 @@ app = {
       if (salesUnits == null) {
         salesUnits = [];
       }
-      return appData.salesUnits = salesUnits;
+      appData.salesUnits = salesUnits;
+      if ((salesUnits.length != null) > 0) {
+        return appData.selectedSalesUnit = salesUnits[0];
+      }
+    },
+    onSelectSalesUnit: function(selectedSalesUnit) {
+      appData.selectedSalesUnit = selectedSalesUnit;
+      return app.render();
     },
     onChangeMail: function(participants) {
       if (participants == null) {
@@ -292,7 +300,7 @@ app = {
         return [];
       });
     },
-    onCreateAccount: function(selectedSalesUnit, accountName) {
+    onCreateAccount: function(accountName) {
       var accountData, selectedClient;
       selectedClient = appData.pipelinerCreds.selectedClient;
       if ((selectedClient != null ? selectedClient.ID : void 0) == null) {
@@ -301,7 +309,7 @@ app = {
       }
       accountData = {
         OWNER_ID: selectedClient.ID,
-        SALES_UNIT_ID: selectedSalesUnit.ID,
+        SALES_UNIT_ID: appData.selectedSalesUnit.ID,
         ORGANIZATION: accountName
       };
       return app.pipelinerAPI.createAccount(accountData).then(function(account) {
@@ -315,7 +323,7 @@ app = {
         return app.renderMessage(error.toString());
       });
     },
-    onCreateContact: function(selectedSalesUnit, formData) {
+    onCreateContact: function(formData) {
       var contactData, selectedClient;
       selectedClient = appData.pipelinerCreds.selectedClient;
       if ((selectedClient != null ? selectedClient.ID : void 0) == null) {
@@ -324,7 +332,7 @@ app = {
       }
       contactData = {
         OWNER_ID: selectedClient.ID,
-        SALES_UNIT_ID: selectedSalesUnit.ID,
+        SALES_UNIT_ID: appData.selectedSalesUnit.ID,
         EMAIL1: formData.clientEmail,
         FIRST_NAME: formData.firstName,
         SURNAME: formData.lastName,
@@ -349,7 +357,7 @@ app = {
         return app.renderMessage(error.toString());
       });
     },
-    onCreateLead: function(selectedSalesUnit, leadName, contactId) {
+    onCreateLead: function(leadName, contactId) {
       var _, contact, leadData, ref, selectedClient, selectedContact;
       selectedClient = appData.pipelinerCreds.selectedClient;
       if ((selectedClient != null ? selectedClient.ID : void 0) == null) {
@@ -367,7 +375,7 @@ app = {
       }
       leadData = {
         OWNER_ID: selectedClient.ID,
-        SALES_UNIT_ID: selectedClient.DEFAULT_SALES_UNIT_ID,
+        SALES_UNIT_ID: appData.selectedSalesUnit.ID,
         QUICK_CONTACT_NAME: selectedContact.FIRST_NAME + " " + selectedContact.SURNAME,
         OPPORTUNITY_NAME: leadName,
         CONTACT_RELATIONS: [
@@ -591,7 +599,6 @@ GmailBlock = React.createFactory(React.createClass({
   },
   componentWillReceiveProps: function(newProps) {
     var ref1;
-    console.log(newProps);
     if (((ref1 = newProps.options) != null ? ref1.activeView : void 0) != null) {
       return this.setState({
         activeView: newProps.options.activeView
@@ -721,7 +728,6 @@ GmailContactForm = React.createFactory(React.createClass({
   getInitialState: function() {
     var state;
     return state = {
-      selectedSalesUnit: null,
       selectedContact: null,
       firstName: '',
       lastName: '',
@@ -735,20 +741,23 @@ GmailContactForm = React.createFactory(React.createClass({
   updateComponent: function(newProps) {
     var newState;
     newState = this.getInitialState();
-    newState.selectedSalesUnit = this.state.selectedSalesUnit;
     return this.setState({
       newState: newState,
-      selectedContact: newProps.activePerson
+      selectedContact: newProps.activePerson,
+      selectedSalesUnit: newProps.data.selectedSalesUnit
     }, (function(_this) {
       return function() {
-        var matches;
+        var matches, ref1, ref2;
         if (newProps.activePerson) {
           matches = newProps.activePerson.name.match(/(\S+)\s?(.*)/);
-          return _this.setState({
+          _this.setState({
             firstName: matches[1],
             lastName: matches[2],
             clientEmail: newProps.activePerson.email
           });
+        }
+        if (((ref1 = newProps.data.selectedSalesUnit) != null ? ref1.SALES_UNIT_NAME : void 0) != null) {
+          return _this.refs.salesUnitSelector.getDOMNode().querySelector("div").querySelector("div div:nth-child(3)").innerText = (ref2 = newProps.data.selectedSalesUnit) != null ? ref2.SALES_UNIT_NAME : void 0;
         }
       };
     })(this));
@@ -760,9 +769,7 @@ GmailContactForm = React.createFactory(React.createClass({
     return this.updateComponent(newProps);
   },
   onSelectSalesUnit: function(event, index, selectedSalesUnit) {
-    return this.setState({
-      selectedSalesUnit: selectedSalesUnit
-    });
+    return this.props.actions.onSelectSalesUnit(selectedSalesUnit);
   },
   onChange: function(fieldName, event) {
     var valueObj;
@@ -784,14 +791,19 @@ GmailContactForm = React.createFactory(React.createClass({
   },
   onCreateContact: function() {
     if (this.state.selectedSalesUnit != null) {
-      return this.props.actions.onCreateContact(this.state.selectedSalesUnit, {
+      return this.props.actions.onCreateContact({
         firstName: this.state.firstName,
         lastName: this.state.lastName,
         clientEmail: this.state.clientEmail,
         clientPhone: this.state.clientPhone,
         clientCompany: this.state.clientCompany,
         account: this.state.selectedAccount
-      });
+      }).then((function(_this) {
+        return function() {
+          var ref1;
+          return (ref1 = _this.props.reactActions) != null ? ref1.backToMain() : void 0;
+        };
+      })(this));
     } else {
       return this.props.actions.showMessage('Please select sales unit');
     }
@@ -799,7 +811,7 @@ GmailContactForm = React.createFactory(React.createClass({
   onCreateAccount: function() {
     var base;
     if (this.state.selectedSalesUnit != null) {
-      return typeof (base = this.props.actions).onCreateAccount === "function" ? base.onCreateAccount(this.state.selectedSalesUnit, this.state.accountName).then((function(_this) {
+      return typeof (base = this.props.actions).onCreateAccount === "function" ? base.onCreateAccount(this.state.accountName).then((function(_this) {
         return function(createdAccount) {
           _this.onSelectAccount(createdAccount);
           return _this.refs.accountSelector.updateOptions([createdAccount]);
@@ -818,6 +830,7 @@ GmailContactForm = React.createFactory(React.createClass({
     }, div({
       className: 'selectFieldWrapper'
     }, React.createElement(SelectField, {
+      ref: 'salesUnitSelector',
       menuItems: this.props.data.salesUnits,
       valueMember: 'ID',
       displayMember: 'SALES_UNIT_NAME',
@@ -1085,8 +1098,15 @@ GMailLead = React.createFactory(React.createClass({
   updateComponent: function(newProps) {
     var newState;
     newState = this.getInitialState();
-    newState.selectedSalesUnit = this.state.selectedSalesUnit;
-    return this.setState(newState);
+    newState.selectedSalesUnit = this.props.data.selectedSalesUnit;
+    return this.setState(newState, (function(_this) {
+      return function() {
+        var ref1, ref2;
+        if (((ref1 = newProps.data.selectedSalesUnit) != null ? ref1.SALES_UNIT_NAME : void 0) != null) {
+          return _this.refs.salesUnitSelector.getDOMNode().querySelector("div").querySelector("div div:nth-child(3)").innerText = (ref2 = newProps.data.selectedSalesUnit) != null ? ref2.SALES_UNIT_NAME : void 0;
+        }
+      };
+    })(this));
   },
   componentDidMount: function() {
     return this.updateComponent(this.props);
@@ -1095,9 +1115,7 @@ GMailLead = React.createFactory(React.createClass({
     return this.updateComponent(newProps);
   },
   onSelectSalesUnit: function(event, index, selectedSalesUnit) {
-    return this.setState({
-      selectedSalesUnit: selectedSalesUnit
-    });
+    return this.props.actions.onSelectSalesUnit(selectedSalesUnit);
   },
   onRowSelection: function(selectedRows) {
     return this.setState({
@@ -1116,7 +1134,12 @@ GMailLead = React.createFactory(React.createClass({
         this.props.actions.showMessage('Please fill in lead name');
         return;
       }
-      return this.props.actions.onCreateLead(this.state.selectedSalesUnit, this.state.leadName, this.state.selectedContactId);
+      return this.props.actions.onCreateLead(this.state.leadName, this.state.selectedContactId).then((function(_this) {
+        return function() {
+          var ref1;
+          return (ref1 = _this.props.reactActions) != null ? ref1.backToMain() : void 0;
+        };
+      })(this));
     } else {
       return this.props.actions.showMessage('Please select client and sales unit');
     }
@@ -1144,6 +1167,7 @@ GMailLead = React.createFactory(React.createClass({
     }, div({
       className: 'selectFieldWrapper'
     }, React.createElement(SelectField, {
+      ref: 'salesUnitSelector',
       menuItems: this.props.data.salesUnits,
       valueMember: 'ID',
       displayMember: 'SALES_UNIT_NAME',
@@ -1193,11 +1217,11 @@ GMailLead = React.createFactory(React.createClass({
 module.exports = GMailLead;
 
 },{"material-ui":47,"react":326}],10:[function(require,module,exports){
-var GMailMain, RaisedButton, React, Table, ThemeManager, a, div, h3, mui, ref;
+var GMailMain, RaisedButton, React, Table, ThemeManager, a, div, h3, mui, path, ref, svg;
 
 React = require('react');
 
-ref = React.DOM, h3 = ref.h3, div = ref.div, a = ref.a;
+ref = React.DOM, h3 = ref.h3, div = ref.div, a = ref.a, svg = ref.svg, path = ref.path;
 
 mui = require('material-ui');
 
@@ -1246,7 +1270,6 @@ GMailMain = React.createFactory(React.createClass({
       onRowHoverExit: this.onRowHoverExit,
       rowData: this.props.data.participants.map((function(_this) {
         return function(person, index) {
-          var ref1;
           return {
             name: {
               content: person.name
@@ -1256,17 +1279,23 @@ GMailMain = React.createFactory(React.createClass({
             },
             buttons: {
               style: {
-                width: 48
+                width: 24
               },
               content: _this.props.data.contacts[person.email] === false ? a({
                 href: 'javascript:;',
                 onClick: function() {
                   return _this.onClickToCRMButton(person);
                 },
-                style: {
-                  display: ((ref1 = _this.state) != null ? ref1["rowButtons" + index] : void 0) ? 'block' : 'none'
-                }
-              }, 'To CRM') : ''
+                title: 'Add to CRM'
+              }, svg({
+                viewBox: '0 0 24 24'
+              }, path({
+                d: "M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+              }))) : svg({
+                viewBox: '0 0 24 24'
+              }, path({
+                d: "M12 5.9c1.16 0 2.1.94 2.1 2.1s-.94 2.1-2.1 2.1S9.9 9.16 9.9 8s.94-2.1 2.1-2.1m0 9c2.97 0 6.1 1.46 6.1 2.1v1.1H5.9V17c0-.64 3.13-2.1 6.1-2.1M12 4C9.79 4 8 5.79 8 8s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 9c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4z"
+              }))
             }
           };
         };

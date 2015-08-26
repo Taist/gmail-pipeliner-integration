@@ -25,9 +25,14 @@ GMailLead = React.createFactory React.createClass
 
   updateComponent: (newProps) ->
     newState = @getInitialState()
-    newState.selectedSalesUnit = @state.selectedSalesUnit
+    newState.selectedSalesUnit = @props.data.selectedSalesUnit
 
-    @setState newState
+    @setState newState, =>
+      if newProps.data.selectedSalesUnit?.SALES_UNIT_NAME?
+        @refs.salesUnitSelector.getDOMNode()
+        .querySelector("div")
+        .querySelector("div div:nth-child(3)")
+        .innerText = newProps.data.selectedSalesUnit?.SALES_UNIT_NAME
 
   componentDidMount: ->
     @updateComponent @props
@@ -36,7 +41,8 @@ GMailLead = React.createFactory React.createClass
     @updateComponent newProps
 
   onSelectSalesUnit: (event, index, selectedSalesUnit) ->
-    @setState { selectedSalesUnit }
+    @props.actions.onSelectSalesUnit selectedSalesUnit
+    # @setState { selectedSalesUnit }
 
   onRowSelection: (selectedRows) ->
     @setState selectedContactId: @tableData[selectedRows[0]].id
@@ -53,7 +59,9 @@ GMailLead = React.createFactory React.createClass
         @props.actions.showMessage 'Please fill in lead name'
         return
 
-      @props.actions.onCreateLead @state.selectedSalesUnit, @state.leadName, @state.selectedContactId
+      @props.actions.onCreateLead @state.leadName, @state.selectedContactId
+      .then =>
+        @props.reactActions?.backToMain();
 
     else
       @props.actions.showMessage 'Please select client and sales unit'
@@ -73,6 +81,7 @@ GMailLead = React.createFactory React.createClass
         div { className: 'col span_1_of_2' },
           div { className: 'selectFieldWrapper' },
             React.createElement SelectField, {
+              ref: 'salesUnitSelector'
               menuItems: @props.data.salesUnits
               valueMember: 'ID'
               displayMember: 'SALES_UNIT_NAME'

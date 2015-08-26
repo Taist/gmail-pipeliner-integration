@@ -16,6 +16,8 @@ appData =
   contacts: {}
   participants: []
 
+  selectedSalesUnit: null
+
   attachedLead: null
 
 app =
@@ -80,6 +82,12 @@ app =
 
     onLoadSalesUnits: (salesUnits = []) ->
       appData.salesUnits = salesUnits
+      if salesUnits.length? > 0
+        appData.selectedSalesUnit = salesUnits[0]
+
+    onSelectSalesUnit: (selectedSalesUnit) ->
+      appData.selectedSalesUnit = selectedSalesUnit;
+      app.render()
 
     onChangeMail: (participants = []) ->
       appData.participants = participants.filter (person) ->
@@ -117,7 +125,7 @@ app =
         console.log error
         []
 
-    onCreateAccount: (selectedSalesUnit, accountName) ->
+    onCreateAccount: (accountName) ->
       selectedClient = appData.pipelinerCreds.selectedClient
       unless selectedClient?.ID?
         app.renderMessage 'Please select client on the settings page'
@@ -125,7 +133,7 @@ app =
 
       accountData =
         OWNER_ID: selectedClient.ID # mandatory field
-        SALES_UNIT_ID: selectedSalesUnit.ID # mandatory field
+        SALES_UNIT_ID: appData.selectedSalesUnit.ID # mandatory field
         ORGANIZATION: accountName
 
       app.pipelinerAPI.createAccount(accountData)
@@ -138,7 +146,7 @@ app =
         app.renderMessage error.toString()
 
 
-    onCreateContact: (selectedSalesUnit, formData) ->
+    onCreateContact: (formData) ->
       selectedClient = appData.pipelinerCreds.selectedClient
       unless selectedClient?.ID?
         app.renderMessage 'Please select client on the settings page'
@@ -146,7 +154,7 @@ app =
 
       contactData = {
         OWNER_ID: selectedClient.ID # mandatory field
-        SALES_UNIT_ID: selectedSalesUnit.ID # mandatory field
+        SALES_UNIT_ID: appData.selectedSalesUnit.ID # mandatory field
         EMAIL1: formData.clientEmail
         FIRST_NAME: formData.firstName
         SURNAME: formData.lastName
@@ -172,7 +180,7 @@ app =
         console.log error
         app.renderMessage error.toString()
 
-    onCreateLead: (selectedSalesUnit, leadName, contactId) ->
+    onCreateLead: (leadName, contactId) ->
       selectedClient = appData.pipelinerCreds.selectedClient
       unless selectedClient?.ID?
         app.renderMessage 'Please select client on the settings page'
@@ -186,7 +194,7 @@ app =
 
       leadData = {
         OWNER_ID: selectedClient.ID # mandatory field
-        SALES_UNIT_ID: selectedClient.DEFAULT_SALES_UNIT_ID # mandatory field
+        SALES_UNIT_ID: appData.selectedSalesUnit.ID # mandatory field
         QUICK_CONTACT_NAME: "#{selectedContact.FIRST_NAME} #{selectedContact.SURNAME}"
         OPPORTUNITY_NAME: leadName
         CONTACT_RELATIONS: [{
