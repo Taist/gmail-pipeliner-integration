@@ -43485,6 +43485,9 @@ addonEntry = {
         return client;
       });
     })["finally"](function() {
+      app.elementObserver.waitElement('.changeCheckboxTdWidth .mui-table-row-column input', function(checkbox) {
+        return checkbox.parentNode.parentNode.style.width = '24px';
+      });
       return app.elementObserver.waitElement('table[role="presentation"]>tr>td:first-child', function(parent) {
         var button, buttonsContainer, donorButton, mailId, participants, ref;
         parent.insertBefore(app.container, parent.querySelector('div'));

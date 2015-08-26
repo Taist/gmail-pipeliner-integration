@@ -61,6 +61,9 @@ addonEntry =
 
 
     .finally ->
+      app.elementObserver.waitElement '.changeCheckboxTdWidth .mui-table-row-column input', (checkbox) ->
+        checkbox.parentNode.parentNode.style.width = '24px'
+
       app.elementObserver.waitElement 'table[role="presentation"]>tr>td:first-child', (parent) ->
         parent.insertBefore app.container, parent.querySelector 'div'
         parent.insertBefore app.messageContainer, parent.querySelector 'div'
