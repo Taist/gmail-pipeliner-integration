@@ -1,9 +1,10 @@
 {
   "id": "gmail-pipeliner-integraion",
   "siteName": "GMail, Pipeliner",
-  "title": "Integration",
+  "title": "Pipeliner widget for Gmail",
   "js": "addon.js",
   "css": "addon.css",  
-  "shortDescription": "Creates account, contact and lead from gmail inbox",
-  "siteRegexp": "mail\\.google\\.com"
+  "shortDescription": "Add Pipeliner contacts and leads from Gmail conversations",
+  "siteRegexp": "mail\\.google\\.com",
+  "description": "./addon-description.md"
 }
