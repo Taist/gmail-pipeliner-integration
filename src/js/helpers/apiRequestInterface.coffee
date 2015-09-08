@@ -7,12 +7,12 @@ extend = require 'react/lib/Object.assign'
 
 module.exports =
   getRequest: (path, data) ->
-    params = if data
-      (for key, val of data
-        "#{key}=#{val}"
-      ).join '&'
+    if data?
+      params =
+        (for key, val of data
+          "#{key}=#{val}"
+        ).join '&'
 
-    if params
       path += "?#{params}"
 
     @sendRequest path
