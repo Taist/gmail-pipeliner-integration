@@ -28,8 +28,8 @@ GmailBlock = React.createFactory React.createClass
     muiTheme: ThemeManager.getCurrentTheme()
 
   componentWillReceiveProps: (newProps) ->
-    if newProps.options?.activeView?
-      @setState activeView: newProps.options.activeView
+    if newProps.options?.activeView? or newProps.data.isConnectionError
+      @setState activeView: if newProps.data.isConnectionError then 'settings' else newProps.options.activeView
 
   backToMain: ->
     @setState activeView: 'main'

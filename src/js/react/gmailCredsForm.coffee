@@ -54,6 +54,11 @@ GmailCredsForm = React.createFactory React.createClass
   render: ->
     div {},
       h3 {}, 'Settings'
+
+      if @props.data.isConnectionError
+        div { style: backgroundColor: mui.Styles.Colors.red200, padding: 16 },
+          'Can\'t connect to Pipeliner API. Please check your serrings.'
+
       div { className: 'section group' },
 
         div { className: 'col span_1_of_2' },

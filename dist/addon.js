@@ -157,7 +157,8 @@ appData = {
   contacts: {},
   participants: [],
   selectedSalesUnit: null,
-  attachedLead: null
+  attachedLead: null,
+  isConnectionError: false
 };
 
 app = {
@@ -220,7 +221,27 @@ app = {
       return app.renderMessage(message);
     },
     onSaveCreds: function(creds) {
-      return app.setPipelinerCreds(creds);
+      appData.isConnectionError = false;
+      return app.setPipelinerCreds(creds).then(function() {
+        return app.actions.onStart();
+      });
+    },
+    onConnectionError: function() {
+      appData.isConnectionError = true;
+      return app.render({
+        activeView: 'settings'
+      });
+    },
+    onStart: function() {
+      return Q.all([app.pipelinerAPI.getClients(), app.pipelinerAPI.getSalesUnits()]).spread(function(clients, salesUnits) {
+        app.actions.onLoadSalesUnits(salesUnits);
+        return app.actions.onLoadClients(clients).map(function(client) {
+          client.name = client.FIRSTNAME + " " + client.LASTNAME;
+          return client;
+        });
+      })["catch"](function(error) {
+        return app.actions.onConnectionError();
+      });
     },
     onLoadClients: function(clients) {
       if (clients == null) {
@@ -599,9 +620,9 @@ GmailBlock = React.createFactory(React.createClass({
   },
   componentWillReceiveProps: function(newProps) {
     var ref1;
-    if (((ref1 = newProps.options) != null ? ref1.activeView : void 0) != null) {
+    if ((((ref1 = newProps.options) != null ? ref1.activeView : void 0) != null) || newProps.data.isConnectionError) {
       return this.setState({
-        activeView: newProps.options.activeView
+        activeView: newProps.data.isConnectionError ? 'settings' : newProps.options.activeView
       });
     }
   },
@@ -985,7 +1006,12 @@ GmailCredsForm = React.createFactory(React.createClass({
   },
   render: function() {
     var ref1, ref2, ref3;
-    return div({}, h3({}, 'Settings'), div({
+    return div({}, h3({}, 'Settings'), this.props.data.isConnectionError ? div({
+      style: {
+        backgroundColor: mui.Styles.Colors.red200,
+        padding: 16
+      }
+    }, 'Can\'t connect to Pipeliner API. Please check your serrings.') : void 0, div({
       className: 'section group'
     }, div({
       className: 'col span_1_of_2'
@@ -43477,13 +43503,7 @@ addonEntry = {
     app.messageContainer = document.createElement('div');
     app.renderMessage('');
     return app.getPipelinerCreds().then(function() {
-      return Q.all([app.pipelinerAPI.getClients(), app.pipelinerAPI.getSalesUnits()]);
-    }).spread(function(clients, salesUnits) {
-      app.actions.onLoadSalesUnits(salesUnits);
-      return app.actions.onLoadClients(clients).map(function(client) {
-        client.name = client.FIRSTNAME + " " + client.LASTNAME;
-        return client;
-      });
+      return app.actions.onStart();
     })["finally"](function() {
       app.elementObserver.waitElement('.changeCheckboxTdWidth .mui-table-row-column input', function(checkbox) {
         return checkbox.parentNode.parentNode.style.width = '24px';

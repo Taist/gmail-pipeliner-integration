@@ -20,6 +20,8 @@ appData =
 
   attachedLead: null
 
+  isConnectionError: false
+
 app =
   api: null
   exapi: {}
@@ -75,7 +77,31 @@ app =
       app.renderMessage message
 
     onSaveCreds: (creds) ->
+      appData.isConnectionError = false
       app.setPipelinerCreds creds
+      .then ->
+        app.actions.onStart()
+
+    onConnectionError: () ->
+      appData.isConnectionError = true
+      app.render activeView: 'settings'
+
+    onStart: () ->
+      Q.all [
+        app.pipelinerAPI.getClients()
+        app.pipelinerAPI.getSalesUnits()
+      ]
+
+      .spread (clients, salesUnits) ->
+        app.actions.onLoadSalesUnits salesUnits
+
+        app.actions.onLoadClients clients
+        .map (client) ->
+          client.name = "#{client.FIRSTNAME} #{client.LASTNAME}"
+          client
+
+      .catch (error) ->
+        app.actions.onConnectionError()
 
     onLoadClients: (clients = []) ->
       appData.clients = clients

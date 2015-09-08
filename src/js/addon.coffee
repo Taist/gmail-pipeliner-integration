@@ -46,21 +46,10 @@ addonEntry =
     app.getPipelinerCreds()
 
     .then () ->
-      Q.all [
-        app.pipelinerAPI.getClients()
-        app.pipelinerAPI.getSalesUnits()
-      ]
+      app.actions.onStart()
 
-    .spread (clients, salesUnits) ->
-      app.actions.onLoadSalesUnits salesUnits
+    .finally () ->
 
-      app.actions.onLoadClients clients
-      .map (client) ->
-        client.name = "#{client.FIRSTNAME} #{client.LASTNAME}"
-        client
-
-
-    .finally ->
       app.elementObserver.waitElement '.changeCheckboxTdWidth .mui-table-row-column input', (checkbox) ->
         checkbox.parentNode.parentNode.style.width = '24px'
 
