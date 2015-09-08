@@ -6,7 +6,7 @@ _contactsCache = {}
 
 apiRequestClass = require('../helpers/apiRequestInterface')
 
-class PipelinerAPI
+module.exports = class PipelinerAPI
   constructor: ->
     @_apiRequest = new apiRequestClass {
       api: app.api
@@ -75,9 +75,3 @@ class PipelinerAPI
 
   getLead: (leadId) ->
     @_get "Leads/#{leadId}"
-
-module.exports =
-  init: (_app, propertyName) ->
-    pipelinerApi = new PipelinerAPI()
-
-    _app[propertyName] = pipelinerApi

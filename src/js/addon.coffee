@@ -42,7 +42,8 @@ module.exports =
     app.init _taistApi
 
     require('./api/gmail').init app, 'gMailAPI'
-    require('./api/pipeliner').init app, 'pipelinerAPI'
+
+    app.pipelinerAPI = new (require('./api/pipeliner'))
 
     DOMObserver = require './helpers/domObserver'
     app.elementObserver = new DOMObserver()
