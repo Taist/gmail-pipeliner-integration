@@ -2,21 +2,36 @@ app = require './app'
 
 Q = require 'q'
 
-reactId = require('react/lib/DOMProperty').ID_ATTRIBUTE_NAME
-
 fixMaterialUIStyles = ->
   #fixes internal issues of Material UI
   #TODO: remove when it becomes fixed in Material UI itself
-  innerHTML = ''
-  innerHTML += '\n.selectFieldWrapper div[tabindex="0"] div { text-overflow: ellipsis; overflow-x: hidden; }'
-  innerHTML += '\n.selectFieldWrapper div[' + reactId + '$=".2.0.1:1"] { box-sizing: border-box; overflow: hidden; padding-right: 24px; height: 56px; white-space: nowrap; text-overflow: ellipsis; } '
-
   style = document.createElement 'style'
-  style.innerHTML = innerHTML
+
+  reactId = require('react/lib/DOMProperty').ID_ATTRIBUTE_NAME
+  style.innerHTML = """
+      .selectFieldWrapper div[tabindex="0"] div {
+        text-overflow: ellipsis; overflow-x: hidden;
+      }
+
+      .selectFieldWrapper div[#{reactId}$=".2.0.1:1"] {
+        box-sizing: border-box; overflow: hidden; padding-right: 24px; height: 56px; white-space: nowrap; text-overflow: ellipsis;
+      }
+  """
+
   document.getElementsByTagName('head')[0].appendChild style
 
 injectTapEventPlugin = ->
   (require 'react-tap-event-plugin')()
+
+createContainer = ->
+  container = document.createElement 'div'
+  container.style.position = 'absolute'
+  container.style.width = '640px'
+  container.style.zIndex = '4'
+  container.style.right = '0'
+  container.style.display = 'none'
+
+  return container
 
 module.exports =
   start: (_taistApi, entryPoint) ->
@@ -31,13 +46,7 @@ module.exports =
 
     DOMObserver = require './helpers/domObserver'
     app.elementObserver = new DOMObserver()
-
-    app.container = document.createElement 'div'
-    app.container.style.position = 'absolute'
-    app.container.style.width = '640px'
-    app.container.style.zIndex = '4'
-    app.container.style.right = '0'
-    app.container.style.display = 'none'
+    app.container = createContainer()
 
     app.messageContainer = document.createElement 'div'
     app.renderMessage('')
@@ -51,7 +60,6 @@ module.exports =
       app.actions.onStart()
 
     .finally () ->
-
       app.elementObserver.waitElement '.changeCheckboxTdWidth .mui-table-row-column input', (checkbox) ->
         checkbox.parentNode.parentNode.style.width = '24px'
 
