@@ -46,17 +46,17 @@ _contactsCache = {};
 
 pipelinerAPI = extend(require('../helpers/apiRequestInterface'), {
   name: 'Pipeliner API',
-  getApp: function() {
+  _api: function() {
     return app;
   },
-  getAPIAddress: function(path) {
+  _getAPIAddress: function(path) {
     var creds, ref;
     creds = this.getCreds();
     if (((ref = creds.serviceURL) != null ? ref.length : void 0) > 0) {
       return creds.serviceURL + "/rest_services/v1/" + creds.spaceID + "/" + path;
     }
   },
-  getAuthorizationHeader: function() {
+  _getAuthorizationHeader: function() {
     var creds;
     creds = this.getCreds();
     return 'Basic ' + btoa(creds.token + ":" + creds.password);
@@ -467,9 +467,9 @@ module.exports = {
     if (options == null) {
       options = {};
     }
-    if (url = typeof this.getAPIAddress === "function" ? this.getAPIAddress(path) : void 0) {
+    if (url = typeof this._getAPIAddress === "function" ? this._getAPIAddress(path) : void 0) {
       deferred = Q.defer();
-      Authorization = typeof this.getAuthorizationHeader === "function" ? this.getAuthorizationHeader() : void 0;
+      Authorization = typeof this._getAuthorizationHeader === "function" ? this._getAuthorizationHeader() : void 0;
       requestOptions = extend({
         type: 'json',
         method: 'get',
@@ -478,8 +478,8 @@ module.exports = {
           Authorization: Authorization
         }
       }, options);
-      if (typeof this.getApp === "function") {
-        this.getApp().api.proxy.jQueryAjax(url, '', requestOptions, (function(_this) {
+      if (typeof this._api === "function") {
+        this._api().api.proxy.jQueryAjax(url, '', requestOptions, (function(_this) {
           return function(error, response) {
             if (error) {
               if (_this.processError) {
