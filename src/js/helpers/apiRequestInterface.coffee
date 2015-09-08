@@ -1,11 +1,16 @@
-# mixin for API queries
-# extended object should implement methods getApp, getAPIAddress and getAuthorizationHeader
+# wrapper for arbitrary api
+# should be initialized with object that provides methods getApp, getAPIAddress and getAuthorizationHeader
 
 Q = require 'q'
 
 extend = require 'react/lib/Object.assign'
 
-module.exports =
+module.exports = class ApiRequest
+  constructor: ({getApp, getAPIAddress, getAuthorizationHeader}) ->
+    @_getApp = getApp
+    @_getAPIAddress = getAPIAddress
+    @_getAuthorizationHeader = getAuthorizationHeader
+
   getRequest: (path, data) ->
     if data?
       params =
@@ -24,10 +29,10 @@ module.exports =
     @sendRequest path, { data: JSON.stringify(data), method: 'put' }
 
   sendRequest: (path, options = {}) ->
-    if url = @getAPIAddress? path
+    if url = @_getAPIAddress? path
       deferred = Q.defer()
 
-      Authorization = @getAuthorizationHeader?()
+      Authorization = @_getAuthorizationHeader?()
 
       requestOptions = extend {
         type: 'json'
@@ -36,7 +41,7 @@ module.exports =
         headers: { Authorization }
       }, options
 
-      @getApp?().api.proxy.jQueryAjax url, '', requestOptions, (error, response) =>
+      @_getApp?().api.proxy.jQueryAjax url, '', requestOptions, (error, response) =>
         if error
           error = @processError(error) if @processError
           deferred.reject error

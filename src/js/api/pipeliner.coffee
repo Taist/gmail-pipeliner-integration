@@ -1,34 +1,38 @@
 Q = require 'q'
 app = null
 
-extend = require 'react/lib/Object.assign'
-
 _creds = {}
 
 _contactsCache = {}
 
-pipelinerAPI = extend require('../helpers/apiRequestInterface'),
+apiRequestClass = require('../helpers/apiRequestInterface')
+
+class PipelinerAPI
+  constructor: ->
+    @_apiRequest = new apiRequestClass {
+      getApp: -> app
+      getAPIAddress: (path) =>
+        creds = @getCreds()
+        # replace with url matching
+        if creds.serviceURL?.length > 0
+          "#{creds.serviceURL}/rest_services/v1/#{creds.spaceID}/#{path}"
+      getAuthorizationHeader: =>
+        creds = @getCreds()
+        'Basic ' + btoa "#{creds.token}:#{creds.password}"
+    }
+
   name: 'Pipeliner API'
-  # is used for mixin apiRequestInterface
-  getApp: -> app
-
-  # is used for mixin apiRequestInterface
-  getAPIAddress: (path) ->
-    creds = @getCreds()
-    # replace with url matching
-    if creds.serviceURL?.length > 0
-      "#{creds.serviceURL}/rest_services/v1/#{creds.spaceID}/#{path}"
-
-  # is used for mixin apiRequestInterface
-  getAuthorizationHeader: ->
-    creds = @getCreds()
-    'Basic ' + btoa "#{creds.token}:#{creds.password}"
 
   setCreds: (creds) ->
     _creds = creds
 
-  getCreds: ->
-    _creds
+  getCreds: -> _creds
+
+  _get: (path, data) ->
+    @_apiRequest.getRequest path, data
+
+  _post: (path, data) ->
+    @_apiRequest.postRequest path, data
 
   processResponse: (proxyResponse) ->
     if proxyResponse.statusCode is 201
@@ -42,16 +46,16 @@ pipelinerAPI = extend require('../helpers/apiRequestInterface'),
     JSON.parse(proxyError.response.body).message
 
   getClients: ->
-    @getRequest 'Clients'
+    @_get 'Clients'
 
   getSalesUnits: ->
-    @getRequest 'SalesUnits'
+    @_get 'SalesUnits'
 
   createContact: (data) ->
-    @postRequest 'Contacts', data
+    @_post 'Contacts', data
 
   createAccount: (data) ->
-    @postRequest 'Accounts', data
+    @_post 'Accounts', data
 
   getCachedContact: (email) ->
     _contactsCache[email]
@@ -60,7 +64,7 @@ pipelinerAPI = extend require('../helpers/apiRequestInterface'),
     Q.all(
       participants.map (p) =>
         filter = "EMAIL1::#{p.email}"
-        @getRequest 'Contacts', { filter }
+        @_get 'Contacts', { filter }
         .then (result) ->
           _contactsCache[p.email] = result[0] or false
     ).then ->
@@ -68,12 +72,14 @@ pipelinerAPI = extend require('../helpers/apiRequestInterface'),
 
   findAccounts: (name) ->
     filter = "ORGANIZATION::#{name}::ll"
-    @getRequest 'Accounts', { filter }
+    @_get 'Accounts', { filter }
 
   getLead: (leadId) ->
-    @getRequest "Leads/#{leadId}"
+    @_get "Leads/#{leadId}"
 
 module.exports =
   init: (_app, propertyName) ->
+    pipelinerApi = new PipelinerAPI()
+
     app = _app
-    _app[propertyName] = pipelinerAPI
+    _app[propertyName] = pipelinerApi
