@@ -1,5 +1,4 @@
 Q = require 'q'
-app = null
 
 _creds = {}
 
@@ -81,5 +80,4 @@ module.exports =
   init: (_app, propertyName) ->
     pipelinerApi = new PipelinerAPI()
 
-    app = _app
     _app[propertyName] = pipelinerApi
