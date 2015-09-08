@@ -10,7 +10,7 @@ apiRequestClass = require('../helpers/apiRequestInterface')
 class PipelinerAPI
   constructor: ->
     @_apiRequest = new apiRequestClass {
-      getApp: -> app
+      api: app.api
       getAPIAddress: (path) =>
         creds = @getCreds()
         # replace with url matching

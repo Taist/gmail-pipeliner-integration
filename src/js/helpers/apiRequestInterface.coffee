@@ -6,8 +6,8 @@ Q = require 'q'
 extend = require 'react/lib/Object.assign'
 
 module.exports = class ApiRequest
-  constructor: ({getApp, getAPIAddress, getAuthorizationHeader}) ->
-    @_getApp = getApp
+  constructor: ({api, getAPIAddress, getAuthorizationHeader}) ->
+    @_api = api
     @_getAPIAddress = getAPIAddress
     @_getAuthorizationHeader = getAuthorizationHeader
 
@@ -41,7 +41,7 @@ module.exports = class ApiRequest
         headers: { Authorization }
       }, options
 
-      @_getApp?().api.proxy.jQueryAjax url, '', requestOptions, (error, response) =>
+      @_api.proxy.jQueryAjax url, '', requestOptions, (error, response) =>
         if error
           error = @processError(error) if @processError
           deferred.reject error
