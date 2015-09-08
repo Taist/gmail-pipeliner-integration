@@ -11,7 +11,7 @@ module.exports = class ApiRequest
     @_getAPIAddress = getAPIAddress
     @_getAuthorizationHeader = getAuthorizationHeader
 
-  getRequest: (path, data) ->
+  get: (path, data) ->
     if data?
       params =
         (for key, val of data
@@ -20,15 +20,15 @@ module.exports = class ApiRequest
 
       path += "?#{params}"
 
-    @sendRequest path
+    @_sendRequest path
 
-  postRequest: (path, data) ->
-    @sendRequest path, { data: JSON.stringify(data), method: 'post' }
+  post: (path, data) ->
+    @_sendRequest path, { data: JSON.stringify(data), method: 'post' }
 
-  putRequest: (path, data) ->
-    @sendRequest path, { data: JSON.stringify(data), method: 'put' }
+  put: (path, data) ->
+    @_sendRequest path, { data: JSON.stringify(data), method: 'put' }
 
-  sendRequest: (path, options = {}) ->
+  _sendRequest: (path, options = {}) ->
     if url = @_getAPIAddress? path
       deferred = Q.defer()
 

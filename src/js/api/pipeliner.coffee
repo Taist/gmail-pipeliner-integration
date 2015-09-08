@@ -24,10 +24,10 @@ module.exports = class PipelinerAPI
   getCreds: -> @_creds
 
   _get: (path, data) ->
-    @_apiRequest.getRequest path, data
+    @_apiRequest.get path, data
 
   _post: (path, data) ->
-    @_apiRequest.postRequest path, data
+    @_apiRequest.post path, data
 
   processResponse: (proxyResponse) ->
     if proxyResponse.statusCode is 201
