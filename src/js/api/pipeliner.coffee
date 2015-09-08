@@ -1,12 +1,10 @@
 Q = require 'q'
 
-_creds = {}
-
-_contactsCache = {}
-
 apiRequestClass = require('../helpers/apiRequestInterface')
 
 module.exports = class PipelinerAPI
+  _contactsCache: {}
+  _creds: {}
   constructor: ->
     @_apiRequest = new apiRequestClass {
       api: app.api
@@ -23,9 +21,9 @@ module.exports = class PipelinerAPI
   name: 'Pipeliner API'
 
   setCreds: (creds) ->
-    _creds = creds
+    @_creds = creds
 
-  getCreds: -> _creds
+  getCreds: -> @_creds
 
   _get: (path, data) ->
     @_apiRequest.getRequest path, data
@@ -57,17 +55,17 @@ module.exports = class PipelinerAPI
     @_post 'Accounts', data
 
   getCachedContact: (email) ->
-    _contactsCache[email]
+    @_contactsCache[email]
 
   findContacts: (participants) ->
     Q.all(
       participants.map (p) =>
         filter = "EMAIL1::#{p.email}"
         @_get 'Contacts', { filter }
-        .then (result) ->
-          _contactsCache[p.email] = result[0] or false
-    ).then ->
-      extend {}, _contactsCache
+        .then (result) =>
+          @_contactsCache[p.email] = result[0] or false
+    ).then =>
+      extend {}, @_contactsCache
 
   findAccounts: (name) ->
     filter = "ORGANIZATION::#{name}::ll"
