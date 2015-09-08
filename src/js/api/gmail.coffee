@@ -1,6 +1,4 @@
 module.exports =
-  name: 'GMail API'
-
   getParticipants: (container) ->
     userIndex = []
 

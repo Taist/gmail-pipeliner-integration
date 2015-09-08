@@ -18,8 +18,6 @@ module.exports = class PipelinerAPI
         'Basic ' + btoa "#{creds.token}:#{creds.password}"
     }
 
-  name: 'Pipeliner API'
-
   setCreds: (creds) ->
     @_creds = creds
 
