@@ -71,3 +71,6 @@ module.exports = class PipelinerAPI
 
   getLead: (leadId) ->
     @_get "Leads/#{leadId}"
+
+  createLead: (leadData) ->
+    @_post 'Leads', leadData

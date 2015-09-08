@@ -229,7 +229,7 @@ app =
         }]
       }
 
-      app.pipelinerAPI.postRequest 'Leads', leadData
+      app.pipelinerAPI.createLead leadData
 
       .then (lead) ->
         mailId = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)?[1]
