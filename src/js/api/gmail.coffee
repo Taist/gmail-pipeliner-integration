@@ -1,6 +1,4 @@
-app = null
-
-gMailAPI =
+module.exports =
   name: 'GMail API'
 
   getParticipants: (container) ->
@@ -16,8 +14,3 @@ gMailAPI =
       { email, name, text: "#{name} (#{email})" }
     .filter (user, idx) ->
       idx is userIndex.indexOf user.email
-
-module.exports =
-  init: (_app, propertyName) ->
-    app = _app
-    _app[propertyName] = gMailAPI

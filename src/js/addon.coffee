@@ -41,7 +41,7 @@ module.exports =
     window._app = app
     app.init _taistApi
 
-    require('./api/gmail').init app, 'gMailAPI'
+    app.gMailAPI = require './api/gmail'
 
     app.pipelinerAPI = new (require('./api/pipeliner'))
 
