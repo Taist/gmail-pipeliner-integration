@@ -1,6 +1,6 @@
 Q = require 'q'
 
-apiRequestClass = require('../helpers/apiRequestInterface')
+apiRequestClass = require('./apiRequest')
 
 module.exports = class PipelinerAPI
   _contactsCache: {}
