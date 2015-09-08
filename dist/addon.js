@@ -44095,17 +44095,18 @@ module.exports = {
     app.gMailAPI = require('./api/gmail');
     app.pipelinerAPI = new (require('./api/pipeliner'));
     DOMObserver = require('./helpers/domObserver');
-    app.elementObserver = new DOMObserver();
     app.container = createContainer();
     app.messageContainer = document.createElement('div');
     app.renderMessage('');
     return app.getPipelinerCreds().then(function() {
       return app.actions.onStart();
     })["finally"](function() {
-      app.elementObserver.waitElement('.changeCheckboxTdWidth .mui-table-row-column input', function(checkbox) {
+      var elementObserver;
+      elementObserver = new DOMObserver();
+      elementObserver.waitElement('.changeCheckboxTdWidth .mui-table-row-column input', function(checkbox) {
         return checkbox.parentNode.parentNode.style.width = '24px';
       });
-      return app.elementObserver.waitElement('table[role="presentation"]>tr>td:first-child', function(parent) {
+      return elementObserver.waitElement('table[role="presentation"]>tr>td:first-child', function(parent) {
         var button, buttonsContainer, donorButton, mailId, participants, ref;
         parent.insertBefore(app.container, parent.querySelector('div'));
         parent.insertBefore(app.messageContainer, parent.querySelector('div'));
