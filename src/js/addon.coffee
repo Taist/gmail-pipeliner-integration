@@ -43,7 +43,8 @@ module.exports =
 
     app.gMailAPI = require './api/gmail'
 
-    app.pipelinerAPI = new (require('./api/pipeliner'))
+    PipelinerAPI = require './api/pipeliner'
+    app.pipelinerAPI = new PipelinerAPI app
 
     DOMObserver = require './helpers/domObserver'
     app.container = createContainer()
@@ -100,4 +101,3 @@ module.exports =
     .catch (err) ->
       app.renderMessage err
       console.log err
-

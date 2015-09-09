@@ -5,7 +5,7 @@ apiRequestClass = require('./apiRequest')
 module.exports = class PipelinerAPI
   _contactsCache: {}
   _creds: {}
-  constructor: ->
+  constructor: (app) ->
     @_apiRequest = new apiRequestClass {
       api: app.api
       getAPIAddress: (path) =>
