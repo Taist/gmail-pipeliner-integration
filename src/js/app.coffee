@@ -102,6 +102,7 @@ app =
         app.actions.onLoadClients clients
         .map (client) ->
           client.name = "#{client.FIRSTNAME} #{client.LASTNAME}"
+          app.render()
           client
 
       .catch (error) ->

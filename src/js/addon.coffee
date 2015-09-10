@@ -87,7 +87,6 @@ module.exports =
         mailId = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)?[1]
         if mailId
           participants = app.gMailAPI.getParticipants parent
-          console.log participants
 
           app.pipelinerAPI.findContacts participants
           .then (contacts) ->

@@ -344,6 +344,7 @@ app = {
         app.actions.onLoadSalesUnits(salesUnits);
         return app.actions.onLoadClients(clients).map(function(client) {
           client.name = client.FIRSTNAME + " " + client.LASTNAME;
+          app.render();
           return client;
         });
       })["catch"](function(error) {
@@ -43565,7 +43566,6 @@ module.exports = {
         mailId = (ref = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)) != null ? ref[1] : void 0;
         if (mailId) {
           participants = app.gMailAPI.getParticipants(parent);
-          console.log(participants);
           app.pipelinerAPI.findContacts(participants).then(function(contacts) {
             return app.actions.onUpdateContacts(contacts);
           })["catch"](function(error) {
