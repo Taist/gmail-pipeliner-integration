@@ -1,4 +1,5 @@
 Q = require 'q'
+extend = require 'react/lib/Object.assign'
 
 apiRequestClass = require('./apiRequest')
 
@@ -16,6 +17,8 @@ module.exports = class PipelinerAPI
       getAuthorizationHeader: =>
         creds = @getCreds()
         'Basic ' + btoa "#{creds.token}:#{creds.password}"
+      processResponse: @processResponse
+      processError: @processError
     }
 
   setCreds: (creds) ->

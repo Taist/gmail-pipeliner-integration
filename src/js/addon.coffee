@@ -57,7 +57,7 @@ module.exports =
 
     app.getPipelinerCreds()
 
-    .then () ->
+    .then (creds) ->
       app.actions.onStart()
 
     .finally () ->
@@ -87,10 +87,13 @@ module.exports =
         mailId = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)?[1]
         if mailId
           participants = app.gMailAPI.getParticipants parent
+          console.log participants
 
           app.pipelinerAPI.findContacts participants
           .then (contacts) ->
             app.actions.onUpdateContacts contacts
+          .catch (error) ->
+            console.log 'app.pipelinerAPI.findContacts onError', error
 
           app.exapi.getCompanyData "Lead_#{mailId}"
           .then (lead) ->

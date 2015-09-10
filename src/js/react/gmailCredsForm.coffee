@@ -58,22 +58,14 @@ GmailCredsForm = React.createFactory React.createClass
       if @props.data.isConnectionError
         div { style: backgroundColor: mui.Styles.Colors.red200, padding: 16 },
           'Can\'t connect to Pipeliner API. Please check your serrings.'
+      else
+        if not @props.data.pipelinerCreds?.selectedClient?
+          div { style: backgroundColor: mui.Styles.Colors.yellow200, padding: 16 },
+            'Please select pipeliner client'
 
       div { className: 'section group' },
 
         div { className: 'col span_1_of_2' },
-          div { className: 'selectFieldWrapper' },
-            React.createElement SelectField, {
-              ref: 'clientSelector'
-              menuItems: @props.data.clients
-              valueMember: 'ID'
-              displayMember: 'name'
-              floatingLabelText: 'Client'
-              defaultValue: @props.data.pipelinerCreds?.selectedClient?.name
-              value: @state.selectedClient
-              onChange: @onSelectClient
-              fullWidth: true
-            }
 
           React.createElement TextField, {
             floatingLabelText: 'API Token'
@@ -89,11 +81,26 @@ GmailCredsForm = React.createFactory React.createClass
             onChange: (event, value) => @onChange 'password', event, value
           }
 
+          if(!@props.data.isConnectionError)
+            div { className: 'selectFieldWrapper' },
+              React.createElement SelectField, {
+                ref: 'clientSelector'
+                menuItems: @props.data.clients
+                valueMember: 'ID'
+                displayMember: 'name'
+                floatingLabelText: 'Client'
+                defaultValue: @props.data.pipelinerCreds?.selectedClient?.name
+                value: @state.selectedClient
+                onChange: @onSelectClient
+                fullWidth: true
+              }
+
           React.createElement RaisedButton, {
             label: 'Save'
             onClick: =>
               @props.actions.onSaveCreds? extend {}, @state
-              @props.reactActions?.backToMain()
+              if @state.selectedClient?
+                @props.reactActions?.backToMain()
           }
 
           div { style: width: 16, display: 'inline-block' }, ''

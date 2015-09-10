@@ -7,11 +7,13 @@ extend = require('react/lib/Object.assign');
 
 module.exports = ApiRequest = (function() {
   function ApiRequest(arg) {
-    var api, getAPIAddress, getAuthorizationHeader;
-    api = arg.api, getAPIAddress = arg.getAPIAddress, getAuthorizationHeader = arg.getAuthorizationHeader;
+    var api, getAPIAddress, getAuthorizationHeader, processError, processResponse;
+    api = arg.api, getAPIAddress = arg.getAPIAddress, getAuthorizationHeader = arg.getAuthorizationHeader, processResponse = arg.processResponse, processError = arg.processError;
     this._api = api;
     this._getAPIAddress = getAPIAddress;
     this._getAuthorizationHeader = getAuthorizationHeader;
+    this._processResponse = processResponse;
+    this._processError = processError;
   }
 
   ApiRequest.prototype.get = function(path, data) {
@@ -64,13 +66,13 @@ module.exports = ApiRequest = (function() {
       this._api.proxy.jQueryAjax(url, '', requestOptions, (function(_this) {
         return function(error, response) {
           if (error) {
-            if (_this.processError) {
-              error = _this.processError(error);
+            if (_this._processError) {
+              error = _this._processError(error);
             }
             return deferred.reject(error);
           } else {
-            if (_this.processResponse) {
-              response = _this.processResponse(response);
+            if (_this._processResponse) {
+              response = _this._processResponse(response);
             }
             return deferred.resolve(response);
           }
@@ -108,9 +110,11 @@ module.exports = {
 };
 
 },{}],3:[function(require,module,exports){
-var PipelinerAPI, Q, apiRequestClass;
+var PipelinerAPI, Q, apiRequestClass, extend;
 
 Q = require('q');
+
+extend = require('react/lib/Object.assign');
 
 apiRequestClass = require('./apiRequest');
 
@@ -137,7 +141,9 @@ module.exports = PipelinerAPI = (function() {
           creds = _this.getCreds();
           return 'Basic ' + btoa(creds.token + ":" + creds.password);
         };
-      })(this)
+      })(this),
+      processResponse: this.processResponse,
+      processError: this.processError
     });
   }
 
@@ -235,7 +241,7 @@ module.exports = PipelinerAPI = (function() {
 
 })();
 
-},{"./apiRequest":1,"q":149}],4:[function(require,module,exports){
+},{"./apiRequest":1,"q":149,"react/lib/Object.assign":182}],4:[function(require,module,exports){
 var Q, React, app, appData, extend;
 
 Q = require('q');
@@ -1030,29 +1036,22 @@ GmailCredsForm = React.createFactory(React.createClass({
     });
   },
   render: function() {
-    var ref1, ref2, ref3;
+    var ref1, ref2, ref3, ref4;
     return div({}, h3({}, 'Settings'), this.props.data.isConnectionError ? div({
       style: {
         backgroundColor: mui.Styles.Colors.red200,
         padding: 16
       }
-    }, 'Can\'t connect to Pipeliner API. Please check your serrings.') : void 0, div({
+    }, 'Can\'t connect to Pipeliner API. Please check your serrings.') : ((ref1 = this.props.data.pipelinerCreds) != null ? ref1.selectedClient : void 0) == null ? div({
+      style: {
+        backgroundColor: mui.Styles.Colors.yellow200,
+        padding: 16
+      }
+    }, 'Please select pipeliner client') : void 0, div({
       className: 'section group'
     }, div({
       className: 'col span_1_of_2'
-    }, div({
-      className: 'selectFieldWrapper'
-    }, React.createElement(SelectField, {
-      ref: 'clientSelector',
-      menuItems: this.props.data.clients,
-      valueMember: 'ID',
-      displayMember: 'name',
-      floatingLabelText: 'Client',
-      defaultValue: (ref1 = this.props.data.pipelinerCreds) != null ? (ref2 = ref1.selectedClient) != null ? ref2.name : void 0 : void 0,
-      value: this.state.selectedClient,
-      onChange: this.onSelectClient,
-      fullWidth: true
-    })), React.createElement(TextField, {
+    }, React.createElement(TextField, {
       floatingLabelText: 'API Token',
       value: this.state.token,
       fullWidth: true,
@@ -1070,15 +1069,29 @@ GmailCredsForm = React.createFactory(React.createClass({
           return _this.onChange('password', event, value);
         };
       })(this)
-    }), React.createElement(RaisedButton, {
+    }), !this.props.data.isConnectionError ? div({
+      className: 'selectFieldWrapper'
+    }, React.createElement(SelectField, {
+      ref: 'clientSelector',
+      menuItems: this.props.data.clients,
+      valueMember: 'ID',
+      displayMember: 'name',
+      floatingLabelText: 'Client',
+      defaultValue: (ref2 = this.props.data.pipelinerCreds) != null ? (ref3 = ref2.selectedClient) != null ? ref3.name : void 0 : void 0,
+      value: this.state.selectedClient,
+      onChange: this.onSelectClient,
+      fullWidth: true
+    })) : void 0, React.createElement(RaisedButton, {
       label: 'Save',
       onClick: (function(_this) {
         return function() {
-          var base, ref3;
+          var base, ref4;
           if (typeof (base = _this.props.actions).onSaveCreds === "function") {
             base.onSaveCreds(extend({}, _this.state));
           }
-          return (ref3 = _this.props.reactActions) != null ? ref3.backToMain() : void 0;
+          if (_this.state.selectedClient != null) {
+            return (ref4 = _this.props.reactActions) != null ? ref4.backToMain() : void 0;
+          }
         };
       })(this)
     }), div({
@@ -1088,7 +1101,7 @@ GmailCredsForm = React.createFactory(React.createClass({
       }
     }, ''), React.createElement(RaisedButton, {
       label: 'Cancel',
-      onClick: (ref3 = this.props.reactActions) != null ? ref3.backToMain : void 0
+      onClick: (ref4 = this.props.reactActions) != null ? ref4.backToMain : void 0
     })), div({
       className: 'col span_1_of_2'
     }, React.createElement(TextField, {
@@ -43527,7 +43540,7 @@ module.exports = {
     app.container = createContainer();
     app.messageContainer = document.createElement('div');
     app.renderMessage('');
-    return app.getPipelinerCreds().then(function() {
+    return app.getPipelinerCreds().then(function(creds) {
       return app.actions.onStart();
     })["finally"](function() {
       var elementObserver;
@@ -43552,8 +43565,11 @@ module.exports = {
         mailId = (ref = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)) != null ? ref[1] : void 0;
         if (mailId) {
           participants = app.gMailAPI.getParticipants(parent);
+          console.log(participants);
           app.pipelinerAPI.findContacts(participants).then(function(contacts) {
             return app.actions.onUpdateContacts(contacts);
+          })["catch"](function(error) {
+            return console.log('app.pipelinerAPI.findContacts onError', error);
           });
           app.exapi.getCompanyData("Lead_" + mailId).then(function(lead) {
             return app.actions.onLeadInfoUpdated(lead);

@@ -6,10 +6,12 @@ Q = require 'q'
 extend = require 'react/lib/Object.assign'
 
 module.exports = class ApiRequest
-  constructor: ({api, getAPIAddress, getAuthorizationHeader}) ->
+  constructor: ({api, getAPIAddress, getAuthorizationHeader, processResponse, processError}) ->
     @_api = api
     @_getAPIAddress = getAPIAddress
     @_getAuthorizationHeader = getAuthorizationHeader
+    @_processResponse = processResponse
+    @_processError = processError
 
   get: (path, data) ->
     if data?
@@ -43,10 +45,10 @@ module.exports = class ApiRequest
 
       @_api.proxy.jQueryAjax url, '', requestOptions, (error, response) =>
         if error
-          error = @processError(error) if @processError
+          error = @_processError(error) if @_processError
           deferred.reject error
         else
-          response = @processResponse(response) if @processResponse
+          response = @_processResponse(response) if @_processResponse
           deferred.resolve response
 
       deferred.promise
