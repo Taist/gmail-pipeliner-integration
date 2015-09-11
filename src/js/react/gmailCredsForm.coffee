@@ -61,7 +61,7 @@ GmailCredsForm = React.createFactory React.createClass
       else
         if not @props.data.pipelinerCreds?.selectedClient?
           div { style: backgroundColor: mui.Styles.Colors.yellow200, padding: 16 },
-            'Please select pipeliner client'
+            'Please choose Client'
 
       div { className: 'section group' },
 

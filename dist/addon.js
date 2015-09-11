@@ -1048,7 +1048,7 @@ GmailCredsForm = React.createFactory(React.createClass({
         backgroundColor: mui.Styles.Colors.yellow200,
         padding: 16
       }
-    }, 'Please select pipeliner client') : void 0, div({
+    }, 'Please choose Client') : void 0, div({
       className: 'section group'
     }, div({
       className: 'col span_1_of_2'
