@@ -2,6 +2,8 @@ app = require './app'
 
 Q = require 'q'
 
+xmlHttpProxy = require './helpers/xmlHttpProxy'
+
 fixMaterialUIStyles = ->
   #fixes internal issues of Material UI
   #TODO: remove when it becomes fixed in Material UI itself
@@ -33,6 +35,44 @@ createContainer = ->
 
   return container
 
+_pipelinerButton = null
+getPipelinerButton = (donorButton) ->
+
+  unless _pipelinerButton
+    button = document.createElement 'div'
+    button.style.display = 'inline-block'
+    button.innerText = 'Pipeliner'
+    # button.style.position = 'absolute'
+    button.className = donorButton.className
+    button.onclick = ->
+      app.container.style.display = 'block'
+    _pipelinerButton = button
+
+  return _pipelinerButton
+
+onChangeThead = (mailId) ->
+    container = document.querySelector('[gh="mtb"]').parentNode;
+    container.appendChild app.container
+    container.appendChild app.messageContainer
+
+    if mailId
+      selector = 'table[role="presentation"]>tr>td:first-child'
+      parent = document.querySelector selector
+
+      participants = app.gMailAPI.getParticipants parent
+
+      app.pipelinerAPI.findContacts participants
+      .then (contacts) ->
+        app.actions.onUpdateContacts contacts
+      .catch (error) ->
+        console.log 'app.pipelinerAPI.findContacts onError', error
+
+      app.exapi.getCompanyData "Lead_#{mailId}"
+      .then (lead) ->
+        app.actions.onLeadInfoUpdated lead
+
+    app.actions.onChangeMail participants
+
 module.exports =
   start: (_taistApi, entryPoint) ->
     fixMaterialUIStyles()
@@ -55,6 +95,17 @@ module.exports =
     #VR FOR DEVELOPMENT ONLY
     #app.container.style.display = 'block'
 
+    responseHandler = (request) ->
+      url = request.responseURL;
+      matches = url.match /&view=ad.*&th=([a-f0-9]+)/i
+      if(threadId = matches?[1])
+        console.log matches, url, threadId
+        onChangeThead threadId
+
+
+    targetWindow = document.getElementById("js_frame").contentDocument.defaultView;
+    xmlHttpProxy.onRequestFinish {window: targetWindow, responseHandler}
+
     app.getPipelinerCreds()
 
     .then (creds) ->
@@ -62,43 +113,16 @@ module.exports =
 
     .finally () ->
       elementObserver = new DOMObserver()
+
+      # fix for column width of material-ui tables
       elementObserver.waitElement '.changeCheckboxTdWidth .mui-table-row-column input', (checkbox) ->
         checkbox.parentNode.parentNode.style.width = '24px'
 
+      elementObserver.waitElement '[gh="mtb"]>div [role="button"]:first-child', (donorButton) ->
+        donorButton.parentNode.appendChild getPipelinerButton donorButton
+
       elementObserver.waitElement 'table[role="presentation"]>tr>td:first-child', (parent) ->
-        parent.insertBefore app.container, parent.querySelector 'div'
-        parent.insertBefore app.messageContainer, parent.querySelector 'div'
-
-        buttonsContainer = document.querySelector '[gh="mtb"]>div'
-        donorButton = buttonsContainer.querySelector '[role="button"]'
-
-        button = document.createElement 'div'
-        button.style.display = 'inline-block'
-        button.innerText = 'Pipeliner'
-        button.className = donorButton.className
-        button.onclick = ->
-          app.container.style.display = 'block'
-
-        buttonsContainer.appendChild button
-
-        # buttonsContainer.appendChild app.container
-        # buttonsContainer.appendChild app.messageContainer
-
-        mailId = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)?[1]
-        if mailId
-          participants = app.gMailAPI.getParticipants parent
-
-          app.pipelinerAPI.findContacts participants
-          .then (contacts) ->
-            app.actions.onUpdateContacts contacts
-          .catch (error) ->
-            console.log 'app.pipelinerAPI.findContacts onError', error
-
-          app.exapi.getCompanyData "Lead_#{mailId}"
-          .then (lead) ->
-            app.actions.onLeadInfoUpdated lead
-
-        app.actions.onChangeMail participants
+        #do nothing
 
     .catch (err) ->
       app.renderMessage err
