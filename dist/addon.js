@@ -955,7 +955,7 @@ GmailContactForm = React.createFactory(React.createClass({
       className: 'section group'
     }, div({
       className: 'col span_1_of_2'
-    }, React.createElement(TextField, {
+    }, div({}, React.createElement(TextField, {
       floatingLabelText: "First Name",
       value: this.state.firstName,
       fullWidth: true,
@@ -964,7 +964,7 @@ GmailContactForm = React.createFactory(React.createClass({
           return _this.onChange('firstName', event, value);
         };
       })(this)
-    }), React.createElement(TextField, {
+    })), div({}, React.createElement(TextField, {
       floatingLabelText: "Email",
       value: this.state.clientEmail,
       fullWidth: true,
@@ -974,9 +974,9 @@ GmailContactForm = React.createFactory(React.createClass({
           return _this.onChange('clientEmail', event, value);
         };
       })(this)
-    })), div({
+    }))), div({
       className: 'col span_1_of_2'
-    }, React.createElement(TextField, {
+    }, div({}, React.createElement(TextField, {
       floatingLabelText: "Last Name",
       value: this.state.lastName,
       fullWidth: true,
@@ -985,7 +985,7 @@ GmailContactForm = React.createFactory(React.createClass({
           return _this.onChange('lastName', event, value);
         };
       })(this)
-    }), React.createElement(TextField, {
+    })), div({}, React.createElement(TextField, {
       floatingLabelText: "Phone",
       value: this.state.clientPhone,
       fullWidth: true,
@@ -994,7 +994,7 @@ GmailContactForm = React.createFactory(React.createClass({
           return _this.onChange('clientPhone', event, value);
         };
       })(this)
-    }))), div({
+    })))), div({
       style: {
         textAlign: 'right'
       }
@@ -1096,7 +1096,7 @@ GmailCredsForm = React.createFactory(React.createClass({
       className: 'section group'
     }, div({
       className: 'col span_1_of_2'
-    }, React.createElement(TextField, {
+    }, div({}, React.createElement(TextField, {
       floatingLabelText: 'API Token',
       value: this.state.token,
       fullWidth: true,
@@ -1105,7 +1105,7 @@ GmailCredsForm = React.createFactory(React.createClass({
           return _this.onChange('token', event, value);
         };
       })(this)
-    }), React.createElement(TextField, {
+    })), div({}, React.createElement(TextField, {
       floatingLabelText: "API Password",
       value: this.state.password,
       fullWidth: true,
@@ -1114,7 +1114,7 @@ GmailCredsForm = React.createFactory(React.createClass({
           return _this.onChange('password', event, value);
         };
       })(this)
-    }), !this.props.data.isConnectionError ? div({
+    })), !this.props.data.isConnectionError ? div({
       className: 'selectFieldWrapper'
     }, React.createElement(SelectField, {
       ref: 'clientSelector',
@@ -1131,6 +1131,7 @@ GmailCredsForm = React.createFactory(React.createClass({
       onClick: (function(_this) {
         return function() {
           var base, ref4;
+          console.log(_this.state);
           if (typeof (base = _this.props.actions).onSaveCreds === "function") {
             base.onSaveCreds(extend({}, _this.state));
           }
@@ -1149,7 +1150,7 @@ GmailCredsForm = React.createFactory(React.createClass({
       onClick: (ref4 = this.props.reactActions) != null ? ref4.backToMain : void 0
     })), div({
       className: 'col span_1_of_2'
-    }, React.createElement(TextField, {
+    }, div({}, React.createElement(TextField, {
       floatingLabelText: "Space ID",
       value: this.state.spaceID,
       fullWidth: true,
@@ -1158,7 +1159,7 @@ GmailCredsForm = React.createFactory(React.createClass({
           return _this.onChange('spaceID', event, value);
         };
       })(this)
-    }), React.createElement(TextField, {
+    })), div({}, React.createElement(TextField, {
       floatingLabelText: "Service URL",
       value: this.state.serviceURL,
       fullWidth: true,
@@ -1167,7 +1168,7 @@ GmailCredsForm = React.createFactory(React.createClass({
           return _this.onChange('serviceURL', event, value);
         };
       })(this)
-    }))));
+    })))));
   }
 }));
 
@@ -1284,7 +1285,7 @@ GMailLead = React.createFactory(React.createClass({
       value: this.state.selectedSalesUnit,
       onChange: this.onSelectSalesUnit,
       fullWidth: true
-    })), React.createElement(TextField, {
+    })), div({}, React.createElement(TextField, {
       floatingLabelText: "Lead Name",
       value: this.state.leadName,
       fullWidth: true,
@@ -1293,7 +1294,7 @@ GMailLead = React.createFactory(React.createClass({
           return _this.onChange('leadName', event, value);
         };
       })(this)
-    })), div({
+    }))), div({
       className: 'col span_1_of_2'
     }, div({}, 'Pipeliner contacts'), div({
       className: 'changeCheckboxTdWidth'
@@ -1326,7 +1327,7 @@ GMailLead = React.createFactory(React.createClass({
 module.exports = GMailLead;
 
 },{"material-ui":48,"react":327}],11:[function(require,module,exports){
-var GMailMain, RaisedButton, React, Table, ThemeManager, a, div, h3, mui, path, ref, svg;
+var GMailMain, Paper, RaisedButton, React, Table, ThemeManager, a, div, h3, mui, path, ref, svg;
 
 React = require('react');
 
@@ -1338,7 +1339,7 @@ ThemeManager = new mui.Styles.ThemeManager();
 
 ThemeManager.setTheme(ThemeManager.types.LIGHT);
 
-Table = mui.Table, RaisedButton = mui.RaisedButton;
+Table = mui.Table, RaisedButton = mui.RaisedButton, Paper = mui.Paper;
 
 GMailMain = React.createFactory(React.createClass({
   childContextTypes: {
@@ -1369,8 +1370,14 @@ GMailMain = React.createFactory(React.createClass({
     ));
   },
   render: function() {
-    var ref1;
-    return div({}, h3({}, 'Contacts'), React.createElement(Table, {
+    var ref1, ref2;
+    return div({}, h3({}, 'Contacts'), ((ref1 = this.props.data.participants) != null ? ref1.length : void 0) < 1 ? React.createElement(Paper, {
+      zDepth: 3,
+      rounded: false,
+      style: {
+        padding: 16
+      }
+    }, div({}, 'Contacts not found on the current page')) : void 0, React.createElement(Table, {
       columnOrder: ['name', 'email', 'buttons'],
       showRowHover: true,
       stripeRows: true,
@@ -1409,7 +1416,7 @@ GMailMain = React.createFactory(React.createClass({
           };
         };
       })(this))
-    }), h3({}, 'Lead'), ((ref1 = this.props.data.attachedLead) != null ? ref1.ID : void 0) != null ? div({}, this.props.data.attachedLead.OPPORTUNITY_NAME, ' (', this.props.data.attachedLead.QUICK_CONTACT_NAME, ')') : React.createElement(RaisedButton, {
+    }), h3({}, 'Lead'), ((ref2 = this.props.data.attachedLead) != null ? ref2.ID : void 0) != null ? div({}, this.props.data.attachedLead.OPPORTUNITY_NAME, ' (', this.props.data.attachedLead.QUICK_CONTACT_NAME, ')') : React.createElement(RaisedButton, {
       label: 'Create lead',
       onClick: this.props.reactActions.onClickCreateLeadButton
     }));
@@ -43565,6 +43572,7 @@ injectTapEventPlugin = function() {
 createContainer = function() {
   var container;
   container = document.createElement('div');
+  container.className = 'taistContainer';
   container.style.position = 'absolute';
   container.style.width = '640px';
   container.style.zIndex = '4';
@@ -43598,6 +43606,13 @@ onChangeThead = function(mailId) {
   if (mailId) {
     selector = 'table[role="presentation"]>tr>td:first-child';
     parent = document.querySelector(selector);
+    if (!parent) {
+      selector = 'div[style]>div>div>table>tr>td:first-child';
+      parent = document.querySelector(selector);
+    }
+    if (!parent) {
+      return;
+    }
     participants = app.gMailAPI.getParticipants(parent);
     app.pipelinerAPI.findContacts(participants).then(function(contacts) {
       return app.actions.onUpdateContacts(contacts);
@@ -43607,13 +43622,13 @@ onChangeThead = function(mailId) {
     app.exapi.getCompanyData("Lead_" + mailId).then(function(lead) {
       return app.actions.onLeadInfoUpdated(lead);
     });
+    return app.actions.onChangeMail(participants);
   }
-  return app.actions.onChangeMail(participants);
 };
 
 module.exports = {
   start: function(_taistApi, entryPoint) {
-    var DOMObserver, PipelinerAPI, responseHandler, targetWindow;
+    var DOMObserver, PipelinerAPI, elementObserver, responseHandler, targetWindow;
     fixMaterialUIStyles();
     injectTapEventPlugin();
     window._app = app;
@@ -43639,18 +43654,24 @@ module.exports = {
       window: targetWindow,
       responseHandler: responseHandler
     });
+    elementObserver = new DOMObserver();
+    elementObserver.waitElement('.changeCheckboxTdWidth .mui-table-row-column input', function(checkbox) {
+      return checkbox.parentNode.parentNode.style.width = '24px';
+    });
+    elementObserver.waitElement('[gh="mtb"]>div [role="button"]:first-child', function(donorButton) {
+      var container, mailId, ref;
+      container = document.querySelector('[gh="mtb"]').parentNode;
+      container.appendChild(app.container);
+      container.appendChild(app.messageContainer);
+      app.render();
+      mailId = (ref = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)) != null ? ref[1] : void 0;
+      if (mailId) {
+        onChangeThead(mailId);
+      }
+      return donorButton.parentNode.appendChild(getPipelinerButton(donorButton));
+    });
     return app.getPipelinerCreds().then(function(creds) {
       return app.actions.onStart();
-    })["finally"](function() {
-      var elementObserver;
-      elementObserver = new DOMObserver();
-      elementObserver.waitElement('.changeCheckboxTdWidth .mui-table-row-column input', function(checkbox) {
-        return checkbox.parentNode.parentNode.style.width = '24px';
-      });
-      elementObserver.waitElement('[gh="mtb"]>div [role="button"]:first-child', function(donorButton) {
-        return donorButton.parentNode.appendChild(getPipelinerButton(donorButton));
-      });
-      return elementObserver.waitElement('table[role="presentation"]>tr>td:first-child', function(parent) {});
     })["catch"](function(err) {
       app.renderMessage(err);
       return console.log(err);

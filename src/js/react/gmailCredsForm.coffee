@@ -67,19 +67,21 @@ GmailCredsForm = React.createFactory React.createClass
 
         div { className: 'col span_1_of_2' },
 
-          React.createElement TextField, {
-            floatingLabelText: 'API Token'
-            value: @state.token
-            fullWidth: true
-            onChange: (event, value) => @onChange 'token', event, value
-          }
+          div {},
+            React.createElement TextField, {
+              floatingLabelText: 'API Token'
+              value: @state.token
+              fullWidth: true
+              onChange: (event, value) => @onChange 'token', event, value
+            }
 
-          React.createElement TextField, {
-            floatingLabelText: "API Password"
-            value: @state.password
-            fullWidth: true
-            onChange: (event, value) => @onChange 'password', event, value
-          }
+          div {},
+            React.createElement TextField, {
+              floatingLabelText: "API Password"
+              value: @state.password
+              fullWidth: true
+              onChange: (event, value) => @onChange 'password', event, value
+            }
 
           if(!@props.data.isConnectionError)
             div { className: 'selectFieldWrapper' },
@@ -98,6 +100,7 @@ GmailCredsForm = React.createFactory React.createClass
           React.createElement RaisedButton, {
             label: 'Save'
             onClick: =>
+              console.log @state
               @props.actions.onSaveCreds? extend {}, @state
               if @state.selectedClient?
                 @props.reactActions?.backToMain()
@@ -111,18 +114,20 @@ GmailCredsForm = React.createFactory React.createClass
           }
 
         div { className: 'col span_1_of_2' },
-          React.createElement TextField, {
-            floatingLabelText: "Space ID"
-            value: @state.spaceID
-            fullWidth: true
-            onChange: (event, value) => @onChange 'spaceID', event, value
-          }
+          div {},
+            React.createElement TextField, {
+              floatingLabelText: "Space ID"
+              value: @state.spaceID
+              fullWidth: true
+              onChange: (event, value) => @onChange 'spaceID', event, value
+            }
 
-          React.createElement TextField, {
-            floatingLabelText: "Service URL"
-            value: @state.serviceURL
-            fullWidth: true
-            onChange: (event, value) => @onChange 'serviceURL', event, value
-          }
+          div {},
+            React.createElement TextField, {
+              floatingLabelText: "Service URL"
+              value: @state.serviceURL
+              fullWidth: true
+              onChange: (event, value) => @onChange 'serviceURL', event, value
+            }
 
 module.exports = GmailCredsForm

@@ -6,7 +6,7 @@ mui = require 'material-ui'
 ThemeManager = new mui.Styles.ThemeManager()
 ThemeManager.setTheme ThemeManager.types.LIGHT
 
-{ Table, RaisedButton } = mui
+{ Table, RaisedButton, Paper } = mui
 
 GMailMain = React.createFactory React.createClass
   #needed for mui ThemeManager
@@ -29,6 +29,16 @@ GMailMain = React.createFactory React.createClass
   render: () ->
     div {},
       h3 {}, 'Contacts'
+
+      if @props.data.participants?.length < 1
+        React.createElement Paper, {
+          zDepth: 3
+          rounded: false
+          style:
+            padding: 16
+        },
+          div {}, 'Contacts not found on the current page'
+
       React.createElement Table, {
         columnOrder: ['name', 'email', 'buttons']
         showRowHover: true

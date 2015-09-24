@@ -27,6 +27,7 @@ injectTapEventPlugin = ->
 
 createContainer = ->
   container = document.createElement 'div'
+  container.className = 'taistContainer'
   container.style.position = 'absolute'
   container.style.width = '640px'
   container.style.zIndex = '4'
@@ -56,8 +57,16 @@ onChangeThead = (mailId) ->
     container.appendChild app.messageContainer
 
     if mailId
+
       selector = 'table[role="presentation"]>tr>td:first-child'
       parent = document.querySelector selector
+
+      unless parent
+        selector = 'div[style]>div>div>table>tr>td:first-child'
+        parent = document.querySelector selector
+
+      unless parent
+        return
 
       participants = app.gMailAPI.getParticipants parent
 
@@ -71,7 +80,7 @@ onChangeThead = (mailId) ->
       .then (lead) ->
         app.actions.onLeadInfoUpdated lead
 
-    app.actions.onChangeMail participants
+      app.actions.onChangeMail participants
 
 module.exports =
   start: (_taistApi, entryPoint) ->
@@ -106,23 +115,28 @@ module.exports =
     targetWindow = document.getElementById("js_frame").contentDocument.defaultView;
     xmlHttpProxy.onRequestFinish {window: targetWindow, responseHandler}
 
+    elementObserver = new DOMObserver()
+
+    # fix for column width of material-ui tables
+    elementObserver.waitElement '.changeCheckboxTdWidth .mui-table-row-column input', (checkbox) ->
+      checkbox.parentNode.parentNode.style.width = '24px'
+
+    elementObserver.waitElement '[gh="mtb"]>div [role="button"]:first-child', (donorButton) ->
+      container = document.querySelector('[gh="mtb"]').parentNode;
+      container.appendChild app.container
+      container.appendChild app.messageContainer
+      app.render()
+
+      mailId = location.hash.match(/(?:#[a-z]+\/)([a-z0-9]+)/i)?[1]
+      if mailId then onChangeThead mailId
+
+      donorButton.parentNode.appendChild getPipelinerButton donorButton
+
+
     app.getPipelinerCreds()
 
     .then (creds) ->
       app.actions.onStart()
-
-    .finally () ->
-      elementObserver = new DOMObserver()
-
-      # fix for column width of material-ui tables
-      elementObserver.waitElement '.changeCheckboxTdWidth .mui-table-row-column input', (checkbox) ->
-        checkbox.parentNode.parentNode.style.width = '24px'
-
-      elementObserver.waitElement '[gh="mtb"]>div [role="button"]:first-child', (donorButton) ->
-        donorButton.parentNode.appendChild getPipelinerButton donorButton
-
-      elementObserver.waitElement 'table[role="presentation"]>tr>td:first-child', (parent) ->
-        #do nothing
 
     .catch (err) ->
       app.renderMessage err

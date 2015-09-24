@@ -91,12 +91,13 @@ GMailLead = React.createFactory React.createClass
               fullWidth: true
             }
 
-          React.createElement TextField, {
-            floatingLabelText: "Lead Name"
-            value: @state.leadName
-            fullWidth: true
-            onChange: (event, value) => @onChange 'leadName', event, value
-          }
+          div {},
+            React.createElement TextField, {
+              floatingLabelText: "Lead Name"
+              value: @state.leadName
+              fullWidth: true
+              onChange: (event, value) => @onChange 'leadName', event, value
+            }
 
         div { className: 'col span_1_of_2' },
           div {}, 'Pipeliner contacts'

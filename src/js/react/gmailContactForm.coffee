@@ -135,36 +135,40 @@ GmailContactForm = React.createFactory React.createClass
       div { className: 'section group' },
 
         div { className: 'col span_1_of_2' },
-          React.createElement TextField, {
-            floatingLabelText: "First Name"
-            value: @state.firstName
-            fullWidth: true
-            onChange: (event, value) => @onChange 'firstName', event, value
-          }
+          div {},
+            React.createElement TextField, {
+              floatingLabelText: "First Name"
+              value: @state.firstName
+              fullWidth: true
+              onChange: (event, value) => @onChange 'firstName', event, value
+            }
 
-          React.createElement TextField, {
-            floatingLabelText: "Email"
-            value: @state.clientEmail
-            fullWidth: true
-            disabled: true
-            onChange: (event, value) => @onChange 'clientEmail', event, value
-          }
+          div {},
+            React.createElement TextField, {
+              floatingLabelText: "Email"
+              value: @state.clientEmail
+              fullWidth: true
+              disabled: true
+              onChange: (event, value) => @onChange 'clientEmail', event, value
+            }
 
         div { className: 'col span_1_of_2' },
 
-          React.createElement TextField, {
-            floatingLabelText: "Last Name"
-            value: @state.lastName
-            fullWidth: true
-            onChange: (event, value) => @onChange 'lastName', event, value
-          }
+          div {},
+            React.createElement TextField, {
+              floatingLabelText: "Last Name"
+              value: @state.lastName
+              fullWidth: true
+              onChange: (event, value) => @onChange 'lastName', event, value
+            }
 
-          React.createElement TextField, {
-            floatingLabelText: "Phone"
-            value: @state.clientPhone
-            fullWidth: true
-            onChange: (event, value) => @onChange 'clientPhone', event, value
-          }
+          div {},
+            React.createElement TextField, {
+              floatingLabelText: "Phone"
+              value: @state.clientPhone
+              fullWidth: true
+              onChange: (event, value) => @onChange 'clientPhone', event, value
+            }
 
       div { style: textAlign: 'right' },
 
